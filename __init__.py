@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Mycroft Core.  If not, see <http://www.gnu.org/licenses/>.
 import time
+import math
 
 from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
@@ -130,15 +131,6 @@ class WeatherSkill(MycroftSkill):
             weather = self.owm.weather_at_place(location).get_weather()
             data = self.__build_data_condition(pretty_location, weather)
 
-            # BUG:  OWM is commonly reporting incorrect high/low data in the
-            # "current" request.  So grab that from the forecast API call.
-            weather_forecast = self.owm.three_hours_forecast(
-                location).get_forecast().get_weathers()[0]
-            data_forecast = self.__build_data_condition(pretty_location,
-                                                        weather_forecast)
-            data["temp_min"] = data_forecast["temp_min"]
-            data["temp_max"] = data_forecast["temp_max"]
-
             weather_code = str(weather.get_weather_icon_name())
             img_code = self.CODES[weather_code]
             temp = data['temp_current']
@@ -240,7 +232,7 @@ class WeatherSkill(MycroftSkill):
 
     def __get_temperature(self, weather, key):
         unit = self.__get_temperature_unit()
-        return str(int(round(weather.get_temperature(unit)[key])))
+        return str(int(math.floor(weather.get_temperature(unit)[key])))
 
     def stop(self):
         pass
