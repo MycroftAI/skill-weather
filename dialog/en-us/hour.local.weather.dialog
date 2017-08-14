@@ -1,2 +1,4 @@
-In the next few hours, it will be {{condition}}, with a high of {{temp_max}} and a low of {{temp_min}}
-The will be a high of {{temp_max}} and a low of {{temp_min}}, with {{condition}} conditions in the following hours
+It will be {{condition}}, with temperatures near {{temp_max}}
+Later it will be {{condition}} and around {{temp_max}} degrees
+Later it will be {{condition}} and {{temp_max}} degrees
+Around {{temp_max}} degrees with {{condition}} conditions
