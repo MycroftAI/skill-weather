@@ -148,7 +148,8 @@ class WeatherSkill(MycroftSkill):
 
             # Get forecast for the day
             # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
-            forecastWeather = self.__get_forecast(today,
+            # Set time to 12 instead of 00 to accomodate for timezones
+            forecastWeather = self.__get_forecast(today.replace(hour=12),
                                                   report['full_location'])
             LOG.debug("Forecast: " + str(forecastWeather.to_JSON()))
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
