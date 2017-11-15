@@ -129,10 +129,17 @@ class WeatherSkill(MycroftSkill):
 
         # Use Mycroft proxy if no private key provided
         key = self.config.get('api_key')
-        if key and not self.config.get('proxy'):
-            self.owm = OWM(key)
-        else:
-            self.owm = OWMApi()
+
+        # TODO: Remove lat,lon parameters from the OWMApi()
+        #       methods and implement _at_coords() versions
+        #       instead to make the interfaces compatible
+        #       again.
+        #
+        # if key and not self.config.get('proxy'):
+        #     self.owm = OWM(key)
+        # else:
+        #     self.owm = OWMApi()
+        self.owm = OWMApi()
 
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("CurrentWeatherIntent").require(
