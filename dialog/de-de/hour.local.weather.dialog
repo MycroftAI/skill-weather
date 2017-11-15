@@ -1,0 +1,4 @@
+es wird {{condition}}, mit temperaturen um {{temp_max}} grad
+Später wird es {{condition}} um die {{temp_max}} grad
+Später wird es  {{condition}} und {{temp_max}} grad
+um die {{temp_max}} grad bei {{condition}}
