@@ -1,0 +1,2 @@
+{{condition}} am {{day}} wird {{value}}
+am {{day}} nennt die Vorhersage für {{condition}} {{value}}
