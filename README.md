@@ -1,13 +1,21 @@
-## weather skill
-Gives back information on the weather
+## Weather
+Weather conditions and forecasts
 
 ## Description 
-Gives back information on the default location for weather or if you specify a location will look it up for that location.
+Get weather conditions, forecasts, expected precipitation and more!  By default it will tell
+you about your default location, or you can ask for other cities around the world.  Current
+conditions and weather forecasts come from [Open Weather Map](https://openweathermap.org).
+
+For devices with screen support, conditions are briefly shown.
 
 ## Examples 
-* "what is the weather"
-* "what is the weather tommorow"
-* "what is the weather in san francisco"
+* "What is the weather?"
+* "What is the forecast tommorow?"
+* "What is the weather going to be like Tuesday?"
+* "What is the weather in San Francisco?"
+* "When will it rain next?"
+* "How windy is it?"
+* "What's the humidity?"
 
 ## Credits 
-MycroftAI
+Mycroft AI
