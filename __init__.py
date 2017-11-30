@@ -22,6 +22,7 @@ from multi_key_dict import multi_key_dict
 from mycroft.dialog import DialogLoader
 from mycroft.api import Api
 from mycroft.skills.core import MycroftSkill, intent_handler
+from mycroft.util.log import LOG
 from mycroft.util.parse import extract_datetime
 from mycroft.util.format import nice_number
 from pyowm import OWM
@@ -147,13 +148,8 @@ class WeatherSkill(MycroftSkill):
             today = extract_datetime(" ")[0]
             when = extract_datetime(message.data.get('utterance'))[0]
             if today != when:
-                self.log.info("Doing a forecast"+str(today)+" "+str(when))
+                LOG.info("Doing a forecast" + str(today) + " " + str(when))
                 return self.handle_forecast(message)
-
-            # TODO: Look at using lat-lon instead of city name for
-            # better results in more areas.  E.g.:
-            # weather = self.owm.weather_around_coords(-22.57, -43.12,
-            #                  limit=2).get_weather()
 
             report = self.__initialize_report(message)
 
@@ -174,7 +170,6 @@ class WeatherSkill(MycroftSkill):
                 report['full_location'],
                 report['lat'],
                 report['lon'])
-            self.log.debug("Forecast: " + str(forecastWeather.to_JSON()))
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
 
@@ -182,7 +177,7 @@ class WeatherSkill(MycroftSkill):
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            self.log.error("Error: {0}".format(e))
+            LOG.error("Error: {0}".format(e))
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("WeatherForecast").require(
@@ -222,7 +217,7 @@ class WeatherSkill(MycroftSkill):
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            self.log.error("Error: {0}".format(e))
+            LOG.error("Error: {0}".format(e))
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("NextPrecipitationIntent").require(
@@ -233,9 +228,6 @@ class WeatherSkill(MycroftSkill):
         # Get a date from spoken request
         today = extract_datetime(" ")[0]
         when = extract_datetime(message.data.get('utterance'))[0]
-
-        self.log.info(str(today))
-        self.log.info(str(when))
 
         # search the forecast for precipitation
         for weather in self.owm.daily_forecast(
@@ -251,7 +243,6 @@ class WeatherSkill(MycroftSkill):
                 if forecastDate.date() != whenGMT.date():
                     continue
 
-            self.log.info(str(weather.to_JSON()))
             rain = weather.get_rain()
             if rain and rain["all"] > 0:
                 data = {
@@ -297,8 +288,6 @@ class WeatherSkill(MycroftSkill):
                 report['lat'],
                 report['lon']).get_forecast().get_weathers()[0]
 
-            self.log.info("forecast: " + str(forecastWeather.to_JSON()))
-
             # NOTE: The 3-hour forecast uses different temperature labels,
             # temp, temp_min and temp_max.
             report['temp'] = self.__get_temperature(forecastWeather, 'temp')
@@ -308,13 +297,12 @@ class WeatherSkill(MycroftSkill):
                                                         'temp_max')
             report['condition'] = forecastWeather.get_detailed_status()
             report['icon'] = forecastWeather.get_weather_icon_name()
-            self.log.info("report: " + str(report))
 
             self.__report_weather("hour", report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            self.log.error("Error: {0}".format(e))
+            LOG.error("Error: {0}".format(e))
 
     # Handle: How humid is it?
     @intent_handler(IntentBuilder("HowHumid").require(
