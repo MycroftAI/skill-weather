@@ -14,7 +14,7 @@
 
 import time
 import pytz
-from datetime import datetime
+from datetime import datetime, timedelta
 import mycroft.audio
 
 from adapt.intent import IntentBuilder
@@ -179,15 +179,9 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.error("Error: {0}".format(e))
 
-    # Handle: What is the weather forecast?
-    @intent_handler(IntentBuilder("WeatherForecast").require(
-        "Forecast").optionally("Location").build())
-    def handle_forecast(self, message):
+    def __forecast_helper(self, when, message):
         try:
             report = self.__initialize_report(message)
-
-            # Get a date from spoken request
-            when = extract_datetime(message.data.get('utterance'))[0]
 
             # Get forecast for the day
             forecastWeather = self.__get_forecast(
@@ -218,6 +212,38 @@ class WeatherSkill(MycroftSkill):
             self.__api_error(e)
         except Exception as e:
             LOG.error("Error: {0}".format(e))
+
+    # Handle: What is the weather forecast?
+    @intent_handler(IntentBuilder("WeatherForecast").require(
+        "Forecast").optionally("Location").build())
+    def handle_forecast(self, message):
+        # Get a date from spoken request
+        when = extract_datetime(message.data.get('utterance'))[0]
+        self.__forecast_helper(when, message)
+
+    def __weekend_forecast_helper(self, start, message):
+        if start.weekday() == 6:
+            return self.__forecast_helper(start, message)
+        saturday = start + timedelta((5 - start.weekday()) % 7)
+        sunday = saturday + timedelta(1)
+        self.__forecast_helper(saturday, message)
+        self.__forecast_helper(sunday, message)
+
+    # Handle: What is the weather forecast this weekend?
+    @intent_handler(IntentBuilder("WeatherForecastThisWeekend").require(
+        "Forecast").require("This.Weekend").optionally("Location").build())
+    def handle_forecast_this_weekend(self, message):
+        self.__weekend_forecast_helper(datetime.today(), message)
+
+    # Handle: What is the weather forecast next weekend?
+    @intent_handler(IntentBuilder("WeatherForecastNextWeekend").require(
+        "Forecast").require("Next.Weekend").optionally("Location").build())
+    def handle_forecast_next_weekend(self, message):
+        start = datetime.today()
+        # We only add 5 because, ideally, asking for next weekend's forecast on Sunday should return all weekend's weather.
+        start += timedelta(5)
+        self.__weekend_forecast_helper(start, message)
+
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("NextPrecipitationIntent").require(
