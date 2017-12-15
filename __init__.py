@@ -505,6 +505,7 @@ class WeatherSkill(MycroftSkill):
         # Just show the icons while still speaking
         mycroft.audio.wait_while_speaking()
         self.enclosure.activate_mouth_events()
+        self.enclosure.mouth_reset()
 
     def __report_condition(self, name, value, when):
         # Report a specific value
