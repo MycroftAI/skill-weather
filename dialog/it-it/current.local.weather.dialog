@@ -1,0 +1,4 @@
+Attualmente è {{condition}} e {{temp}} gradi {{scale}}. La previsione odierna prevede un massimo di {{temp_max}} e un minimo di {{temp_min}}.
+Al momento è {{condition}} e {{temp}} gradi. La previsione odierna prevede un massimo di {{temp_max}} e un minimo di {{temp_min}}.
+Al momento è {{condition}} e {{temp}} gradi, per un massimo di {{temp_max}} e un minimo di {{temp_min}}.
+Con un massimo di {{temp_max}} e un minimo di {{temp_min}}, a {{location}} è {{condition}} ed attualmente {{temp}} gradi.
