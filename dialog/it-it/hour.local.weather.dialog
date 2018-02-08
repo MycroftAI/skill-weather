@@ -1,0 +1,4 @@
+Sarà {{condition}}, con temperature vicine a {{temp_max}}
+Più tardi sarà {{condition}} e intorno a {{temp_max}} gradi
+Più tardi sarà {{condition}} con {{temp_max}} gradi
+Intorno ai {{temp_max}} gradi con condizioni {{condition}}
