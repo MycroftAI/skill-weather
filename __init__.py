@@ -222,13 +222,19 @@ class WeatherSkill(MycroftSkill):
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("NextPrecipitationIntent").require(
         "Next").require("Precipitation").optionally("Location").build())
+    @intent_handler(IntentBuilder("CurrentRainSnowIntent").require(
+        "Query").require("Precipitation").optionally("Location").build())
     def handle_next_precipitation(self, message):
         report = self.__initialize_report(message)
 
         # Get a date from spoken request
-        today = extract_datetime(" ")[0]
+        today = extract_datetime(" ")[0] # this is None
         when = extract_datetime(message.data.get('utterance'))[0]
-
+        if today == when:
+            forecasting = 'today'
+        else:
+            forecasting = 'expected'
+        
         # search the forecast for precipitation
         for weather in self.owm.daily_forecast(
                 report['full_location'],
@@ -236,7 +242,8 @@ class WeatherSkill(MycroftSkill):
                 report['lon']).get_forecast().get_weathers():
 
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
-
+			
+			# TODO: "will it rain tomorrow" returns forecast for today, if it rains today
             if when != today:
                 # User asked about a specific date, is this it?
                 whenGMT = self.__to_GMT(when)
@@ -255,7 +262,7 @@ class WeatherSkill(MycroftSkill):
                 elif rain["all"] > 20:
                     data["modifier"] = self.__translate("heavy")
 
-                self.speak_dialog("precipitation expected", data)
+                self.speak_dialog("precipitation." + forecasting, data)
                 return
 
             snow = weather.get_snow()
@@ -270,10 +277,10 @@ class WeatherSkill(MycroftSkill):
                 elif snow["all"] > 20:
                     data["modifier"] = self.__translate("heavy")
 
-                self.speak_dialog("precipitation expected", data)
+                self.speak_dialog("precipitation." + forecasting, data)
                 return
 
-        self.speak_dialog("no precipitation expected", report)
+        self.speak_dialog("precipitation.not_expected", report)
 
     # Handle: What's the weather later?
     @intent_handler(IntentBuilder("NextHoursWeatherIntent").require(
