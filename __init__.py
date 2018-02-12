@@ -231,9 +231,16 @@ class WeatherSkill(MycroftSkill):
         today = extract_datetime(" ")[0] # this is None
         when = extract_datetime(message.data.get('utterance'))[0]
         if today == when:
-            forecasting = 'today'
+            timeframe = 'today'
         else:
-            forecasting = 'expected'
+            timeframe = 'expected'
+        
+        data = {
+            "modifier": "",
+            "precip": "none",
+            "day": self.__to_day(when),
+            "location" : report['location']
+        }
         
         # search the forecast for precipitation
         for weather in self.owm.daily_forecast(
@@ -242,8 +249,8 @@ class WeatherSkill(MycroftSkill):
                 report['lon']).get_forecast().get_weathers():
 
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
-			
-			# TODO: "will it rain tomorrow" returns forecast for today, if it rains today
+            
+            # TODO: "will it rain tomorrow" returns forecast for today, if it rains today
             if when != today:
                 # User asked about a specific date, is this it?
                 whenGMT = self.__to_GMT(when)
@@ -252,35 +259,27 @@ class WeatherSkill(MycroftSkill):
 
             rain = weather.get_rain()
             if rain and rain["all"] > 0:
-                data = {
-                    "modifier": "",
-                    "precip": "rain",
-                    "day": self.__to_day(forecastDate)
-                }
+                data["precip"] = "rain"
+                data["day"] = self.__to_day(forecastDate)
                 if rain["all"] < 10:
                     data["modifier"] = self.__translate("light")
                 elif rain["all"] > 20:
                     data["modifier"] = self.__translate("heavy")
 
-                self.speak_dialog("precipitation." + forecasting, data)
-                return
+                break
 
             snow = weather.get_snow()
             if snow and snow["all"] > 0:
-                data = {
-                    "modifier": "",
-                    "precip": "snow",
-                    "day": self.__to_day(forecastDate)
-                }
+                data["precip"] = "snow"
+                data["day"] = self.__to_day(forecastDate)
                 if snow["all"] < 10:
                     data["modifier"] = self.__translate("light")
                 elif snow["all"] > 20:
                     data["modifier"] = self.__translate("heavy")
 
-                self.speak_dialog("precipitation." + forecasting, data)
-                return
-
-        self.speak_dialog("precipitation.not_expected", report)
+                break
+                
+        self.__report_precipitation(timeframe, data)
 
     # Handle: What's the weather later?
     @intent_handler(IntentBuilder("NextHoursWeatherIntent").require(
@@ -492,6 +491,21 @@ class WeatherSkill(MycroftSkill):
             'full_location': location,
             'scale': self.__get_temperature_unit()
         }
+        
+    def __report_precipitation(self, timeframe, data):
+        if data['precip'] == "none":
+            expected = ".not_expected"
+        elif timeframe == "today":
+            expected = ".today"
+        else:
+            expected = ".expected"
+
+        if data['location'] == self.location_pretty:
+            local = ".local"
+        else:
+            local = ""
+        
+        self.speak_dialog("precipitation" + expected + local, data)
 
     def __report_weather(self, timeframe, report):
         # Tell the weather to the user (verbal and visual)
