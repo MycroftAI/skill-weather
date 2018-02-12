@@ -1,2 +1,2 @@
-{{modifier}} {{precip}} ist heute zu erwarten
-Heute fällt {{modifier}} {{precip}}
+{{modifier}} {{precip}} ist heute in {{location}} zu erwarten
+Heute fällt in {{location}} {{modifier}} {{precip}}
