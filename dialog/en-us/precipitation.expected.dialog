@@ -1,2 +1,3 @@
-{{modifier}} {{precip}} is expected on {{day}}
-The forecast calls for {{modifier}} {{precip}} on {{day}}
+{{modifier}} {{precip}} is expected in {{location}} on {{day}}
+{{modifier}} {{precip}} is expected on {{day}} for {{location}}
+The forecast calls for {{modifier}} {{precip}} on {{day}} for {{location}}
