@@ -1,2 +1,4 @@
 No precipitation is in the forecast
 None is forecasted
+No precipitation is in the forecast for {{location}}
+None is forecasted for {{location}}
