@@ -61,11 +61,8 @@ class OWMApi(Api):
     def get_data(self, response):
         return response.text
 
-    def weather_at_place(self, name, lat, lon):
-        if lat and lon:
-            q = {"lat": lat, "lon": lon}
-        else:
-            q = {"q": name}
+    def weather_at_place(self, name):
+        q = {"q": name}
 
         data = self.request({
             "path": "/weather",
@@ -73,11 +70,17 @@ class OWMApi(Api):
         })
         return self.observation.parse_JSON(data)
 
-    def three_hours_forecast(self, name, lat, lon):
-        if lat and lon:
-            q = {"lat": lat, "lon": lon}
-        else:
-            q = {"q": name}
+    def weather_at_coords(self, lat, lon):
+        q = {"lat": lat, "lon": lon}
+
+        data = self.request({
+            "path": "/weather",
+            "query": q
+        })
+        return self.observation.parse_JSON(data)
+
+    def three_hours_forecast(self, name):
+        q = {"q": name}
 
         data = self.request({
             "path": "/forecast",
@@ -85,11 +88,8 @@ class OWMApi(Api):
         })
         return self.to_forecast(data, "3h")
 
-    def daily_forecast(self, name, lat, lon, limit=None):
-        if lat and lon:
-            q = {"lat": lat, "lon": lon}
-        else:
-            q = {"q": name}
+    def daily_forecast(self, name, limit=None):
+        q = {"q": name}
 
         if limit is not None:
             q["cnt"] = limit
@@ -128,16 +128,10 @@ class WeatherSkill(MycroftSkill):
         # Use Mycroft proxy if no private key provided
         key = self.config.get('api_key')
 
-        # TODO: Remove lat,lon parameters from the OWMApi()
-        #       methods and implement _at_coords() versions
-        #       instead to make the interfaces compatible
-        #       again.
-        #
-        # if key and not self.config.get('proxy'):
-        #     self.owm = OWM(key)
-        # else:
-        #     self.owm = OWMApi()
-        self.owm = OWMApi()
+        if key and not self.config.get('proxy'):
+            self.owm = OWM(key)
+        else:
+            self.owm = OWMApi()
 
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("CurrentWeatherIntent").require(
@@ -154,9 +148,8 @@ class WeatherSkill(MycroftSkill):
             report = self.__initialize_report(message)
 
             # Get current conditions
-            currentWeather = self.owm.weather_at_place(
-                report['full_location'], report['lat'],
-                report['lon']).get_weather()
+            currentWeather = self.owm.weather_at_coords(
+                report['lat'], report['lon']).get_weather()
             report['condition'] = currentWeather.get_detailed_status()
             report['temp'] = self.__get_temperature(currentWeather, 'temp')
             report['icon'] = currentWeather.get_weather_icon_name()
@@ -167,9 +160,7 @@ class WeatherSkill(MycroftSkill):
             forecastWeather = self.__get_forecast(
                 today.replace(
                     hour=12),
-                report['full_location'],
-                report['lat'],
-                report['lon'])
+                report['full_location'])
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
 
@@ -191,7 +182,7 @@ class WeatherSkill(MycroftSkill):
 
             # Get forecast for the day
             forecastWeather = self.__get_forecast(
-                when, report['full_location'], report['lat'], report['lon'])
+                when, report['full_location'])
             if forecastWeather is None:
                 self.speak_dialog("no forecast", {'day': self.__to_day(when)})
                 return
@@ -231,9 +222,7 @@ class WeatherSkill(MycroftSkill):
 
         # search the forecast for precipitation
         for weather in self.owm.daily_forecast(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_forecast().get_weathers():
+                report['full_location']).get_forecast().get_weathers():
 
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
 
@@ -284,9 +273,7 @@ class WeatherSkill(MycroftSkill):
 
             # Get near-future forecast
             forecastWeather = self.owm.three_hours_forecast(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_forecast().get_weathers()[0]
+                report['full_location']).get_forecast().get_weathers()[0]
 
             # NOTE: The 3-hour forecast uses different temperature labels,
             # temp, temp_min and temp_max.
@@ -312,14 +299,12 @@ class WeatherSkill(MycroftSkill):
 
         when = extract_datetime(message.data.get('utterance'))[0]
         if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
+            weather = self.owm.weather_at_coords(
+                report['lat'], report['lon']).get_weather()
         else:
             # Get forecast for that day
             weather = self.__get_forecast(
-                when, report['full_location'], report['lat'], report['lon'])
+                when, report['full_location'])
         if not weather or weather.get_humidity() == 0:
             self.speak_dialog("do not know")
             return
@@ -335,14 +320,12 @@ class WeatherSkill(MycroftSkill):
 
         when = extract_datetime(message.data.get('utterance'))[0]
         if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
+            weather = self.owm.weather_at_coords(
+                report['lat'], report['lon']).get_weather()
         else:
             # Get forecast for that day
             weather = self.__get_forecast(
-                when, report['full_location'], report['lat'], report['lon'])
+                when, report['full_location'])
         if not weather or weather.get_wind() == 0:
             self.speak_dialog("do not know")
             return
@@ -399,14 +382,11 @@ class WeatherSkill(MycroftSkill):
 
         when = extract_datetime(message.data.get('utterance'))[0]
         if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
+            weather = self.owm.weather_at_coords(
+                report['lat'], report['lon']).get_weather()
         else:
             # Get forecast for that day
-            # weather = self.__get_forecast(when, report['full_location'],
-            #                               report['lat'], report['lon'])
+            # weather = self.__get_forecast(when, report['full_location'])
 
             # There appears to be a bug in OWM, it can't extract the sunrise/
             # sunset from forecast objects.  Look in to this later, but say
@@ -430,14 +410,11 @@ class WeatherSkill(MycroftSkill):
 
         when = extract_datetime(message.data.get('utterance'))[0]
         if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
+            weather = self.owm.weather_at_coords(
+                report['lat'], report['lon']).get_weather()
         else:
             # Get forecast for that day
-            # weather = self.__get_forecast(when, report['full_location'],
-            #                               report['lat'], report['lon'])
+            # weather = self.__get_forecast(when, report['full_location'])
 
             # There appears to be a bug in OWM, it can't extract the sunrise/
             # sunset from forecast objects.  Look in to this later, but say
@@ -519,14 +496,14 @@ class WeatherSkill(MycroftSkill):
             data["day"] = self.__to_day(when)
             self.speak_dialog("report.future.condition", data)
 
-    def __get_forecast(self, when, location, lat, lon):
+    def __get_forecast(self, when, location):
         # Return a forecast for the given day and location
 
         # convert time to GMT (forecast is in GMT)
         whenGMT = self.__to_GMT(when)
 
         # search for the requested date in the returned forecast data
-        forecasts = self.owm.daily_forecast(location, lat, lon).get_forecast()
+        forecasts = self.owm.daily_forecast(location).get_forecast()
         for weather in forecasts.get_weathers():
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
             if forecastDate.date() == whenGMT.date():
