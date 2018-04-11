@@ -19,6 +19,7 @@ import mycroft.audio
 
 from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
+
 from mycroft.dialog import DialogLoader
 from mycroft.api import Api
 from mycroft.skills.core import MycroftSkill, intent_handler
@@ -564,6 +565,7 @@ class WeatherSkill(MycroftSkill):
 
     def __api_error(self, e):
         if e.response.status_code == 401:
+            from mycroft import Message
             self.emitter.emit(Message("mycroft.not.paired"))
 
     def __to_day(self, when):
