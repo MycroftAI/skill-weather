@@ -1,7 +1,8 @@
 {
-  "utterance": "how's the weather",
+  "utterance": "what's the weather like",
   "intent_type": "CurrentWeatherIntent",
   "intent": {
-    "WeatherKeyword": "weather"
-  }
+    "Weather": "weather"
+  },
+  "expected_dialog": "current.local.weather"
 }
