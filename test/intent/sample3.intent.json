@@ -1,7 +1,8 @@
 {
   "utterance": "what is the weather going to be like tomorrow",
-  "intent_type": "NextDayWeatherIntent",
+  "intent_type": "CurrentWeatherIntent",
   "intent": {
-    "WeatherKeyword": "weather"
-  }
+    "Weather": "weather"
+  },
+  "expected_dialog": "forecast.local.weather"
 }
