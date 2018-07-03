@@ -1,4 +1,4 @@
-Es ist aktuell {{condition}} und {{temp}} Grad {{scale}}. Heute werden maximal {{temp_max}} und minimal {{temp_min}} Grad erwartet.
-Es ist aktuell {{condition}} und {{temp}} Grad. Die Temperatur heute wird zwischen {{temp_max}} und {{temp_min}} erwartet.
-Gerade ist {{condition}} und {{temp}} Grad, es soll heute maximal {{temp_max}} und minimal {{temp_min}} geben.
+Bei aktuell {{condition}} und {{temp}} Grad {{scale}}, werden maximal {{temp_max}} und minimal {{temp_min}} Grad erwartet.
+Es ist aktuell {{condition}} und {{temp}} Grad. Temperaturen werden zwischen {{temp_max}} und {{temp_min}} erwartet.
+Bei gerade {{condition}} und {{temp}} Grad, soll es heute maximal {{temp_max}} und minimal {{temp_min}} geben.
 Mit Temperaturen zwischen {{temp_max}} und {{temp_min}} ist zu rechnen, dazu hat {{location}} {{condition}} bei aktuell {{temp}} Grad.
