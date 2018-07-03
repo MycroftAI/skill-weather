@@ -158,7 +158,9 @@ class WeatherSkill(MycroftSkill):
             currentWeather = self.owm.weather_at_place(
                 report['full_location'], report['lat'],
                 report['lon']).get_weather()
-            report['condition'] = currentWeather.get_detailed_status()
+            #report['condition'] = currentWeather.get_detailed_status()
+            report['condition'] = self.__translate(
+                currentWeather.get_detailed_status(), False)
             report['temp'] = self.__get_temperature(currentWeather, 'temp')
             report['icon'] = currentWeather.get_weather_icon_name()
 
@@ -296,7 +298,9 @@ class WeatherSkill(MycroftSkill):
                                                         'temp_min')
             report['temp_max'] = self.__get_temperature(forecastWeather,
                                                         'temp_max')
-            report['condition'] = forecastWeather.get_detailed_status()
+            #report['condition'] = forecastWeather.get_detailed_status()
+            report['condition'] = self.__translate(
+                forecastWeather.get_detailed_status(), True)
             report['icon'] = forecastWeather.get_weather_icon_name()
 
             self.__report_weather("hour", report)
