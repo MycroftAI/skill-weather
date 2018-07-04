@@ -1,3 +1,3 @@
-Es gibt derzeit {{condition}} und {{temp}} Grad {{scale}} in {{location}}. Heute sind die Temperaturen zwischen {{temp_max}} und {{temp_min}} in {{location}}.
-Gerade jetzt gibt es {{condition}} bei {{temp}} Grad, es gibt Temperaturen zwischen {{temp_max}} und {{temp_min}} in {{location}}.
-Heute gitb es Temperaturen zwischen {{temp_max}} und {{temp_min}},in {{location}} ist es aktuell {{condition}} bei {{temp}} Grad.
+Es gibt derzeit {{condition}} und {{temp}} Grad {{scale}} in {{location}}. Heute sind die Temperaturen zwischen {{temp_min}} und {{temp_max}} Grad in {{location}}.
+Gerade jetzt gibt es {{condition}} bei {{temp}} Grad {{scale}}, es gibt Temperaturen zwischen {{temp_min}} und {{temp_max}} Grad in {{location}}.
+Heute gibt es Temperaturen zwischen {{temp_min}} und {{temp_max}} Grad. {{location}} hat aktuell {{condition}} bei {{temp}} Grad {{scale}}.
