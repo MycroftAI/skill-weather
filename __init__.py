@@ -462,7 +462,7 @@ class WeatherSkill(MycroftSkill):
         try:
             location = message.data.get("Location", None)
             if location:
-                return None, None, location, location
+                return None, None, location.capitalize(), location.capitalize()
 
             location = self.location
 
@@ -486,7 +486,7 @@ class WeatherSkill(MycroftSkill):
             'lon': lon,
             'location': pretty_location,
             'full_location': location,
-            'scale': self.__get_temperature_unit()
+            'scale': self.__get_temperature_unit().capitalize()
         }
 
     def __report_weather(self, timeframe, report):

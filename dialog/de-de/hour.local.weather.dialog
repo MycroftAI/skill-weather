@@ -1,4 +1,4 @@
 Es wird {{condition}} geben, mit Temperaturen um {{temp_max}} Grad.
-Später wird es {{condition}} um die {{temp_max}} Grad.
-Später wird es {{condition}} und {{temp_max}} Grad.
-Um die {{temp_max}} Grad bei {{condition}}.
+Später gibt es {{condition}} und um die {{temp_max}} Grad.
+Später gibt es {{condition}} und {{temp_max}} Grad.
+Um die {{temp_max}} Grad mit {{condition}}.

@@ -1,2 +1,2 @@
-In den nächsten 5 Stunden wird es {{condition}} in {{location}}, bei Temperaturen zwischen {{temp_min}} und {{temp_max}} Grad.
-In {{location}} wird es zwischen {{temp_min}} und {{temp_max}} Grad, es wird {{condition}} in den nächsten Stunden geben.
+In den nächsten Stunden gibt es {{condition}} in {{location}}, bei Temperaturen zwischen {{temp_min}} und {{temp_max}} Grad.
+In {{location}} wird es zwischen {{temp_min}} und {{temp_max}} Grad. Es wird {{condition}} in den nächsten Stunden geben.
