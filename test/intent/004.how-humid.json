@@ -1,0 +1,5 @@
+{
+    "utterance": "How humid is it",
+    "intent_type": "handle_humidity",
+    "expected_dialog": "humidity"
+}

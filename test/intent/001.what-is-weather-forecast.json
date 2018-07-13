@@ -1,0 +1,5 @@
+{
+    "utterance": "what is the forecast",
+    "intent_type": "handle_forecast",
+    "expected_dialog": "forecast.local.weather"
+}
