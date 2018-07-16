@@ -1,0 +1,5 @@
+{
+    "utterance": "What will the weather be like later",
+    "intent_type": "handle_next_hour",
+    "expected_dialog": "hour.local.weather"
+}

@@ -1,0 +1,5 @@
+{
+    "utterance": "When is sunrise",
+    "intent_type": "handle_sunrise",
+    "expected_response": "(one|two|three|four|five|six|seven|eight|nine).*(A|P|a|p)\\.(m|M)\\."
+}
