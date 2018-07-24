@@ -1,0 +1,3 @@
+Det är {{condition}} och {{temp}} grader {{scale}}. Dagens prognos lovar temperaturer mellan {{temp_max}} och {{temp_min}}.
+För närvarande är det {{condition}} och {{temp}} grader {{scale}}. Temperaturen kommer vara mellan {{temp_max}} och {{temp_min}}.
+För närvarande är det {{condition}} och {{temp}} grader {{scale}} i {{location}}. Temperaturen kommer vara mellan {{temp_max}} och {{temp_min}}.

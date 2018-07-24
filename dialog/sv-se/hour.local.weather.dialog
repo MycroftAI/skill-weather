@@ -1,0 +1,4 @@
+It will be {{condition}}, with temperatures near {{temp_max}}
+Later it will be {{condition}} and around {{temp_max}} degrees
+Later it will be {{condition}} and {{temp_max}} degrees
+Around {{temp_max}} degrees with {{condition}} conditions
