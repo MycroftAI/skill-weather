@@ -151,7 +151,8 @@ class WeatherSkill(MycroftSkill):
         try:
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
-            when = extract_datetime(message.data.get('utterance'))[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
             if today != when:
                 LOG.info("Doing a forecast" + str(today) + " " + str(when))
                 return self.handle_forecast(message)
@@ -192,7 +193,8 @@ class WeatherSkill(MycroftSkill):
             report = self.__initialize_report(message)
 
             # Get a date from spoken request
-            when = extract_datetime(message.data.get('utterance'))[0]
+            when = extract_datetime(message.data.get('utterance'),
+                                    lang=self.lang)[0]
 
             # Get forecast for the day
             forecastWeather = self.__get_forecast(
@@ -232,7 +234,8 @@ class WeatherSkill(MycroftSkill):
 
         # Get a date from spoken request
         today = extract_datetime(" ")[0]
-        when = extract_datetime(message.data.get('utterance'))[0]
+        when = extract_datetime(message.data.get('utterance'),
+                                lang=self.lang)[0]
 
         # search the forecast for precipitation
         for weather in self.owm.daily_forecast(
@@ -315,7 +318,8 @@ class WeatherSkill(MycroftSkill):
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
 
-        when = extract_datetime(message.data.get('utterance'))[0]
+        when = extract_datetime(message.data.get('utterance'),
+                                lang=self.lang)[0]
         if when == extract_datetime(" ")[0]:
             weather = self.owm.weather_at_place(
                 report['full_location'],
@@ -571,8 +575,12 @@ class WeatherSkill(MycroftSkill):
     def __to_day(self, when):
         # TODO: This will be a compatibility wrapper for
         #       mycroft.util.format.relative_day(when)
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
-                'Saturday', 'Sunday']
+        if self.lang =='sv-se':
+            days = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag',
+                    'Lördag', 'Söndag']
+        else:
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                    'Saturday', 'Sunday']
         return days[when.weekday()]
 
     def __to_UTC(self, when):
