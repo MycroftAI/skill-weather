@@ -1,0 +1,3 @@
+För närvarande är det {{condition}} och {{temp}} grader {{scale}} i {{location}}. Temperaturen kommer vara mellan {{temp_max}} och {{temp_min}}.
+För närvarande är det {{condition}} och {{temp}} grader {{scale}} i {{location}}. Temperaturen kommer vara mellan {{temp_max}} och {{temp_min}}.
+Temperaturen kommer vara mellan {{temp_max}} och {{temp_min}}, {{location}} har {{condition}} och {{temp}} grader.

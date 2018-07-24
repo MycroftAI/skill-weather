@@ -1,0 +1,2 @@
+{{day}} kommer det att vara {{condition}}, med en högsta temperatur på {{temp_max}} och en lägsta på {{temp_min}}
+{{day}}s prognos är {{temp_max}} grader som mest och {{temp_min}} som lägst
