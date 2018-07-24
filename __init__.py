@@ -163,7 +163,8 @@ class WeatherSkill(MycroftSkill):
             currentWeather = self.owm.weather_at_place(
                 report['full_location'], report['lat'],
                 report['lon']).get_weather()
-            report['condition'] = currentWeather.get_detailed_status()
+            condition = self.__translate(currentWeather.get_detailed_status())
+            report['condition'] = condition
             report['temp'] = self.__get_temperature(currentWeather, 'temp')
             report['icon'] = currentWeather.get_weather_icon_name()
 
