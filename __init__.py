@@ -613,7 +613,10 @@ class WeatherSkill(MycroftSkill):
             except BaseException:
                 return condition
         else:
-            return self.dialog_renderer.render(condition, data)
+            try:
+                return self.dialog_renderer.render(condition, data)
+            except BaseException:
+                return condition
 
 
 def create_skill():
