@@ -1,21 +1,26 @@
 ## Weather
-Weather conditions and forecasts
+Weather conditions and forecasts. 
 
 ## Description 
 Get weather conditions, forecasts, expected precipitation and more!  By default it will tell
-you about your default location, or you can ask for other cities around the world.  Current
-conditions and weather forecasts come from [Open Weather Map](https://openweathermap.org).
+you about your default location, or you can ask for other cities around the world. 
 
-For devices with screen support, conditions are briefly shown.
+Current conditions and weather forecasts come from [Open Weather Map](https://openweathermap.org).
+
+For **enclosures** with screen support, conditions are briefly shown using visemes.
+
+The temperature is shown in Celsius or Fahrenheit depending on the preferences set in your [https://home.mycroft.ai](https://home.mycroft.ai) account. 
 
 ## Examples 
-* "What is the weather?"
-* "What is the forecast tommorow?"
-* "What is the weather going to be like Tuesday?"
-* "What is the weather in San Francisco?"
-* "When will it rain next?"
-* "How windy is it?"
-* "What's the humidity?"
+* ""What is the weather?""
+* ""What is the forecast tommorow?""
+* ""What is the weather going to be like Tuesday?""
+* ""What is the weather in Houston?""
+* ""When will it rain next?""
+* ""How windy is it?""
+* ""What's the humidity?""
+* ""Is it going to snow?""
+* ""What's the temperature?""
 
 ## Credits 
-Mycroft AI
+@MycroftAI
