@@ -571,7 +571,7 @@ class WeatherSkill(MycroftSkill):
     def __api_error(self, e):
         if e.response.status_code == 401:
             from mycroft import Message
-            self.emitter.emit(Message("mycroft.not.paired"))
+            self.bus.emit(Message("mycroft.not.paired"))
 
     def __to_day(self, when):
         # TODO: This will be a compatibility wrapper for
