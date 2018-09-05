@@ -13,13 +13,10 @@
 # limitations under the License.
 
 import time
-import pytz
 from datetime import datetime
 import mycroft.audio
-
 from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
-
 from mycroft.dialog import DialogLoader
 from mycroft.api import Api
 from mycroft.skills.core import MycroftSkill, intent_handler
@@ -31,6 +28,13 @@ from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
 from requests import HTTPError
+
+from mycroft.util.format import nice_time
+
+try:
+    from mycroft.util.time import to_utc, to_local
+except Exception:
+    import pytz
 
 # This skill uses the Open Weather Map API (https://openweathermap.org) and
 # the PyOWM wrapper for it.  For more info, see:
@@ -141,13 +145,14 @@ class WeatherSkill(MycroftSkill):
         self.owm = OWMApi()
 
     # Handle: what is the weather like?
-    @intent_handler(IntentBuilder("CurrentWeatherIntent").require(
+    @intent_handler(IntentBuilder("").require(
         "Weather").optionally("Location").build())
     def handle_current_weather(self, message):
         try:
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
-            when = extract_datetime(message.data.get('utterance'))[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
             if today != when:
                 LOG.info("Doing a forecast" + str(today) + " " + str(when))
                 return self.handle_forecast(message)
@@ -158,8 +163,10 @@ class WeatherSkill(MycroftSkill):
             currentWeather = self.owm.weather_at_place(
                 report['full_location'], report['lat'],
                 report['lon']).get_weather()
+
             report['condition'] = self.__translate(
                 currentWeather.get_detailed_status(), False)
+
             report['temp'] = self.__get_temperature(currentWeather, 'temp')
             report['icon'] = currentWeather.get_weather_icon_name()
 
@@ -175,21 +182,22 @@ class WeatherSkill(MycroftSkill):
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
 
-            self.__report_weather("current", report)
+            self.__report_weather("current", report) 
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
             LOG.error("Error: {0}".format(e))
 
     # Handle: What is the weather forecast?
-    @intent_handler(IntentBuilder("WeatherForecast").require(
+    @intent_handler(IntentBuilder("").require(
         "Forecast").optionally("Location").build())
     def handle_forecast(self, message):
         try:
             report = self.__initialize_report(message)
 
             # Get a date from spoken request
-            when = extract_datetime(message.data.get('utterance'))[0]
+            when = extract_datetime(message.data.get('utterance'),
+                                    lang=self.lang)[0]
 
             # Get forecast for the day
             forecastWeather = self.__get_forecast(
@@ -222,14 +230,15 @@ class WeatherSkill(MycroftSkill):
             LOG.error("Error: {0}".format(e))
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
-    @intent_handler(IntentBuilder("NextPrecipitationIntent").require(
+    @intent_handler(IntentBuilder("").require(
         "Next").require("Precipitation").optionally("Location").build())
     def handle_next_precipitation(self, message):
         report = self.__initialize_report(message)
 
         # Get a date from spoken request
         today = extract_datetime(" ")[0]
-        when = extract_datetime(message.data.get('utterance'))[0]
+        when = extract_datetime(message.data.get('utterance'),
+                                lang=self.lang)[0]
 
         # search the forecast for precipitation
         for weather in self.owm.daily_forecast(
@@ -241,7 +250,7 @@ class WeatherSkill(MycroftSkill):
 
             if when != today:
                 # User asked about a specific date, is this it?
-                whenGMT = self.__to_GMT(when)
+                whenGMT = self.__to_UTC(when)
                 if forecastDate.date() != whenGMT.date():
                     continue
 
@@ -278,7 +287,7 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog("no precipitation expected", report)
 
     # Handle: What's the weather later?
-    @intent_handler(IntentBuilder("NextHoursWeatherIntent").require(
+    @intent_handler(IntentBuilder("").require(
         "Weather").optionally("Location").require("Later").build())
     def handle_next_hour(self, message):
         try:
@@ -308,12 +317,13 @@ class WeatherSkill(MycroftSkill):
             LOG.error("Error: {0}".format(e))
 
     # Handle: How humid is it?
-    @intent_handler(IntentBuilder("HowHumid").require(
+    @intent_handler(IntentBuilder("").require(
         "Query").optionally("Location").require("Humidity").build())
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
 
-        when = extract_datetime(message.data.get('utterance'))[0]
+        when = extract_datetime(message.data.get('utterance'),
+                                lang=self.lang)[0]
         if when == extract_datetime(" ")[0]:
             weather = self.owm.weather_at_place(
                 report['full_location'],
@@ -331,7 +341,7 @@ class WeatherSkill(MycroftSkill):
         self.__report_condition(self.__translate("humidity"), value, when)
 
     # Handle: How windy is it?
-    @intent_handler(IntentBuilder("HowWindy").require(
+    @intent_handler(IntentBuilder("").require(
         "Query").optionally("Location").require("Windy").build())
     def handle_windy(self, message):
         report = self.__initialize_report(message)
@@ -395,7 +405,7 @@ class WeatherSkill(MycroftSkill):
         self.__report_condition(self.__translate("winds"), value, when)
 
     # Handle: When is the sunrise?
-    @intent_handler(IntentBuilder("WhenSunrise").require(
+    @intent_handler(IntentBuilder("").require(
         "Query").optionally("Location").require("Sunrise").build())
     def handle_sunrise(self, message):
         report = self.__initialize_report(message)
@@ -419,14 +429,12 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        timeUnixGMT = datetime.fromtimestamp(
-            weather.get_sunrise_time(), tz=pytz.utc)
-        timezone = pytz.timezone(self.location["timezone"]["code"])
-        timeLocal = timeUnixGMT.astimezone(timezone)
-        self.speak(str(timeLocal.strftime('%H:%M')))
+        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunrise_time())
+        dtLocal = self.__to_Local(dtSunriseUTC)
+        self.speak(nice_time(dtLocal, use_ampm=True))
 
     # Handle: When is the sunset?
-    @intent_handler(IntentBuilder("WhenSunset").require(
+    @intent_handler(IntentBuilder("").require(
         "Query").optionally("Location").require("Sunset").build())
     def handle_sunset(self, message):
         report = self.__initialize_report(message)
@@ -450,11 +458,9 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        timeUnixGMT = datetime.fromtimestamp(
-            weather.get_sunset_time(), tz=pytz.utc)
-        timezone = pytz.timezone(self.location["timezone"]["code"])
-        timeLocal = timeUnixGMT.astimezone(timezone)
-        self.speak(str(timeLocal.strftime('%H:%M')))
+        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunset_time())
+        dtLocal = self.__to_Local(dtSunriseUTC)
+        self.speak(nice_time(dtLocal, use_ampm=True))
 
     def __get_location(self, message):
         # Attempt to extract a location from the spoken phrase.  If none
@@ -525,8 +531,8 @@ class WeatherSkill(MycroftSkill):
     def __get_forecast(self, when, location, lat, lon):
         # Return a forecast for the given day and location
 
-        # convert time to GMT (forecast is in GMT)
-        whenGMT = self.__to_GMT(when)
+        # convert time to UTC/GMT (forecast is in GMT)
+        whenGMT = self.__to_UTC(when)
 
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon).get_forecast()
@@ -573,16 +579,34 @@ class WeatherSkill(MycroftSkill):
     def __to_day(self, when):
         # TODO: This will be a compatibility wrapper for
         #       mycroft.util.format.relative_day(when)
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
-                'Saturday', 'Sunday']
+        if self.lang =='sv-se':
+            days = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag',
+                    'Lördag', 'Söndag']
+        else:
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                    'Saturday', 'Sunday']
         return days[when.weekday()]
 
-    def __to_GMT(self, when):
-        # TODO: Make this a mycroft.utils
-        # TODO: This uses the device timezone -- should probably use
-        #       the timezone of the location being forecasted
-        timezone = pytz.timezone(self.location["timezone"]["code"])
-        return timezone.localize(when).astimezone(pytz.utc)
+    def __to_UTC(self, when):
+        try:
+            # First try with modern mycroft.util.time functions
+            return to_utc(when)
+        except Exception:
+            # TODO: This uses the device timezone -- should probably use
+            #       the timezone of the location being forecasted
+            timezone = pytz.timezone(self.location["timezone"]["code"])
+            return timezone.localize(when).astimezone(pytz.utc)
+
+    def __to_Local(self, when):
+        try:
+            # First try with modern mycroft.util.time functions
+            return to_local(when)
+        except Exception:
+            # Fallback to the old pytz code
+            if not when.tzinfo:
+                when = when.replace(tzinfo=pytz.utc)
+            timezone = pytz.timezone(self.location["timezone"]["code"])
+            return when.astimezone(timezone)
 
     def __translate(self, condition, future=False, data=None):
         if future:

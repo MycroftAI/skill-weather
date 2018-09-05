@@ -1,0 +1,5 @@
+{
+    "utterance": "How windy is it",
+    "intent_type": "handle_windy",
+    "expected_dialog": "winds"
+}
