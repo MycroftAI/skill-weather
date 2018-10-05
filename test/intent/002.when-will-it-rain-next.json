@@ -1,5 +1,5 @@
 {
     "utterance": "when will it rain next",
     "intent_type": "handle_next_precipitation",
-    "expected_dialog": ["precipitation expected", "precipitation expected"]
+    "expected_dialog": ["precipitation expected", "no precipitation expected"]
 }
