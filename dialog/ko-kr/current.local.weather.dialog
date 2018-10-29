@@ -1,4 +1,4 @@
-It's currently {{condition}} and {{temp}} degrees {{scale}}. Today's forecast is for a high of {{temp_max}} and a low of {{temp_min}}.
-It's currently {{condition}} and {{temp}} degrees. Today's forecast is for a high of {{temp_max}} and a low of {{temp_min}}.
-Right now, it's {{condition}} and {{temp}} degrees, for a high of {{temp_max}} and a low of {{temp_min}}.
-With a high of {{temp_max}} and a low of {{temp_min}}, {{location}} has {{condition}} and is currently {{temp}} degrees.
+현재 날씨는 {{condition}} 고 기온은 {{temp}} 도 {{scale}}입니다. 오늘의 최고 기온은 {{temp_max}} 도이고 최저 기온은 {{temp_min}}입니다.
+현재 날씨는 {{condition}} 고 기온은 {{temp}} 도입니다. 오늘의 최고 기온은 {{temp_max}} 이고 최저 기온은 {{temp_min}}입니다.
+현재 날씨는 {{condition}} 고 기온은 {{temp}} 도고, 최고 기온은 {{temp_max}} 이고 최저 기온은 {{temp_min}} 입니다.
+최고 기온은 {{temp_max}} 고 최저 기온은 {{temp_min}}이며, {{location}}는 날씨가 {{condition}} 고 현재 기온은 {{temp}} 도입니다.
