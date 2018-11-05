@@ -55,7 +55,7 @@ class OWMApi(Api):
 
     def __init__(self):
         super(OWMApi, self).__init__("owm")
-        self.lang = "en"
+        self.lang = "ko"
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
 
