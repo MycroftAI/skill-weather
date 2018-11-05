@@ -1,3 +1,3 @@
-{{day}} it will be {{condition}}, with a high of {{temp_max}} and a low of {{temp_min}}
-{{day}}, {{location}} will have a high of {{temp_max}} and a low of {{temp_min}}, with {{condition}} conditions
-The forecast for {{day}} is {{temp_max}} for a high and {{temp_min}} for a low
+{{day}} 날씨는 {{condition}}고, 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도로 예상됩니다.
+{{day}}, {{location}}의 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도, 날씨는 {{condition}}것으로 예상됩니다.
+{{day}}의 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}로 예상됩니다.

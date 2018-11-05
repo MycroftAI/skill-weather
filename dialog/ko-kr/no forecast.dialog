@@ -1,2 +1,2 @@
-Sorry, I don't know the forecast for {{day}}
-I don't have a forecast for {{day}}
+죄송합니다. {{day}}의 일기 예보를 알 수 없습니다.
+{{day}}의 일기 예보 정보가 없습니다.

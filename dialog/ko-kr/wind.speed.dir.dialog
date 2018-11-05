@@ -1,2 +1,2 @@
-at {{speed}} {{unit}} from the {{dir}}
-from the {{dir}} at {{speed}} {{unit}}
+{{dir}}에서 {{speed}}{{unit}}으로
+

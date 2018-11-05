@@ -1,4 +1,3 @@
-It will be {{condition}}, with temperatures near {{temp_max}}
-Later it will be {{condition}} and around {{temp_max}} degrees
-Later it will be {{condition}} and {{temp_max}} degrees
-Around {{temp_max}} degrees with {{condition}} conditions
+날씨는 {{condition}}고, 최고 기온은 약 {{temp_max}}도로 예상됩니다.
+오후|저녁 날씨는 {{condition}}고 최고 기온은 약 {{temp_max}}도로 예상됩니다.
+예상 최고 기온은 약 {{temp_max}}도이고 날씨는 {{condition}}것으로 예상됩니다.
