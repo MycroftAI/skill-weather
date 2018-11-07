@@ -1,2 +1,2 @@
 {{day}}일에 {{modifier}} {{precip}}가 예상됩니다. 
-일기 예보에 {{day}}, {{modifier}} {{precip}}가 예상됩니다. 
+일기 예보에 의하면 {{day}}일, {{modifier}} {{precip}}가 예상됩니다. 

@@ -1,2 +1,2 @@
-{{day}}의 {{condition}}는 {{value}}로 예상됩니다.
-{{day}} 일기예보에 따르면 {{condition}}이 {{value}}로 예상됩니다.
+{{day}}일의 {{condition}}는 {{value}}로 예상됩니다.
+{{day}}일의 일기예보에 따르면 {{condition}}이 {{value}}로 예상됩니다.

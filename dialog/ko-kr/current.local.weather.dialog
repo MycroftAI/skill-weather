@@ -1,4 +1,4 @@
-현재 날씨는 {{condition}}고 기온은 {{scale}} {{temp}}도 입니다. 오늘의 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도입니다.
-현재 날씨는 {{condition}}고 기온은 {{temp}}도입니다. 오늘의 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도입니다.
-현재 날씨는 {{condition}}고 기온은 {{temp}}도로, 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도입니다.
-최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도이며, {{location}}은|는 날씨가 {{condition}}고 현재 기온은 {{temp}}도입니다.
+현재 {{condition}}고 기온은 {{scale}} {{temp}}도 입니다. 오늘의 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도입니다.
+현재 {{condition}}고 기온은 {{temp}}도입니다. 오늘의 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도입니다.
+현재 {{condition}}고 기온은 {{temp}}도로, 최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도입니다.
+최고 기온은 {{temp_max}}도, 최저 기온은 {{temp_min}}도이며, {{location}}은 {{condition}}고 현재 기온은 {{temp}}도입니다.
