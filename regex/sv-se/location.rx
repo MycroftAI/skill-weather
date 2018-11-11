@@ -1,1 +1,1 @@
-(i|på) (?P<Location>.+)
+(på|i) (?P<Location>.*)

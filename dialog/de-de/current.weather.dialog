@@ -1,3 +1,3 @@
-Es ist derzeit {{condition}} und {{temp_current}} Grad {{scale}} in {{location}}. Heute gibt es Temperaturen zwischen {{temp_max}} und {{temp_min}} in {{location}}.
-Gerade jetzt ist es  {{condition}} bei {{temp_current}} Grad, es gibt Temperaturen zwischen {{temp_max}} und  {{temp_min}} in {{location}}.
-Heute gitb es temperaturen zwischen {{temp_max}} und {{temp_min}},in {{location}} ist es aktuell {{condition}} bei {{temp_current}} Grad.
+Mit einem Höchstwert von {{temp_max}} und Minimum von {{temp_min}} Grad, ist es in {{location}} {{condition}} bei gerade {{temp}} Grad.
+Es ist gerade {{condition}} und {{temp}} Grad {{scale}} in {{location}}. Das heutige Maximum beträgt {{temp_max}} und das Minimum {{temp_min}} Grad.
+Gerade ist es {{condition}} bei {{temp}} Grad, mit einem Höchstwert {{temp_max}} und Tiefsttemperatur {{temp_min}} in {{location}}.
