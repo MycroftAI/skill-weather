@@ -1,2 +1,2 @@
-{{condition}} on {{day}} will be {{value}}
-On {{day}} the forecast calls for {{condition}} of {{value}}
+{{condition}} på {{day}} kommer vara {{value}}
+På {{day}} utropar prognosen {{condition}} av {{value}}
