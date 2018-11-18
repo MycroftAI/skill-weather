@@ -55,12 +55,12 @@ class OWMApi(Api):
 
     def __init__(self):
         super(OWMApi, self).__init__("owm")
-        self.owmLang = "en"
+        self.owmlang = "en"
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
 
     def build_query(self, params):
-        params.get("query").update({"lang": self.owmLang})
+        params.get("query").update({"lang": self.owmlang})
         return params.get("query")
 
     def get_data(self, response):
@@ -111,9 +111,9 @@ class OWMApi(Api):
             return Forecaster(forecast)
         else:
             return None
-            
+
     def set_OWM_language(self, lang):
-        self.owmLang = lang
+        self.owmlang = lang
 
 
 class WeatherSkill(MycroftSkill):
@@ -147,7 +147,7 @@ class WeatherSkill(MycroftSkill):
         self.owm = OWMApi()
         if self.owm:
             self.owm.set_OWM_language(lang=self.__get_OWM_language(self.lang))
-            
+
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").require(
         "Weather").optionally("Location").build())
@@ -156,7 +156,7 @@ class WeatherSkill(MycroftSkill):
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
-                        message.data.get('utterance'), lang=self.lang) 
+                        message.data.get('utterance'), lang=self.lang)
             if today != when:
                 LOG.info("Doing a forecast" + str(today) + " " + str(when))
                 return self.handle_forecast(message)
@@ -170,7 +170,7 @@ class WeatherSkill(MycroftSkill):
             report['condition'] = condition
             report['temp'] = self.__get_temperature(currentWeather, 'temp')
             report['icon'] = currentWeather.get_weather_icon_name()
-            
+
             # Get forecast for the day
             # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
             # Set time to 12 instead of 00 to accomodate for timezones
@@ -183,7 +183,7 @@ class WeatherSkill(MycroftSkill):
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
 
-            self.__report_weather("current", report) 
+            self.__report_weather("current", report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
@@ -197,7 +197,6 @@ class WeatherSkill(MycroftSkill):
             report = self.__initialize_report(message)
 
             # Get a date from spoken request
-            LOG.debug("lang %s" % self.lang)
             when = extract_datetime(message.data.get('utterance'),
                                     lang=self.lang)[0]
 
@@ -580,20 +579,19 @@ class WeatherSkill(MycroftSkill):
     def __to_day(self, when):
         # TODO: This will be a compatibility wrapper for
         #       mycroft.util.format.relative_day(when)
-        LOG.debug("lang %s" % self.lang)
         if self.lang.lower().startswith("sv"):
             days = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag',
                     'Lördag', 'Söndag']
         elif self.lang.lower().startswith("de"):
-            days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 
+            days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag',
                     'Samstag', 'Sonntag']
         elif self.lang.lower().startswith("es"):
             days = ['Lunes', 'Martes', u'Miércoles',
-                    'Jueves', 'Viernes', u'Sábado', 'Domingo']        
+                    'Jueves', 'Viernes', u'Sábado', 'Domingo']
         elif self.lang.lower().startswith("fr"):
             days = ["Lundi", "Mardi", "Mercredi",
                     "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-        elif self.lang.lower().startswith("it"):    
+        elif self.lang.lower().startswith("it"):
             days = ['Lunedi', 'Martedi', 'Mercoledi',
                     'Giovedi', 'Venerdi', 'Sabato', 'Domenica']
         elif self.lang.lower().startswith("pt"):
@@ -626,10 +624,13 @@ class WeatherSkill(MycroftSkill):
             return when.astimezone(timezone)
 
     def __translate(self, condition, future=False, data=None):
+        # behaviour of method dialog_renderer.render(...) has changed - instead
+        # of exception when given template is not found now simply the
+        # templatename is returned!?!
         if future:
             if (condition + ".future") in self.dialog_renderer.templates:
                 return self.dialog_renderer.render(condition + ".future", data)
-        
+
         if condition in self.dialog_renderer.templates:
             return self.dialog_renderer.render(condition, data)
         else:
@@ -637,30 +638,36 @@ class WeatherSkill(MycroftSkill):
 
     """
     OWM supports 31 languages, see https://openweathermap.org/current#multi
-    
-    If Mycroft's language setting is supported by OWM, 
+
+    If Mycroft's language setting is supported by OWM,
     then use it - or use 'en' otherwise
     """
     def __get_OWM_language(self, lang):
-        owmLang = 'en'
-        owmMulti = ['ar','bg','ca','cz','de','el','en','fa','fi','fr','gl',
+        owmlang = 'en'
+
+        # some special cases
+        if lang == 'zh-zn' or lang == 'zh_zn':
+            return 'zh_zn'
+        elif lang == 'zh-tw' or lang == 'zh_tw':
+            return 'zh_tw'
+        elif lang == 'lv-lv':
+            return 'la'
+
+        owmsupported = ['ar','bg','ca','cz','de','el','en','fa','fi','fr','gl',
                     'hr','hu','it','ja','kr','la','lt','mk','nl','pl','pt',
                     'ro','ru','se','sk','sl','es','tr','ua','vi']
-                    
-        lang = lang.lower()
-        LOG.debug("lang %s" % lang)
-        if lang == 'zh_zn' or lang == 'zh_tw':
-            owmLang = lang
-        elif lang[0:2] in owmMulti:
-            owmLang = lang[0:2]
-        LOG.debug("lang: %s owmLang: %s" % (lang, owmLang))
-        return owmLang
-    
-    """ 
-    compatibility wrapper for nice_time 
-    """    
-    def __nice_time(self, dt, lang="en-us", speech=True, use_24hour=False, 
+
+        lang = lang.lower().split("-")
+        if lang[0] in owmsupported:
+            owmlang = lang[0]
+        elif (len(lang)==2):
+            if lang[1] in owmsupported:
+                owmlang = lang[1]
+        return owmlang
+
+    def __nice_time(self, dt, lang="en-us", speech=True, use_24hour=False,
                     use_ampm=False):
+        # compatibility wrapper for nice_time
         nt_supported_languages = ['en','it','fr','de']
         if not (lang[0:2] in nt_supported_languages):
             lang = "en-us"
