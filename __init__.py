@@ -660,7 +660,7 @@ class WeatherSkill(MycroftSkill):
         lang = lang.lower().split("-")
         if lang[0] in owmsupported:
             owmlang = lang[0]
-        elif (len(lang)==2):
+        if (len(lang)==2):
             if lang[1] in owmsupported:
                 owmlang = lang[1]
         return owmlang
