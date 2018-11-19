@@ -650,14 +650,23 @@ class WeatherSkill(MycroftSkill):
             return 'zh_zn'
         elif lang == 'zh-tw' or lang == 'zh_tw':
             return 'zh_tw'
-        elif lang == 'lv-lv':
-            return 'la'
+
+        # special cases cont'd
+        lang = lang.lower().split("-")
+        lookup : {
+            'sv': 'se',
+            'cs': 'cz',
+            'ko': 'kr',
+            'lv': 'la'
+            'uk': 'ua'
+        }
+        if lang[0] in lookup:
+            return lookup[lang[0]]
 
         owmsupported = ['ar','bg','ca','cz','de','el','en','fa','fi','fr','gl',
                     'hr','hu','it','ja','kr','la','lt','mk','nl','pl','pt',
                     'ro','ru','se','sk','sl','es','tr','ua','vi']
 
-        lang = lang.lower().split("-")
         if lang[0] in owmsupported:
             owmlang = lang[0]
         if (len(lang)==2):
