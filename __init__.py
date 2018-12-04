@@ -56,6 +56,7 @@ class OWMApi(Api):
     def __init__(self):
         super(OWMApi, self).__init__("owm")
         self.owmlang = "en"
+        self.encoding = "utf8"
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
 
@@ -115,6 +116,14 @@ class OWMApi(Api):
     def set_OWM_language(self, lang):
         self.owmlang = lang
 
+        # Certain OWM condition information is encoded using non-utf8
+        # encodings. If another language needs similar solution add them to the
+        # encodings dictionary
+        encodings = {
+            'se': 'latin1'
+        }
+        self.encoding = encodings.get(lang, 'utf8')
+
 
 class WeatherSkill(MycroftSkill):
     def __init__(self):
@@ -166,7 +175,14 @@ class WeatherSkill(MycroftSkill):
             currentWeather = self.owm.weather_at_place(
                 report['full_location'], report['lat'],
                 report['lon']).get_weather()
-            condition = self.__translate(currentWeather.get_detailed_status())
+
+            # Change encoding of the localized report to utf8 if needed
+            condition = currentWeather.get_detailed_status()
+            if self.owm.encoding != 'utf8':
+                condition = self.__translate(
+                    condition.encode(self.owm.encoding).decode('utf8')
+                )
+
             report['condition'] = condition
             report['temp'] = self.__get_temperature(currentWeather, 'temp')
             report['icon'] = currentWeather.get_weather_icon_name()
