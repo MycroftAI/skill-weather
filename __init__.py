@@ -653,11 +653,11 @@ class WeatherSkill(MycroftSkill):
 
         # special cases cont'd
         lang = lang.lower().split("-")
-        lookup : {
+        lookup = {
             'sv': 'se',
             'cs': 'cz',
             'ko': 'kr',
-            'lv': 'la'
+            'lv': 'la',
             'uk': 'ua'
         }
         if lang[0] in lookup:
