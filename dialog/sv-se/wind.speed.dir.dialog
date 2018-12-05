@@ -1,2 +1,2 @@
-med {{speed}} {{unit}} från {{dir}}
-från {{dir}} med {{speed}} {{unit}}
+vid {{speed}} {{unit}} från {{dir}}
+från {{dir}} vid {{speed}} {{unit}}

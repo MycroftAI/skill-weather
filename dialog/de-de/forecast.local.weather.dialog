@@ -1,3 +1,3 @@
-{{day}} wird es {{condition}}, mit temperaturen von {{temp_min}} bis {{temp_max}}
-{{day}} wird maximal {{temp_max}} und minimal {{temp_min}} bei {{condition}} erwartet
-{{day}}'s vorhersage ergibt Temperaturen zwischen {{temp_min}} und {{temp_max}} grad.
+{{day}} wird es {{condition}}, mit maximal {{temp_max}} und minimal {{temp_min}} Grad
+{{day}} wird es höchstens {{temp_max}} und minimal {{temp_min}} Grad, bei {{condition}} Bedingungen
+Die Temperaturen für {{day}} sind maximal {{temp_max}} und minimal {{temp_min}} Grad

@@ -1,2 +1,2 @@
-{{modifier}} {{precip}} wird am {{day}} erwartet
-Die Vorhersage nennt {{modifier}} {{precip}} am {{day}}
+{{modifier}} {{precip}} wird für {{day}} erwartet
+Die Vorhersage für {{day}} ist {{modifier}} {{precip}}
