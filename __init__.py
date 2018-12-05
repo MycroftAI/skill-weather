@@ -55,7 +55,11 @@ class OWMApi(Api):
 
     def __init__(self):
         super(OWMApi, self).__init__("owm")
-        self.lang = "ko"
+        # This is the language code for the interaction between python and the
+        # OpenWeatherMap API. This value does not need to be localized as data is fetched
+        # in English from the OWM API and later on translated at the WeatherSkill
+        # class:
+        self.lang = "en"
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
 
