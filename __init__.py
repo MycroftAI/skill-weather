@@ -508,7 +508,7 @@ class WeatherSkill(MycroftSkill):
             'lon': lon,
             'location': pretty_location,
             'full_location': location,
-            'scale': self.__get_temperature_unit()
+            'scale': self.translate(self.__get_temperature_unit())
         }
 
     def __report_weather(self, timeframe, report):
