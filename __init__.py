@@ -198,7 +198,11 @@ class WeatherSkill(MycroftSkill):
                 report['lon'])
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
+            report['humidity'] = forecastWeather.get_humidity()
 
+            wind = self.get_wind_speed(forecastWeather)
+
+            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
             self.__report_weather("current", report)
         except HTTPError as e:
             self.__api_error(e)
@@ -228,6 +232,8 @@ class WeatherSkill(MycroftSkill):
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
             report['icon'] = forecastWeather.get_weather_icon_name()
+            report['humidity'] = weather.get_humidity()
+#            report['wind'] = self.get_wind(weather.get_wind())
 
             # TODO: Run off of status IDs instead of the status text?
             # This converts a status like "sky is clear" to a different
@@ -376,6 +382,21 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
+        speed, dir, unit = self.get_wind_speed(weather)
+        if dir:
+            dir = self.__translate(dir)
+            value = self.__translate("wind.speed.dir",
+                                     data={"dir": dir,
+                                           "speed": nice_number(speed),
+                                           "unit": unit})
+        else:
+            value = self.__translate("wind.speed",
+                                     data={"speed": nice_number(speed),
+                                           "unit": unit})
+
+        self.__report_condition(self.__translate("winds"), value, when)
+
+    def get_wind_speed(self, weather):
         wind = weather.get_wind()
 
         speed = wind["speed"]
@@ -408,17 +429,10 @@ class WeatherSkill(MycroftSkill):
                 dir = "NW"
             else:
                 dir = "N"
-            dir = self.__translate(dir)
-            value = self.__translate("wind.speed.dir",
-                                     data={"dir": dir,
-                                           "speed": nice_number(speed),
-                                           "unit": unit})
         else:
-            value = self.__translate("wind.speed",
-                                     data={"speed": nice_number(speed),
-                                           "unit": unit})
+            dir = None
 
-        self.__report_condition(self.__translate("winds"), value, when)
+        return speed, dir, unit
 
     # Handle: When is the sunrise?
     @intent_handler(IntentBuilder("").require(
@@ -519,6 +533,20 @@ class WeatherSkill(MycroftSkill):
         img_code = self.CODES[weather_code]
 
         # Display info on a screen
+        # Mark-2
+        if 'gui' in dir(self):
+            self.gui["current"] = report["temp"]
+            self.gui["min"] = report["temp_min"]
+            self.gui["max"] = report["temp_max"]
+            self.gui["location"] = report["full_location"].replace(', ', '\n')
+            self.gui["condition"] = report["condition"]
+            self.gui["icon"] = report["icon"]
+            self.gui["weathercode"] = img_code
+            self.gui["humidity"] = report["humidity"]
+            self.gui["wind"] = report["wind"]
+            self.gui.show_pages(["weather.qml", "details.qml", "forecast.qml"])
+
+        # Mark-1
         self.enclosure.deactivate_mouth_events()
         self.enclosure.weather_display(img_code, report['temp'])
 
