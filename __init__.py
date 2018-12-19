@@ -158,6 +158,12 @@ class WeatherSkill(MycroftSkill):
         if self.owm:
             self.owm.set_OWM_language(lang=self.__get_OWM_language(self.lang))
 
+    def initialize(self):
+        try:
+            self.mark2_forecast(self.__initialize_report(None))
+        except Exception as e:
+            LOG.warning('Could not prepare forecasts. ({})'.format(repr(e)))
+
     def get_coming_days_forecast(self, forecast, unit, days=None):
         """
             Get weather forcast for the coming days and returns them as a list
@@ -171,7 +177,7 @@ class WeatherSkill(MycroftSkill):
             Returns: List of dicts containg weather info
         """
         days = days or 4
-        weekdays = ["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         forecast_list = []
         # Get tomorrow and 4 days forward
         for weather in list(forecast.get_weathers())[1:5]:
@@ -186,6 +192,21 @@ class WeatherSkill(MycroftSkill):
                  "date": result_temp_day
             })
         return forecast_list
+
+    def mark2_forecast(self, report):
+        """ Builds forecast for the upcoming days for the Mark-2 display."""
+        future_weather = self.owm.daily_forecast(report['full_location'],
+                                                 report['lat'],
+                                                 report['lon'], limit=5)
+        f = future_weather.get_forecast()
+        forecast_list = self.get_coming_days_forecast(f,
+            self.__get_temperature_unit())
+
+        if "gui" in dir(self):
+            forecast = {}
+            forecast['first'] = forecast_list[0:2]
+            forecast['second'] = forecast_list[2:4]
+            self.gui['forecast'] = forecast
 
 
     # Handle: what is the weather like?
@@ -234,20 +255,8 @@ class WeatherSkill(MycroftSkill):
             wind = self.get_wind_speed(forecastWeather)
             report['wind'] = "{} {}".format(wind[0], wind[1] or "")
 
-            future_weather = self.owm.daily_forecast(report['full_location'],
-                                                     report['lat'],
-                                                     report['lon'], limit=5)
-            f = future_weather.get_forecast()
-            forecast_list = self.get_coming_days_forecast(f,
-                self.__get_temperature_unit())
-
-            if "gui" in dir(self):
-                forecast = {}
-                forecast['first'] = forecast_list[0:2]
-                forecast['second'] = forecast_list[2:4]
-                self.gui['forecast_dump'] = forecast
-
-                self.__report_weather("current", report)
+            self.__report_weather("current", report)
+            self.mark2_forecast(report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
@@ -276,7 +285,7 @@ class WeatherSkill(MycroftSkill):
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
             report['icon'] = forecastWeather.get_weather_icon_name()
-            report['humidity'] = weather.get_humidity()
+            report['humidity'] = forecastWeather.get_humidity()
 #            report['wind'] = self.get_wind(weather.get_wind())
 
             # TODO: Run off of status IDs instead of the status text?
@@ -294,7 +303,7 @@ class WeatherSkill(MycroftSkill):
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.error("Error: {0}".format(e))
+            LOG.exception("Error: {0}".format(e))
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("").require(
@@ -540,7 +549,7 @@ class WeatherSkill(MycroftSkill):
         # Attempt to extract a location from the spoken phrase.  If none
         # is found return the default location instead.
         try:
-            location = message.data.get("Location", None)
+            location = message.data.get("Location", None) if message else None
             if location:
                 return None, None, location, location
 
@@ -586,8 +595,8 @@ class WeatherSkill(MycroftSkill):
             self.gui["condition"] = report["condition"]
             self.gui["icon"] = report["icon"]
             self.gui["weathercode"] = img_code
-            self.gui["humidity"] = report["humidity"]
-            self.gui["wind"] = report["wind"]
+            self.gui["humidity"] = report.get("humidity", "--")
+            self.gui["wind"] = report.get("wind", "--")
             self.gui.show_pages(["weather.qml", "highlow.qml",
                                  "forecast.qml", "forecast2.qml"])
         # Mark-1

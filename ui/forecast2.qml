@@ -44,7 +44,7 @@ Mycroft.Delegate {
         spacing: Kirigami.Units.largeSpacing * 5
         Repeater {
             id: forecastRepeater
-            model: sessionData.forecast_dump.second
+            model: sessionData.forecast.second
             delegate: GridLayout {
                 columns: 2
                 Layout.fillWidth: true
