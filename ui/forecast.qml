@@ -58,7 +58,7 @@ Mycroft.Delegate {
                 }
                 Label {
                     Layout.alignment: Qt.AlignHLeft
-                    font.capitalization: Font.AllUppercase
+                    font.capitalization: Font.Capitalize
                     font.family: "Noto Sans Display"
                     font.weight: Font.Bold
                     font.pixelSize: 40
