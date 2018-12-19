@@ -36,6 +36,7 @@ try:
 except Exception:
     import pytz
 
+
 # This skill uses the Open Weather Map API (https://openweathermap.org) and
 # the PyOWM wrapper for it.  For more info, see:
 #
@@ -157,6 +158,36 @@ class WeatherSkill(MycroftSkill):
         if self.owm:
             self.owm.set_OWM_language(lang=self.__get_OWM_language(self.lang))
 
+    def get_coming_days_forecast(self, forecast, unit, days=None):
+        """
+            Get weather forcast for the coming days and returns them as a list
+
+            Parameters:
+                forecast: OWM weather
+                unit: Temperature unit
+                dt: Reference time
+                days: number of days to get forecast for, defaults to 4
+
+            Returns: List of dicts containg weather info
+        """
+        days = days or 4
+        weekdays = ["Mon", "Tues", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        forecast_list = []
+        # Get tomorrow and 4 days forward
+        for weather in list(forecast.get_weathers())[1:5]:
+            result_temp = weather.get_temperature(unit)
+            day_num = datetime.weekday(
+                datetime.fromtimestamp(weather.get_reference_time()))
+            result_temp_day = weekdays[day_num]
+            forecast_list.append({
+                "weathercode": self.CODES[weather.get_weather_icon_name()],
+                 "max": round(result_temp['max']),
+                 "min": round(result_temp['min']),
+                 "date": result_temp_day
+            })
+        return forecast_list
+
+
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").require(
         "Weather").optionally("Location").build())
@@ -201,13 +232,26 @@ class WeatherSkill(MycroftSkill):
             report['humidity'] = forecastWeather.get_humidity()
 
             wind = self.get_wind_speed(forecastWeather)
-
             report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-            self.__report_weather("current", report)
+
+            future_weather = self.owm.daily_forecast(report['full_location'],
+                                                     report['lat'],
+                                                     report['lon'], limit=5)
+            f = future_weather.get_forecast()
+            forecast_list = self.get_coming_days_forecast(f,
+                self.__get_temperature_unit())
+
+            if "gui" in dir(self):
+                forecast = {}
+                forecast['first'] = forecast_list[0:2]
+                forecast['second'] = forecast_list[2:4]
+                self.gui['forecast_dump'] = forecast
+
+                self.__report_weather("current", report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.error("Error: {0}".format(e))
+            LOG.exception("Error: {0}".format(e))
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").require(
@@ -544,8 +588,8 @@ class WeatherSkill(MycroftSkill):
             self.gui["weathercode"] = img_code
             self.gui["humidity"] = report["humidity"]
             self.gui["wind"] = report["wind"]
-            self.gui.show_pages(["weather.qml", "details.qml", "forecast.qml"])
-
+            self.gui.show_pages(["weather.qml", "highlow.qml",
+                                 "forecast.qml", "forecast2.qml"])
         # Mark-1
         self.enclosure.deactivate_mouth_events()
         self.enclosure.weather_display(img_code, report['temp'])

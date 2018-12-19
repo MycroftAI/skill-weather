@@ -57,7 +57,7 @@ Mycroft.Delegate {
                 console.log(getWeatherImagery(sessionData.weathercode));
             }
             onStatusChanged: {
-                console.log(fancyAnimation.status, errorString);
+                console.log(weatherAnimation.status, errorString);
             }
         }
         Item {
