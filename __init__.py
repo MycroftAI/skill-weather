@@ -20,6 +20,8 @@ from multi_key_dict import multi_key_dict
 from mycroft.dialog import DialogLoader
 from mycroft.api import Api
 from mycroft.skills.core import MycroftSkill, intent_handler
+from mycroft.messagebus.message import Message
+from mycroft.util.format import nice_time
 from mycroft.util.log import LOG
 from mycroft.util.parse import extract_datetime
 from mycroft.util.format import nice_number
@@ -28,8 +30,6 @@ from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
 from requests import HTTPError
-
-from mycroft.util.format import nice_time
 
 try:
     from mycroft.util.time import to_utc, to_local
@@ -163,6 +163,23 @@ class WeatherSkill(MycroftSkill):
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
             LOG.warning('Could not prepare forecasts. ({})'.format(repr(e)))
+
+        if 'gui' in dir(self):
+            # Register for handling idle/resting screen
+            msg_type = '{}.{}'.format(self.skill_id, 'idle')
+            self.add_event(msg_type, self.handle_idle)
+            self.add_event('mycroft.mark2.collect_idle',
+                           self.handle_collect_request)
+
+    def handle_collect_request(self, message):
+        self.log.info('Registering idle screen')
+        self.bus.emit(Message('mycroft.mark2.register_idle',
+                              data={'name': 'Weather',
+                                    'id': self.skill_id}))
+        self.log.info('Done')
+
+    def handle_idle(self, message):
+        self.gui.show_page('idle.qml')
 
     def get_coming_days_forecast(self, forecast, unit, days=None):
         """
