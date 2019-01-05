@@ -627,6 +627,13 @@ class WeatherSkill(MycroftSkill):
 
         # Just show the icons while still speaking
         mycroft.audio.wait_while_speaking()
+
+        # Speak the high and low temperatures
+        self.speak_dialog("min.max", report)
+        if "gui" in dir(self):
+            self.gui.show_page("highlow.qml")
+        mycroft.audio.wait_while_speaking()
+
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
 
