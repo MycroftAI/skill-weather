@@ -14,6 +14,9 @@
 
 import time
 from datetime import datetime
+from copy import copy
+import json
+
 import mycroft.audio
 from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
@@ -36,6 +39,7 @@ try:
 except Exception:
     import pytz
 
+MINUTES = 60 # Minutes to seconds multiplier
 
 # This skill uses the Open Weather Map API (https://openweathermap.org) and
 # the PyOWM wrapper for it.  For more info, see:
@@ -60,10 +64,27 @@ class OWMApi(Api):
         self.encoding = "utf8"
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
+        self.query_cache = {}
 
     def build_query(self, params):
         params.get("query").update({"lang": self.owmlang})
         return params.get("query")
+
+    def request(self, data):
+        """ Caching the responses """
+        req_hash = hash(json.dumps(data, sort_keys=True))
+        cache = self.query_cache.get(req_hash, (0, None))
+
+        # Use cached response if recent
+        now = time.monotonic()
+        if now > (cache[0] + 15 * MINUTES):
+            resp = super().request(data)
+            self.query_cache[req_hash] = (now, resp)
+        else:
+            LOG.debug('Using cached OWM Response from {}'.format(cache[0]))
+            resp = cache[1]
+
+        return resp
 
     def get_data(self, response):
         return response.text
