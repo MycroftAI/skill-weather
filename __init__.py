@@ -75,9 +75,9 @@ class OWMApi(Api):
         req_hash = hash(json.dumps(data, sort_keys=True))
         cache = self.query_cache.get(req_hash, (0, None))
 
-        # Use cached response if recent
+        # Use cached response if recent and cached value exists
         now = time.monotonic()
-        if now > (cache[0] + 15 * MINUTES):
+        if now > (cache[0] + 15 * MINUTES) or cache[1] is None:
             resp = super().request(data)
             self.query_cache[req_hash] = (now, resp)
         else:
