@@ -636,7 +636,7 @@ class WeatherSkill(MycroftSkill):
             self.gui["humidity"] = report.get("humidity", "--")
             self.gui["wind"] = report.get("wind", "--")
             self.gui.show_pages(["weather.qml", "highlow.qml",
-                                 "forecast.qml", "forecast2.qml"])
+                                 "forecast1.qml", "forecast2.qml"])
         # Mark-1
         self.enclosure.deactivate_mouth_events()
         self.enclosure.weather_display(img_code, report['temp'])

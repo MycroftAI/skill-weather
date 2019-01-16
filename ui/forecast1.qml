@@ -8,5 +8,5 @@ import org.kde.lottie 1.0
 
 ForecastDelegate {
     id: root
-    model: sessionData.forecast.second
+    model: sessionData.forecast.first
 }

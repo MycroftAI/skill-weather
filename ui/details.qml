@@ -6,173 +6,104 @@ import org.kde.kirigami 2.4 as Kirigami
 import Mycroft 1.0 as Mycroft
 import org.kde.lottie 1.0
 
-Mycroft.Delegate {
-    id: top
-    skillBackgroundSource: Qt.resolvedUrl("img/bg.png")
-    function getWeatherImagery(weathercode){
-        switch(weathercode) {
-        case 0:
-            return "animations/sunny.json";
-            break
-        case 1:
-            return "animations/partlycloudy.json";
-            break
-        case 2:
-            return "animations/cloudy.json";
-            break
-        case 3:
-            return "animations/rain.json";
-            break
-        case 4:
-            return "animations/rain.json";
-            break
-        case 5:
-            return "animations/storm.json";
-            break
-        case 6:
-            return "animations/snow.json";
-            break
-        case 7:
-            return "animations/fog.json";
-            break
+WeatherDelegate {
+    id: root
+
+    spacing: proportionalGridUnit
+    Mycroft.AutoFitLabel {
+        wrapMode: Text.WordWrap
+        text: sessionData.location
+        lineHeight: 0.6
+        horizontalAlignment: Layout.alignLeft
+        Layout.alignment: Qt.AlignLeft
+        Layout.preferredHeight: proportionalGridUnit * 15
+        Layout.preferredWidth : 300
+    }
+    LottieAnimation {
+        id: weatherAnimation
+        Layout.alignment: Qt.AlignHCenter
+        Layout.preferredWidth: Math.min(root.contentWidth, proportionalGridUnit * 40)
+        Layout.preferredHeight: Layout.preferredWidth
+
+        source: Qt.resolvedUrl(getWeatherImagery(sessionData.weathercode))
+
+        loops: Animation.Infinite
+        fillMode: Image.PreserveAspectFit
+        running: true
+
+        // Debug:
+        onSourceChanged: {
+            console.log(getWeatherImagery(sessionData.weathercode));
+        }
+        onStatusChanged: {
+            console.log(weatherAnimation.status, errorString);
         }
     }
 
-    ColumnLayout {
-        id: grid
-        anchors.centerIn: parent
-        spacing: 0
-        Rectangle {
-        Label {
-            id: location
-            font.family: "Noto Sans Display"
-            font.weight: Font.Bold
-            font.pixelSize: 30
-            color: "white"
-            wrapMode: Text.WordWrap
-            text: sessionData.location
-            lineHeight: 0.6
-        }}
-        Item {
-            height: Kirigami.Units.largeSpacing * 10
-        }
-        LottieAnimation {
-            id: weatherAnimation
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 14
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 14
-            source: Qt.resolvedUrl(getWeatherImagery(sessionData.weathercode))
-            //source: Qt.resolvedUrl("animations/sunny.json")
-            loops: Animation.Infinite
-            fillMode: Image.PreserveAspectFit
-            running: true
-
-            // Debug:
-            onSourceChanged: {
-                console.log(getWeatherImagery(sessionData.weathercode));
+    GridLayout {
+        columns: 2
+        columnSpacing: proportionalGridUnit * 5
+        rowSpacing: proportionalGridUnit * 5
+        Layout.alignment: Qt.AlignHCenter
+        Layout.preferredWidth: Math.min(root.contentWidth, proportionalGridUnit * 50)
+        ColumnLayout {
+            Mycroft.AutoFitLabel {
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 3
+                text: "Min:"
             }
-            onStatusChanged: {
-                console.log(fancyAnimation.status, errorString);
+            Mycroft.AutoFitLabel {
+                font.weight: Font.Bold
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 15
+                text: sessionData.min + "°"
             }
         }
-        Item {
-            height: Kirigami.Units.largeSpacing * 5
+        ColumnLayout {
+            Mycroft.AutoFitLabel {
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 3
+                text: "Max:"
+            }
+            Mycroft.AutoFitLabel {
+                font.weight: Font.Bold
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 15
+                text: sessionData.max + "°"
+            }
         }
-        
-        GridLayout {
-            columns: 2
-            columnSpacing: Kirigami.Units.largeSpacing * 3
-            rowSpacing: Kirigami.Units.largeSpacing * 3
-            ColumnLayout {
-                Label {
-                    id: min_lable
-                    Layout.alignment: Qt.AlignHRight
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 15
-                    color: "white"
-                    lineHeight: 0.6
-                    text: "Min:"
-                }
-                Label {
-                    id: min
-                    Layout.alignment: Qt.AlignHCenter
-                    font.capitalization: Font.AllUppercase
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 120
-                    color: "white"
-                    lineHeight: 0.6
-                    text: sessionData.min + "°"
-                }
+        ColumnLayout {
+            Mycroft.AutoFitLabel {
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 3
+                text: "Humidity:"
             }
-            ColumnLayout {
-                Label {
-                    id: max_lable
-                    Layout.alignment: Qt.AlignHRight
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 15
-                    color: "white"
-                    lineHeight: 0.6
-                    text: "Max:"
-                }
-                Label {
-                    id: max
-                    Layout.alignment: Qt.AlignHCenter
-                    font.capitalization: Font.AllUppercase
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 120
-                    color: "white"
-                    lineHeight: 0.6
-                    text: sessionData.max + "°"
-                }
+            Mycroft.AutoFitLabel {
+                font.weight: Font.Bold
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 15
+                text: sessionData.humidity + "%"
             }
-            ColumnLayout {
-                Label {
-                    id: humidity_label
-                    Layout.alignment: Qt.AlignHRight
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 15
-                    color: "white"
-                    lineHeight: 0.6
-                    text: "Humidity:"
-                }
-                Label {
-                    id: humidity
-                    Layout.alignment: Qt.AlignHCenter
-                    font.capitalization: Font.AllUppercase
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 120
-                    color: "white"
-                    lineHeight: 0.6
-                    text: sessionData.humidity + "﹪" // Small percent
-                }
+        }
+        ColumnLayout {
+            Mycroft.AutoFitLabel {
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 3
+                text: "Windspeed:"
             }
-            ColumnLayout {
-                Label {
-                    id: wind_label
-                    Layout.alignment: Qt.AlignHRight
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 15
-                    color: "white"
-                    lineHeight: 0.6
-                    text: "Windspeed:"
-                }
-                Label {
-                    id: wind
-                    Layout.alignment: Qt.AlignHCenter
-                    font.capitalization: Font.AllUppercase
-                    font.family: "Noto Sans Display"
-                    font.weight: Font.Bold
-                    font.pixelSize: 120
-                    color: "white"
-                    lineHeight: 0.6
-                    text: sessionData.wind
-                }
+            Mycroft.AutoFitLabel {
+                font.weight: Font.Bold
+                horizontalAlignment: Text.AlignLeft
+                Layout.fillWidth: true
+                Layout.preferredHeight: proportionalGridUnit * 15
+                text: sessionData.wind
             }
         }
     }
