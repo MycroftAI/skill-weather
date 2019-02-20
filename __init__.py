@@ -185,12 +185,11 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.warning('Could not prepare forecasts. ({})'.format(repr(e)))
 
-        if 'gui' in dir(self):
-            # Register for handling idle/resting screen
-            msg_type = '{}.{}'.format(self.skill_id, 'idle')
-            self.add_event(msg_type, self.handle_idle)
-            self.add_event('mycroft.mark2.collect_idle',
-                           self.handle_collect_request)
+        # Register for handling idle/resting screen
+        msg_type = '{}.{}'.format(self.skill_id, 'idle')
+        self.add_event(msg_type, self.handle_idle)
+        self.add_event('mycroft.mark2.collect_idle',
+                       self.handle_collect_request)
 
     def handle_collect_request(self, message):
         self.log.info('Registering idle screen')
@@ -625,18 +624,17 @@ class WeatherSkill(MycroftSkill):
 
         # Display info on a screen
         # Mark-2
-        if 'gui' in dir(self):
-            self.gui["current"] = report["temp"]
-            self.gui["min"] = report["temp_min"]
-            self.gui["max"] = report["temp_max"]
-            self.gui["location"] = report["full_location"].replace(', ', '\n')
-            self.gui["condition"] = report["condition"]
-            self.gui["icon"] = report["icon"]
-            self.gui["weathercode"] = img_code
-            self.gui["humidity"] = report.get("humidity", "--")
-            self.gui["wind"] = report.get("wind", "--")
-            self.gui.show_pages(["weather.qml", "highlow.qml",
-                                 "forecast1.qml", "forecast2.qml"])
+        self.gui["current"] = report["temp"]
+        self.gui["min"] = report["temp_min"]
+        self.gui["max"] = report["temp_max"]
+        self.gui["location"] = report["full_location"].replace(', ', '\n')
+        self.gui["condition"] = report["condition"]
+        self.gui["icon"] = report["icon"]
+        self.gui["weathercode"] = img_code
+        self.gui["humidity"] = report.get("humidity", "--")
+        self.gui["wind"] = report.get("wind", "--")
+        self.gui.show_pages(["weather.qml", "highlow.qml",
+                             "forecast1.qml", "forecast2.qml"])
         # Mark-1
         self.enclosure.deactivate_mouth_events()
         self.enclosure.weather_display(img_code, report['temp'])
