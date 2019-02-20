@@ -14,12 +14,17 @@
 
 import time
 from datetime import datetime
+from copy import copy
+import json
+
 import mycroft.audio
 from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
 from mycroft.dialog import DialogLoader
 from mycroft.api import Api
 from mycroft.skills.core import MycroftSkill, intent_handler
+from mycroft.messagebus.message import Message
+from mycroft.util.format import nice_time
 from mycroft.util.log import LOG
 from mycroft.util.parse import extract_datetime
 from mycroft.util.format import nice_number
@@ -29,12 +34,12 @@ from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
 from requests import HTTPError
 
-from mycroft.util.format import nice_time
-
 try:
     from mycroft.util.time import to_utc, to_local
 except Exception:
     import pytz
+
+MINUTES = 60 # Minutes to seconds multiplier
 
 # This skill uses the Open Weather Map API (https://openweathermap.org) and
 # the PyOWM wrapper for it.  For more info, see:
@@ -59,10 +64,27 @@ class OWMApi(Api):
         self.encoding = "utf8"
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
+        self.query_cache = {}
 
     def build_query(self, params):
         params.get("query").update({"lang": self.owmlang})
         return params.get("query")
+
+    def request(self, data):
+        """ Caching the responses """
+        req_hash = hash(json.dumps(data, sort_keys=True))
+        cache = self.query_cache.get(req_hash, (0, None))
+
+        # Use cached response if recent and cached value exists
+        now = time.monotonic()
+        if now > (cache[0] + 15 * MINUTES) or cache[1] is None:
+            resp = super().request(data)
+            self.query_cache[req_hash] = (now, resp)
+        else:
+            LOG.debug('Using cached OWM Response from {}'.format(cache[0]))
+            resp = cache[1]
+
+        return resp
 
     def get_data(self, response):
         return response.text
@@ -157,6 +179,74 @@ class WeatherSkill(MycroftSkill):
         if self.owm:
             self.owm.set_OWM_language(lang=self.__get_OWM_language(self.lang))
 
+    def initialize(self):
+        try:
+            self.mark2_forecast(self.__initialize_report(None))
+        except Exception as e:
+            LOG.warning('Could not prepare forecasts. ({})'.format(repr(e)))
+
+        if 'gui' in dir(self):
+            # Register for handling idle/resting screen
+            msg_type = '{}.{}'.format(self.skill_id, 'idle')
+            self.add_event(msg_type, self.handle_idle)
+            self.add_event('mycroft.mark2.collect_idle',
+                           self.handle_collect_request)
+
+    def handle_collect_request(self, message):
+        self.log.info('Registering idle screen')
+        self.bus.emit(Message('mycroft.mark2.register_idle',
+                              data={'name': 'Weather',
+                                    'id': self.skill_id}))
+        self.log.info('Done')
+
+    def handle_idle(self, message):
+        self.gui.show_page('idle.qml')
+
+    def get_coming_days_forecast(self, forecast, unit, days=None):
+        """
+            Get weather forcast for the coming days and returns them as a list
+
+            Parameters:
+                forecast: OWM weather
+                unit: Temperature unit
+                dt: Reference time
+                days: number of days to get forecast for, defaults to 4
+
+            Returns: List of dicts containg weather info
+        """
+        days = days or 4
+        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        forecast_list = []
+        # Get tomorrow and 4 days forward
+        for weather in list(forecast.get_weathers())[1:5]:
+            result_temp = weather.get_temperature(unit)
+            day_num = datetime.weekday(
+                datetime.fromtimestamp(weather.get_reference_time()))
+            result_temp_day = weekdays[day_num]
+            forecast_list.append({
+                "weathercode": self.CODES[weather.get_weather_icon_name()],
+                 "max": round(result_temp['max']),
+                 "min": round(result_temp['min']),
+                 "date": result_temp_day
+            })
+        return forecast_list
+
+    def mark2_forecast(self, report):
+        """ Builds forecast for the upcoming days for the Mark-2 display."""
+        future_weather = self.owm.daily_forecast(report['full_location'],
+                                                 report['lat'],
+                                                 report['lon'], limit=5)
+        f = future_weather.get_forecast()
+        forecast_list = self.get_coming_days_forecast(f,
+            self.__get_temperature_unit())
+
+        if "gui" in dir(self):
+            forecast = {}
+            forecast['first'] = forecast_list[0:2]
+            forecast['second'] = forecast_list[2:4]
+            self.gui['forecast'] = forecast
+
+
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").require(
         "Weather").optionally("Location").build())
@@ -198,12 +288,17 @@ class WeatherSkill(MycroftSkill):
                 report['lon'])
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
+            report['humidity'] = forecastWeather.get_humidity()
+
+            wind = self.get_wind_speed(forecastWeather)
+            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
 
             self.__report_weather("current", report)
+            self.mark2_forecast(report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.error("Error: {0}".format(e))
+            LOG.exception("Error: {0}".format(e))
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").require(
@@ -228,6 +323,8 @@ class WeatherSkill(MycroftSkill):
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
             report['icon'] = forecastWeather.get_weather_icon_name()
+            report['humidity'] = forecastWeather.get_humidity()
+#            report['wind'] = self.get_wind(weather.get_wind())
 
             # TODO: Run off of status IDs instead of the status text?
             # This converts a status like "sky is clear" to a different
@@ -244,7 +341,7 @@ class WeatherSkill(MycroftSkill):
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.error("Error: {0}".format(e))
+            LOG.exception("Error: {0}".format(e))
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("").require(
@@ -376,6 +473,21 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
+        speed, dir, unit = self.get_wind_speed(weather)
+        if dir:
+            dir = self.__translate(dir)
+            value = self.__translate("wind.speed.dir",
+                                     data={"dir": dir,
+                                           "speed": nice_number(speed),
+                                           "unit": unit})
+        else:
+            value = self.__translate("wind.speed",
+                                     data={"speed": nice_number(speed),
+                                           "unit": unit})
+
+        self.__report_condition(self.__translate("winds"), value, when)
+
+    def get_wind_speed(self, weather):
         wind = weather.get_wind()
 
         speed = wind["speed"]
@@ -408,17 +520,10 @@ class WeatherSkill(MycroftSkill):
                 dir = "NW"
             else:
                 dir = "N"
-            dir = self.__translate(dir)
-            value = self.__translate("wind.speed.dir",
-                                     data={"dir": dir,
-                                           "speed": nice_number(speed),
-                                           "unit": unit})
         else:
-            value = self.__translate("wind.speed",
-                                     data={"speed": nice_number(speed),
-                                           "unit": unit})
+            dir = None
 
-        self.__report_condition(self.__translate("winds"), value, when)
+        return speed, dir, unit
 
     # Handle: When is the sunrise?
     @intent_handler(IntentBuilder("").require(
@@ -482,7 +587,7 @@ class WeatherSkill(MycroftSkill):
         # Attempt to extract a location from the spoken phrase.  If none
         # is found return the default location instead.
         try:
-            location = message.data.get("Location", None)
+            location = message.data.get("Location", None) if message else None
             if location:
                 return None, None, location, location
 
@@ -519,6 +624,20 @@ class WeatherSkill(MycroftSkill):
         img_code = self.CODES[weather_code]
 
         # Display info on a screen
+        # Mark-2
+        if 'gui' in dir(self):
+            self.gui["current"] = report["temp"]
+            self.gui["min"] = report["temp_min"]
+            self.gui["max"] = report["temp_max"]
+            self.gui["location"] = report["full_location"].replace(', ', '\n')
+            self.gui["condition"] = report["condition"]
+            self.gui["icon"] = report["icon"]
+            self.gui["weathercode"] = img_code
+            self.gui["humidity"] = report.get("humidity", "--")
+            self.gui["wind"] = report.get("wind", "--")
+            self.gui.show_pages(["weather.qml", "highlow.qml",
+                                 "forecast1.qml", "forecast2.qml"])
+        # Mark-1
         self.enclosure.deactivate_mouth_events()
         self.enclosure.weather_display(img_code, report['temp'])
 
@@ -529,6 +648,13 @@ class WeatherSkill(MycroftSkill):
 
         # Just show the icons while still speaking
         mycroft.audio.wait_while_speaking()
+
+        # Speak the high and low temperatures
+        self.speak_dialog("min.max", report)
+        if "gui" in dir(self):
+            self.gui.show_page("highlow.qml")
+        mycroft.audio.wait_while_speaking()
+
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
 
