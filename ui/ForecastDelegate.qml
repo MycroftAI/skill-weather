@@ -51,7 +51,7 @@ WeatherDelegate {
                 Layout.fillWidth: true
                 Layout.preferredHeight: proportionalGridUnit * 20
                 rightPadding: -font.pixelSize * 0.1
-                text: modelData.max + "°"
+                text: modelData.min + "°"
             }
         }
     }
