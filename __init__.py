@@ -149,7 +149,7 @@ class OWMApi(Api):
 
 class WeatherSkill(MycroftSkill):
     def __init__(self):
-        super(WeatherSkill, self).__init__("WeatherSkill")
+        super().__init__("WeatherSkill")
 
         # Build a dictionary to translate OWM weather-conditions
         # codes into the Mycroft weather icon codes
@@ -163,23 +163,25 @@ class WeatherSkill(MycroftSkill):
         self.CODES['11d', '11n'] = 5                # stormy
         self.CODES['13d', '13n'] = 6                # snowing
         self.CODES['50d', '50n'] = 7                # windy/misty
-
+        
         # Use Mycroft proxy if no private key provided
-        key = self.config.get('api_key')
+        self.settings["api_key"] = None
+        self.settings["use_proxy"] = True
+
+    def initialize(self):
         # TODO: Remove lat,lon parameters from the OWMApi()
         #       methods and implement _at_coords() versions
         #       instead to make the interfaces compatible
         #       again.
         #
-        # if key and not self.config.get('proxy'):
-        #     self.owm = OWM(key)
+        # if self.settings["api_key"] and not self.settings['use_proxy']):
+        #     self.owm = OWM(self.settings["api_key"])
         # else:
         #     self.owm = OWMApi()
         self.owm = OWMApi()
         if self.owm:
             self.owm.set_OWM_language(lang=self.__get_OWM_language(self.lang))
-
-    def initialize(self):
+        
         try:
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
