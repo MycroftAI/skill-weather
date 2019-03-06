@@ -650,10 +650,10 @@ class WeatherSkill(MycroftSkill):
         mycroft.audio.wait_while_speaking()
 
         # Speak the high and low temperatures
-        self.speak_dialog("min.max", report)
-        if "gui" in dir(self):
+        if timeframe == 'current':
+            self.speak_dialog('min.max', report)
             self.gui.show_page("highlow.qml")
-        mycroft.audio.wait_while_speaking()
+            mycroft.audio.wait_while_speaking()
 
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
