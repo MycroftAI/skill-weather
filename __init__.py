@@ -327,7 +327,8 @@ class WeatherSkill(MycroftSkill):
             wind = self.get_wind_speed(forecastWeather)
             report['wind'] = "{} {}".format(wind[0], wind[1] or "")
 
-            self.__report_weather("current", report)
+            self.__report_weather("current", report,
+                separate_min_max='Location' not in message.data)
             self.mark2_forecast(report)
         except HTTPError as e:
             self.__api_error(e)
@@ -358,9 +359,6 @@ class WeatherSkill(MycroftSkill):
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
-            if today != when:
-                LOG.info("Doing a forecast" + str(today) + " " + str(when))
-                return self.handle_forecast(message)
 
             report = self.__initialize_report(message)
             # Get current conditions
@@ -396,8 +394,13 @@ class WeatherSkill(MycroftSkill):
             wind = self.get_wind_speed(forecastWeather)
             report['wind'] = "{} {}".format(wind[0], wind[1] or "")
 
-            self.__report_weather("current.temperature", report)
-            self.mark2_forecast(report)
+            if today != when:
+                LOG.info("Doing a forecast" + str(today) + " " + str(when))
+                return self.report_forecast(report, when,
+                                            dialog='temperature')
+            else:
+                self.__report_weather("current.temperature", report)
+                self.mark2_forecast(report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
@@ -405,7 +408,7 @@ class WeatherSkill(MycroftSkill):
 
 
 
-    def report_forecast(self, report, when):
+    def report_forecast(self, report, when, dialog='weather'):
         # Get forecast for the day
         forecastWeather = self.__get_forecast(
             when, report['full_location'], report['lat'], report['lon'])
@@ -432,7 +435,7 @@ class WeatherSkill(MycroftSkill):
 
         report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
 
-        self.__report_weather("forecast", report)
+        self.__report_weather('forecast', report, rtype=dialog)
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("").require(
@@ -675,8 +678,14 @@ class WeatherSkill(MycroftSkill):
         self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
 
     def __get_location(self, message):
-        # Attempt to extract a location from the spoken phrase.  If none
-        # is found return the default location instead.
+        """ Attempt to extract a location from the spoken phrase.
+
+        If none is found return the default location instead.
+
+        Arguments:
+            message (Message): messagebus message
+        Returns: tuple (lat, long, location string)
+        """
         try:
             location = message.data.get("Location", None) if message else None
             if location:
@@ -698,7 +707,7 @@ class WeatherSkill(MycroftSkill):
             raise ValueError("Location not found")
 
     def __initialize_report(self, message):
-        print("creating report base")
+        """ Creates a report base with location, unit. """
         lat, lon, location, pretty_location = self.__get_location(message)
         temp_unit = message.data.get("Unit")
         return {
@@ -709,8 +718,23 @@ class WeatherSkill(MycroftSkill):
             'scale': temp_unit or self.translate(self.__get_temperature_unit())
         }
 
-    def __report_weather(self, timeframe, report):
-        # Tell the weather to the user (verbal and visual)
+    def __report_weather(self, timeframe, report, rtype='weather',
+                         separate_min_max=False):
+        """ Report the weather verbally and visually.
+
+        Produces an utterance based on the timeframe and rtype parameters.
+        The report also provides location context. The dialog file used will
+        be:
+            "timeframe(.local).rtype"
+
+        Arguments:
+            timeframe (str): 'current' or 'future'.
+            report (dict): Dictionary with report information (temperatures
+                           and such.
+            rtype (str): report type, defaults to 'weather'
+            separate_min_max (bool): a separate dialog for min max temperatures
+                                     will be output if True (default: False)
+        """
 
         # Convert code to matching weather icon on Mark 1
         weather_code = str(report['icon'])
@@ -736,13 +760,13 @@ class WeatherSkill(MycroftSkill):
         dialog_name = timeframe
         if report['location'] == self.location_pretty:
             dialog_name += ".local"
-        self.speak_dialog(dialog_name + ".weather", report)
+        self.speak_dialog(dialog_name + "." + rtype, report)
 
         # Just show the icons while still speaking
         mycroft.audio.wait_while_speaking()
 
         # Speak the high and low temperatures
-        if timeframe == 'current':
+        if separate_min_max:
             self.speak_dialog('min.max', report)
             self.gui.show_page("highlow.qml")
             mycroft.audio.wait_while_speaking()
@@ -763,7 +787,14 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("report.future.condition", data)
 
     def __get_forecast(self, when, location, lat, lon):
-        # Return a forecast for the given day and location
+        """ Get a forecast for the given time and location.
+
+        Arguments:
+            when (datetime): Local datetime for report
+            location: location
+            lat: Latitude for report
+            lon: Longitude for report
+        """
 
         # convert time to UTC/GMT (forecast is in GMT)
         whenGMT = self.__to_UTC(when)
@@ -780,12 +811,22 @@ class WeatherSkill(MycroftSkill):
         return None
 
     def __get_speed_unit(self):
-        # Config setting of 'metric' implies celsius for unit
+        """ Get speed unit based on config setting.
+
+        Config setting of 'metric' will return "meters_sec", otherwise 'mph'
+
+        Returns: (str) 'meters_sec' or 'mph'
+        """
         system_unit = self.config_core.get('system_unit')
         return system_unit == "metric" and "meters_sec" or "mph"
 
     def __get_temperature_unit(self):
-        # Config setting of 'metric' implies celsius for unit
+        """ Get temperature unit from config and skill settings.
+
+        Config setting of 'metric' implies celsius for unit
+        
+        Returns: (str) "celcius" or "fahrenheit"
+        """
         system_unit = self.config_core.get('system_unit')
         override = self.settings.get("units", "")
         if override:
