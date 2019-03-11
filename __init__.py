@@ -351,10 +351,28 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
+    def __get_requested_unit(self, message):
+        """ Get selected unit from message.
+
+        Arguments:
+            message (Message): messagebus message from intent service
+
+        Returns:
+            'fahrenheit', 'celsius' or None
+        """
+        if 'Unit' in message.data:
+            if self.voc_match(message.data['Unit'], 'Fahrenheit'):
+                return 'fahrenheit'
+            else:
+                return 'celsius'
+        else:
+            return None
+
     @intent_handler(IntentBuilder("").require("Query").require(
         "Temperature").optionally("Location").optionally("Unit").build())
     def handle_current_temperature(self, message):
         try:
+            unit = self.__get_requested_unit(message)
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
@@ -380,7 +398,7 @@ class WeatherSkill(MycroftSkill):
 
             report['condition'] = condition
             report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                    message.data.get('Unit'))
+                                                    unit)
             report['icon'] = currentWeather.get_weather_icon_name()
 
             # Get forecast for the day
@@ -393,9 +411,9 @@ class WeatherSkill(MycroftSkill):
                 report['lat'],
                 report['lon'])
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
-                message.data.get('Unit'))
+                                                        unit)
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
-                message.data.get('Unit'))
+                                                        unit)
             report['humidity'] = forecastWeather.get_humidity()
 
             wind = self.get_wind_speed(forecastWeather)
@@ -413,6 +431,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("Unit").build())
     def handle_high_temperature(self, message):
         try:
+            unit = self.__get_requested_unit(message)
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
@@ -438,7 +457,7 @@ class WeatherSkill(MycroftSkill):
 
             report['condition'] = condition
             report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                    message.data.get('Unit'))
+                                                    unit)
             report['icon'] = currentWeather.get_weather_icon_name()
 
             # Get forecast for the day
@@ -450,8 +469,10 @@ class WeatherSkill(MycroftSkill):
                 report['full_location'],
                 report['lat'],
                 report['lon'])
-            report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
-            report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
+            report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                                                        unit)
+            report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                                                        unit)
             report['humidity'] = forecastWeather.get_humidity()
 
             wind = self.get_wind_speed(forecastWeather)
@@ -469,6 +490,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("Unit").build())
     def handle_low_temperature(self, message):
         try:
+            unit = self.__get_requested_unit(message)
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
@@ -479,7 +501,7 @@ class WeatherSkill(MycroftSkill):
                 LOG.info("Doing a forecast" + str(today) + " " + str(when))
                 return self.report_forecast(report, when,
                                             dialog='low.temperature',
-                                            unit=message.data.get('Unit'))
+                                            unit=unit)
 
             # Get current conditions
             currentWeather = self.owm.weather_at_place(
@@ -495,7 +517,7 @@ class WeatherSkill(MycroftSkill):
 
             report['condition'] = condition
             report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                    message.data.get('Unit'))
+                                                    unit)
             report['icon'] = currentWeather.get_weather_icon_name()
 
             # Get forecast for the day
@@ -508,9 +530,9 @@ class WeatherSkill(MycroftSkill):
                 report['lat'],
                 report['lon'])
             report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
-                message.data.get('Unit'))
+                                                        unit)
             report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
-                message.data.get('Unit'))
+                                                        unit)
             report['humidity'] = forecastWeather.get_humidity()
 
             wind = self.get_wind_speed(forecastWeather)
@@ -826,13 +848,13 @@ class WeatherSkill(MycroftSkill):
     def __initialize_report(self, message):
         """ Creates a report base with location, unit. """
         lat, lon, location, pretty_location = self.__get_location(message)
-        temp_unit = message.data.get("Unit")
+        temp_unit = self.__get_requested_unit(message)
         return {
             'lat': lat,
             'lon': lon,
             'location': pretty_location,
             'full_location': location,
-            'scale': temp_unit or self.translate(self.__get_temperature_unit())
+            'scale': self.translate(temp_unit or self.__get_temperature_unit())
         }
 
     def __report_weather(self, timeframe, report, rtype='weather',
