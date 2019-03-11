@@ -248,7 +248,7 @@ class WeatherSkill(MycroftSkill):
             self.gui['forecast'] = forecast
 
 
-    @intent_handler(IntentBuilder("").require(
+    @intent_handler(IntentBuilder("").require("Query").require(
         "Weather").require("Weekend").require(
         "Next").optionally("Location").build())
     def handle_next_weekend_weather(self, message):
@@ -264,7 +264,7 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
-    @intent_handler(IntentBuilder("").require(
+    @intent_handler(IntentBuilder("").require("Query").require(
         "Weather").require("Weekend").optionally("Location").build())
     def handle_weekend_weather(self, message):
         """ Handle weather for weekend. """
@@ -361,6 +361,69 @@ class WeatherSkill(MycroftSkill):
                         message.data.get('utterance'), lang=self.lang)
 
             report = self.__initialize_report(message)
+            if today != when:
+                LOG.info("Doing a forecast" + str(today) + " " + str(when))
+                return self.report_forecast(report, when,
+                                            dialog='temperature')
+
+            # Get current conditions
+            currentWeather = self.owm.weather_at_place(
+                report['full_location'], report['lat'],
+                report['lon']).get_weather()
+
+            # Change encoding of the localized report to utf8 if needed
+            condition = currentWeather.get_detailed_status()
+            if self.owm.encoding != 'utf8':
+                condition = self.__translate(
+                    condition.encode(self.owm.encoding).decode('utf8')
+                )
+
+            report['condition'] = condition
+            report['temp'] = self.__get_temperature(currentWeather, 'temp',
+                                                    message.data.get('Unit'))
+            report['icon'] = currentWeather.get_weather_icon_name()
+
+            # Get forecast for the day
+            # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
+            # Set time to 12 instead of 00 to accomodate for timezones
+            forecastWeather = self.__get_forecast(
+                today.replace(
+                    hour=12),
+                report['full_location'],
+                report['lat'],
+                report['lon'])
+            report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                message.data.get('Unit'))
+            report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                message.data.get('Unit'))
+            report['humidity'] = forecastWeather.get_humidity()
+
+            wind = self.get_wind_speed(forecastWeather)
+            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+
+            self.__report_weather('current', report, 'temperature')
+            self.mark2_forecast(report)
+        except HTTPError as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
+    @intent_handler(IntentBuilder("").require("Query").require("High") \
+        .optionally("Temperature").optionally("Location") \
+        .optionally("Unit").build())
+    def handle_high_temperature(self, message):
+        try:
+            # Get a date from requests like "weather for next Tuesday"
+            today = extract_datetime(" ")[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
+
+            report = self.__initialize_report(message)
+            if today != when:
+                LOG.info("Doing a forecast" + str(today) + " " + str(when))
+                return self.report_forecast(report, when,
+                                            dialog='high.temperature')
+
             # Get current conditions
             currentWeather = self.owm.weather_at_place(
                 report['full_location'], report['lat'],
@@ -394,21 +457,73 @@ class WeatherSkill(MycroftSkill):
             wind = self.get_wind_speed(forecastWeather)
             report['wind'] = "{} {}".format(wind[0], wind[1] or "")
 
-            if today != when:
-                LOG.info("Doing a forecast" + str(today) + " " + str(when))
-                return self.report_forecast(report, when,
-                                            dialog='temperature')
-            else:
-                self.__report_weather("current.temperature", report)
-                self.mark2_forecast(report)
+            self.__report_weather('current', report, 'high.temperature')
+            self.mark2_forecast(report)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
+    @intent_handler(IntentBuilder("").require("Query").require("Low") \
+        .optionally("Temperature").optionally("Location") \
+        .optionally("Unit").build())
+    def handle_low_temperature(self, message):
+        try:
+            # Get a date from requests like "weather for next Tuesday"
+            today = extract_datetime(" ")[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
 
+            report = self.__initialize_report(message)
+            if today != when:
+                LOG.info("Doing a forecast" + str(today) + " " + str(when))
+                return self.report_forecast(report, when,
+                                            dialog='low.temperature',
+                                            unit=message.data.get('Unit'))
 
-    def report_forecast(self, report, when, dialog='weather'):
+            # Get current conditions
+            currentWeather = self.owm.weather_at_place(
+                report['full_location'], report['lat'],
+                report['lon']).get_weather()
+
+            # Change encoding of the localized report to utf8 if needed
+            condition = currentWeather.get_detailed_status()
+            if self.owm.encoding != 'utf8':
+                condition = self.__translate(
+                    condition.encode(self.owm.encoding).decode('utf8')
+                )
+
+            report['condition'] = condition
+            report['temp'] = self.__get_temperature(currentWeather, 'temp',
+                                                    message.data.get('Unit'))
+            report['icon'] = currentWeather.get_weather_icon_name()
+
+            # Get forecast for the day
+            # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
+            # Set time to 12 instead of 00 to accomodate for timezones
+            forecastWeather = self.__get_forecast(
+                today.replace(
+                    hour=12),
+                report['full_location'],
+                report['lat'],
+                report['lon'])
+            report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                message.data.get('Unit'))
+            report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                message.data.get('Unit'))
+            report['humidity'] = forecastWeather.get_humidity()
+
+            wind = self.get_wind_speed(forecastWeather)
+            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+
+            self.__report_weather('current', report, 'low.temperature')
+            self.mark2_forecast(report)
+        except HTTPError as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
+    def report_forecast(self, report, when, dialog='weather', unit=None):
         # Get forecast for the day
         forecastWeather = self.__get_forecast(
             when, report['full_location'], report['lat'], report['lon'])
@@ -417,9 +532,11 @@ class WeatherSkill(MycroftSkill):
             return
 
         # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
-        report['temp'] = self.__get_temperature(forecastWeather, 'day')
-        report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
-        report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
+        report['temp'] = self.__get_temperature(forecastWeather, 'day', unit)
+        report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                                                    unit)
+        report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                                                    unit)
         report['icon'] = forecastWeather.get_weather_icon_name()
         report['humidity'] = forecastWeather.get_humidity()
 #       report['wind'] = self.get_wind(weather.get_wind())
