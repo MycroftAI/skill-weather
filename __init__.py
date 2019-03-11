@@ -634,7 +634,7 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog("no precipitation expected", report)
 
     # Handle: What's the weather later?
-    @intent_handler(IntentBuilder("").require(
+    @intent_handler(IntentBuilder("").require("Query").require(
         "Weather").optionally("Location").require("Later").build())
     def handle_next_hour(self, message):
         try:
