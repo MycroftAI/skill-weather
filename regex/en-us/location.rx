@@ -1,1 +1,1 @@
-(at|in) (?P<Location>.*)
+.*\b(at|in) (?P<Location>\b(?!celsius|fahrenheit)\b\S+)

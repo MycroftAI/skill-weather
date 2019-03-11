@@ -1,0 +1,4 @@
+A high of {{temp_max}} degrees {{scale}} is expected in {{location}}. 
+A high of {{temp_max}} degrees can be expected in {{location}}.
+Today a the temperature will reach {{temp}} degrees in {{location}}.
+
