@@ -1091,7 +1091,7 @@ class WeatherSkill(MycroftSkill):
     def __nice_time(self, dt, lang="en-us", speech=True, use_24hour=False,
                     use_ampm=False):
         # compatibility wrapper for nice_time
-        nt_supported_languages = ['en','it','fr','de']
+        nt_supported_languages = ['en','es','it','fr','de','hu','nl','da']
         if not (lang[0:2] in nt_supported_languages):
             lang = "en-us"
         return nice_time(dt, lang, speech, use_24hour, use_ampm)
