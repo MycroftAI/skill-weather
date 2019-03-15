@@ -65,6 +65,7 @@ class OWMApi(Api):
         self.observation = ObservationParser()
         self.forecast = ForecastParser()
         self.query_cache = {}
+        self.location_translations = {}
 
     def build_query(self, params):
         params.get("query").update({"lang": self.owmlang})
@@ -89,11 +90,32 @@ class OWMApi(Api):
     def get_data(self, response):
         return response.text
 
+    def weather_at_location(self, name):
+        if name == '':
+            raise ValueError
+
+        q = {"q": name}
+        try:
+            data = self.request({
+                "path": "/weather",
+                "query": q
+            })
+            return self.observation.parse_JSON(data), name
+        except HTTPError as e:
+            if e.response.status_code == 404:
+                name = ' '.join(name.split()[:-1])
+                return self.weather_at_location(name)
+            raise
+
     def weather_at_place(self, name, lat, lon):
         if lat and lon:
             q = {"lat": lat, "lon": lon}
         else:
-            q = {"q": name}
+            if name in self.location_translations:
+                name = self.location_translations[name]
+            response, trans_name = self.weather_at_location(name)
+            self.location_translations[name] = trans_name
+            return response
 
         data = self.request({
             "path": "/weather",
@@ -105,6 +127,8 @@ class OWMApi(Api):
         if lat and lon:
             q = {"lat": lat, "lon": lon}
         else:
+            if name in self.location_translations:
+                name = self.location_translations[name]
             q = {"q": name}
 
         data = self.request({
@@ -117,6 +141,8 @@ class OWMApi(Api):
         if lat and lon:
             q = {"lat": lat, "lon": lon}
         else:
+            if name in self.location_translations:
+                name = self.location_translations[name]
             q = {"q": name}
 
         if limit is not None:
@@ -331,6 +357,7 @@ class WeatherSkill(MycroftSkill):
                 separate_min_max='Location' not in message.data)
             self.mark2_forecast(report)
         except HTTPError as e:
+            self.log.exception(repr(e))
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
@@ -573,7 +600,6 @@ class WeatherSkill(MycroftSkill):
             forecastWeather.get_detailed_status(), True)
 
         report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
-
         self.__report_weather('forecast', report, rtype=dialog)
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
@@ -876,6 +902,8 @@ class WeatherSkill(MycroftSkill):
         """
 
         # Convert code to matching weather icon on Mark 1
+        if report['location']:
+            report['location'] = self.owm.location_translations.get(report['location'], report['location'])
         weather_code = str(report['icon'])
         img_code = self.CODES[weather_code]
 
