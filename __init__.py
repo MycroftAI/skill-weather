@@ -572,6 +572,71 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+        "Hot", "Cold").optionally("Location").build())
+    def handle_isit_hot(self, message):
+        """ Handler for utterances similar to
+        is it hot today?, is it cold? will it be hot tomorrow?, etc
+        """
+        return self.__handle_typed(message, 'hot')
+
+    def __handle_typed(self, message, response_type):
+        try:
+            unit = self.__get_requested_unit(message)
+            # Get a date from requests like "weather for next Tuesday"
+            today = extract_datetime(" ")[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
+
+            report = self.__initialize_report(message)
+            if today != when:
+                LOG.info("Doing a forecast" + str(today) + " " + str(when))
+                return self.report_forecast(report, when,
+                                            dialog=response_type)
+
+            # Get current conditions
+            currentWeather = self.owm.weather_at_place(
+                report['full_location'], report['lat'],
+                report['lon']).get_weather()
+
+            # Change encoding of the localized report to utf8 if needed
+            condition = currentWeather.get_detailed_status()
+            if self.owm.encoding != 'utf8':
+                condition = self.__translate(
+                    condition.encode(self.owm.encoding).decode('utf8')
+                )
+
+            report['condition'] = condition
+            report['temp'] = self.__get_temperature(currentWeather, 'temp',
+                                                    unit)
+            report['icon'] = currentWeather.get_weather_icon_name()
+
+            # Get forecast for the day
+            # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
+            # Set time to 12 instead of 00 to accomodate for timezones
+            forecastWeather = self.__get_forecast(
+                today.replace(
+                    hour=12),
+                report['full_location'],
+                report['lat'],
+                report['lon'])
+            report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                                                        unit)
+            report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                                                        unit)
+            report['humidity'] = forecastWeather.get_humidity()
+
+            wind = self.get_wind_speed(forecastWeather)
+            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+
+            self.__report_weather('current', report, response_type)
+            self.mark2_forecast(report)
+        except HTTPError as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
+
     def report_forecast(self, report, when, dialog='weather', unit=None):
         # Get forecast for the day
         forecastWeather = self.__get_forecast(
