@@ -495,6 +495,23 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+        "Cloudy").optionally("Location").build())
+    def handle_isit_cloudy(self, message):
+        """ Handler for utterances similar to "is it clear skies today?"
+        """
+        report = self.__populate_report(message)
+        if self.voc_match(report['condition'], 'Cloudy'):
+            dialog = 'affirmative.condition'
+        elif self.voc_match(report['condition'], 'CloudyAlternatives'):
+            dialog = 'cloudy.alternative'
+        else:
+            dialog = 'no.cloudy.predicted'
+
+        if report.get('day'):
+            dialog = 'forecast.' + dialog
+        self.speak_dialog(dialog, report)
+
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Foggy").optionally("Location").build())
     def handle_isit_foggy(self, message):
         """ Handler for utterances similar to "is it foggy today?"
