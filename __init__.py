@@ -67,6 +67,46 @@ class OWMApi(Api):
         self.query_cache = {}
         self.location_translations = {}
 
+    @staticmethod
+    def get_language(lang):
+        """
+        OWM supports 31 languages, see https://openweathermap.org/current#multi
+
+        Convert language code to owm language, if missing use 'en'
+        """
+
+        owmlang = 'en'
+
+        # some special cases
+        if lang == 'zh-zn' or lang == 'zh_zn':
+            return 'zh_zn'
+        elif lang == 'zh-tw' or lang == 'zh_tw':
+            return 'zh_tw'
+
+        # special cases cont'd
+        lang = lang.lower().split("-")
+        lookup = {
+            'sv': 'se',
+            'cs': 'cz',
+            'ko': 'kr',
+            'lv': 'la',
+            'uk': 'ua'
+        }
+        if lang[0] in lookup:
+            return lookup[lang[0]]
+
+        owmsupported = ['ar','bg','ca','cz','de','el','en','fa','fi','fr','gl',
+                    'hr','hu','it','ja','kr','la','lt','mk','nl','pl','pt',
+                    'ro','ru','se','sk','sl','es','tr','ua','vi']
+
+        if lang[0] in owmsupported:
+            owmlang = lang[0]
+        if (len(lang)==2):
+            if lang[1] in owmsupported:
+                owmlang = lang[1]
+        return owmlang
+
+
     def build_query(self, params):
         params.get("query").update({"lang": self.owmlang})
         return params.get("query")
@@ -206,7 +246,7 @@ class WeatherSkill(MycroftSkill):
         #     self.owm = OWMApi()
         self.owm = OWMApi()
         if self.owm:
-            self.owm.set_OWM_language(lang=self.__get_OWM_language(self.lang))
+            self.owm.set_OWM_language(lang=OWMApi.get_language(self.lang))
         
         try:
             self.mark2_forecast(self.__initialize_report(None))
@@ -1134,44 +1174,6 @@ class WeatherSkill(MycroftSkill):
             return self.dialog_renderer.render(condition, data)
         else:
             return condition
-
-    """
-    OWM supports 31 languages, see https://openweathermap.org/current#multi
-
-    If Mycroft's language setting is supported by OWM,
-    then use it - or use 'en' otherwise
-    """
-    def __get_OWM_language(self, lang):
-        owmlang = 'en'
-
-        # some special cases
-        if lang == 'zh-zn' or lang == 'zh_zn':
-            return 'zh_zn'
-        elif lang == 'zh-tw' or lang == 'zh_tw':
-            return 'zh_tw'
-
-        # special cases cont'd
-        lang = lang.lower().split("-")
-        lookup = {
-            'sv': 'se',
-            'cs': 'cz',
-            'ko': 'kr',
-            'lv': 'la',
-            'uk': 'ua'
-        }
-        if lang[0] in lookup:
-            return lookup[lang[0]]
-
-        owmsupported = ['ar','bg','ca','cz','de','el','en','fa','fi','fr','gl',
-                    'hr','hu','it','ja','kr','la','lt','mk','nl','pl','pt',
-                    'ro','ru','se','sk','sl','es','tr','ua','vi']
-
-        if lang[0] in owmsupported:
-            owmlang = lang[0]
-        if (len(lang)==2):
-            if lang[1] in owmsupported:
-                owmlang = lang[1]
-        return owmlang
 
     def __nice_time(self, dt, lang="en-us", speech=True, use_24hour=False,
                     use_ampm=False):
