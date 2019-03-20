@@ -314,8 +314,8 @@ class WeatherSkill(MycroftSkill):
             self.gui['forecast'] = forecast
 
 
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").require("Weekend").require(
+    @intent_handler(IntentBuilder("").require("Query").one_of(
+        "Weather", "Forecast").require("Weekend").require(
         "Next").optionally("Location").build())
     def handle_next_weekend_weather(self, message):
         """ Handle next weekends weather """
@@ -330,8 +330,8 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").require("Weekend").optionally("Location").build())
+    @intent_handler(IntentBuilder("").require("Query").one_of("Weather",
+        "Forecast").require("Weekend").optionally("Location").build())
     def handle_weekend_weather(self, message):
         """ Handle weather for weekend. """
         try:
