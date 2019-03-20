@@ -641,20 +641,28 @@ class WeatherSkill(MycroftSkill):
         return None
 
     def __populate_forecast(self, report, when, unit=None):
-        # Get forecast for the day
-        forecastWeather = self.__get_forecast(
+        """ Populate the report and return it.
+
+        Arguments:
+            report (dict): report base
+            when : date for report
+            unit: Unit type to use when presenting
+
+        Returns: None if no report available otherwise dict with weather info
+        """
+        forecast_weather = self.__get_forecast(
             when, report['full_location'], report['lat'], report['lon'])
-        if forecastWeather is None:
+        if forecast_weather is None:
             return None # No forecast available
 
         # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
-        report['temp'] = self.__get_temperature(forecastWeather, 'day', unit)
-        report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+        report['temp'] = self.__get_temperature(forecast_weather, 'day', unit)
+        report['temp_min'] = self.__get_temperature(forecast_weather, 'min',
                                                     unit)
-        report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+        report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
                                                     unit)
-        report['icon'] = forecastWeather.get_weather_icon_name()
-        report['humidity'] = forecastWeather.get_humidity()
+        report['icon'] = forecast_weather.get_weather_icon_name()
+        report['humidity'] = forecast_weather.get_humidity()
 #       report['wind'] = self.get_wind(weather.get_wind())
 
         # TODO: Run off of status IDs instead of the status text?
@@ -664,39 +672,25 @@ class WeatherSkill(MycroftSkill):
         # 'Friday it will be 82 and the sky will be clear' or just
         # 'Friday it will be 82 and clear.
         report['condition'] = self.__translate(
-            forecastWeather.get_detailed_status(), True)
+            forecast_weather.get_detailed_status(), True)
 
         report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
         return report
 
     def report_forecast(self, report, when, dialog='weather', unit=None):
-        # Get forecast for the day
-        forecastWeather = self.__get_forecast(
-            when, report['full_location'], report['lat'], report['lon'])
-        if forecastWeather is None:
+        """ Speak forecast for specific day.
+
+        Arguments:
+            report (dict): report base
+            when : date for report
+            dialog (str): dialog type, defaults to 'weather'
+            unit: Unit type to use when presenting
+        """
+        report = self.__populate_forecast(report, when, unit)
+        if report is None:
             self.speak_dialog("no forecast", {'day': self.__to_day(when)})
             return
 
-        # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
-        report['temp'] = self.__get_temperature(forecastWeather, 'day', unit)
-        report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
-                                                    unit)
-        report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
-                                                    unit)
-        report['icon'] = forecastWeather.get_weather_icon_name()
-        report['humidity'] = forecastWeather.get_humidity()
-#       report['wind'] = self.get_wind(weather.get_wind())
-
-        # TODO: Run off of status IDs instead of the status text?
-        # This converts a status like "sky is clear" to a different
-        # text and tense, because you don't want:
-        # "Friday it will be 82 and the sky is clear", it should be
-        # 'Friday it will be 82 and the sky will be clear' or just
-        # 'Friday it will be 82 and clear.
-        report['condition'] = self.__translate(
-            forecastWeather.get_detailed_status(), True)
-
-        report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
         self.__report_weather('forecast', report, rtype=dialog)
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
