@@ -1,2 +1,2 @@
-The wind will be quite hard
-It will be very windy
+It will be {wind} {wind_unit}
+The wind will be as strong as {wind} {wind_unit}

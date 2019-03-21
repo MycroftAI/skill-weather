@@ -56,6 +56,20 @@ MINUTES = 60 # Minutes to seconds multiplier
 """
 
 
+# Windstrength limits in miles per hour
+WINDSTRENGTH_MPH = {
+    'hard': 20,
+    'medium': 11
+}
+
+
+# Windstrenght limits in m/s
+WINDSTRENGTH_MPS = {
+    'hard': 9,
+    'medium': 5
+}
+
+
 class OWMApi(Api):
     ''' Wrapper that defaults to the Mycroft cloud proxy so user's don't need
         to get their own OWM API keys '''
@@ -459,19 +473,27 @@ class WeatherSkill(MycroftSkill):
     def handle_isit_windy(self, message):
         """ Handler for utterances similar to "is it windy today?" """
         report = self.__populate_report(message)
+
+        if self.__get_speed_unit() == 'mph':
+            limits = WINDSTRENGTH_MPH
+            report['wind_unit'] = self.translate('miles per hour')
+        else:
+            limits = WINDSTRENGTH_MPS
+            report['wind_unit'] = self.translate('meters per second')
+
         dialog = []
         if 'day' in report:
             dialog.append('forecast')
 
-        if int(report['wind']) >= 9:
+        if int(report['wind']) >= limits['hard']:
             dialog.append('hard')
-        elif int(report['wind']) >= 5:
+        elif int(report['wind']) >= limits['medium']:
             dialog.append('medium')
         else:
             dialog.append('light')
         dialog.append('wind')
         dialog = '.'.join(dialog)
-        self.speak_dialog(dialog)
+        self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Hot", "Cold").optionally("Location").build())
