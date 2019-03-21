@@ -865,7 +865,8 @@ class WeatherSkill(MycroftSkill):
 
     # Handle: How windy is it?
     @intent_handler(IntentBuilder("").require(
-        "Query").optionally("Location").require("Windy").build())
+        "Query").optionally("Location").require("Windy").optionally(
+        "ConfirmQuery").build())
     def handle_windy(self, message):
         report = self.__initialize_report(message)
 
