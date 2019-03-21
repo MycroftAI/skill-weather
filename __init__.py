@@ -41,17 +41,33 @@ except Exception:
 
 MINUTES = 60 # Minutes to seconds multiplier
 
-# This skill uses the Open Weather Map API (https://openweathermap.org) and
-# the PyOWM wrapper for it.  For more info, see:
-#
-# General info on PyOWM
-#   https://www.slideshare.net/csparpa/pyowm-my-first-open-source-project
-# OWM doc for APIs used
-#   https://openweathermap.org/current - current
-#   https://openweathermap.org/forecast5 - three hour forecast
-#   https://openweathermap.org/forecast16 - daily forecasts
-# PyOWM docs
-#   https://media.readthedocs.org/pdf/pyowm/latest/pyowm.pdf
+"""
+    This skill uses the Open Weather Map API (https://openweathermap.org) and
+    the PyOWM wrapper for it.  For more info, see:
+
+    General info on PyOWM
+    https://www.slideshare.net/csparpa/pyowm-my-first-open-source-project
+    OWM doc for APIs used
+        https://openweathermap.org/current - current
+        https://openweathermap.org/forecast5 - three hour forecast
+        https://openweathermap.org/forecast16 - daily forecasts
+    PyOWM docs
+        https://media.readthedocs.org/pdf/pyowm/latest/pyowm.pdf
+"""
+
+
+# Windstrength limits in miles per hour
+WINDSTRENGTH_MPH = {
+    'hard': 20,
+    'medium': 11
+}
+
+
+# Windstrenght limits in m/s
+WINDSTRENGTH_MPS = {
+    'hard': 9,
+    'medium': 5
+}
 
 
 class OWMApi(Api):
@@ -452,6 +468,33 @@ class WeatherSkill(MycroftSkill):
     def handle_low_temperature(self, message):
         return self.__handle_typed(message, 'low.temperature')
 
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").require(
+        "Windy").optionally("Location").build())
+    def handle_isit_windy(self, message):
+        """ Handler for utterances similar to "is it windy today?" """
+        report = self.__populate_report(message)
+
+        if self.__get_speed_unit() == 'mph':
+            limits = WINDSTRENGTH_MPH
+            report['wind_unit'] = self.translate('miles per hour')
+        else:
+            limits = WINDSTRENGTH_MPS
+            report['wind_unit'] = self.translate('meters per second')
+
+        dialog = []
+        if 'day' in report:
+            dialog.append('forecast')
+
+        if int(report['wind']) >= limits['hard']:
+            dialog.append('hard')
+        elif int(report['wind']) >= limits['medium']:
+            dialog.append('medium')
+        else:
+            dialog.append('light')
+        dialog.append('wind')
+        dialog = '.'.join(dialog)
+        self.speak_dialog(dialog, report)
+
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Hot", "Cold").optionally("Location").build())
     def handle_isit_hot(self, message):
@@ -680,7 +723,7 @@ class WeatherSkill(MycroftSkill):
                                                     unit)
         report['icon'] = forecast_weather.get_weather_icon_name()
         report['humidity'] = forecast_weather.get_humidity()
-#       report['wind'] = self.get_wind(weather.get_wind())
+        report['wind'] = self.get_wind_speed(forecast_weather)[0]
 
         # TODO: Run off of status IDs instead of the status text?
         # This converts a status like "sky is clear" to a different
@@ -711,7 +754,7 @@ class WeatherSkill(MycroftSkill):
         self.__report_weather('forecast', report, rtype=dialog)
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
-    @intent_handler(IntentBuilder("").require(
+    @intent_handler(IntentBuilder("").require("Query").require(
         "Next").require("Precipitation").optionally("Location").build())
     def handle_next_precipitation(self, message):
         report = self.__initialize_report(message)
