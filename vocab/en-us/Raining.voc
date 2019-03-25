@@ -1,2 +1,2 @@
 # Rain conditions used for example in "is it going to rain today"
-(rain|raining|drizzle)
+(rain|raining|drizzle|precipitation)

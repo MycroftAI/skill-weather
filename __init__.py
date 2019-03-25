@@ -22,7 +22,7 @@ from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
 from mycroft.dialog import DialogLoader
 from mycroft.api import Api
-from mycroft.skills.core import MycroftSkill, intent_handler
+from mycroft.skills.core import MycroftSkill, intent_handler, intent_file_handler
 from mycroft.messagebus.message import Message
 from mycroft.util.format import nice_time
 from mycroft.util.log import LOG
@@ -245,7 +245,7 @@ class WeatherSkill(MycroftSkill):
         self.CODES['11d', '11n'] = 5                # stormy
         self.CODES['13d', '13n'] = 6                # snowing
         self.CODES['50d', '50n'] = 7                # windy/misty
-        
+
         # Use Mycroft proxy if no private key provided
         self.settings["api_key"] = None
         self.settings["use_proxy"] = True
@@ -263,7 +263,7 @@ class WeatherSkill(MycroftSkill):
         self.owm = OWMApi()
         if self.owm:
             self.owm.set_OWM_language(lang=OWMApi.get_language(self.lang))
-        
+
         try:
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
@@ -362,6 +362,10 @@ class WeatherSkill(MycroftSkill):
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
+
+    @intent_file_handler("whats.weather.like.intent")
+    def handle_current_weather_alt(self, message):
+        self.handle_current_weather(message)
 
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").require("Query").require(
