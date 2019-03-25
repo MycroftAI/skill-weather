@@ -276,11 +276,9 @@ class WeatherSkill(MycroftSkill):
                        self.handle_collect_request)
 
     def handle_collect_request(self, message):
-        self.log.info('Registering idle screen')
         self.bus.emit(Message('mycroft.mark2.register_idle',
                               data={'name': 'Weather',
                                     'id': self.skill_id}))
-        self.log.info('Done')
 
     def handle_idle(self, message):
         self.gui.show_page('idle.qml')
@@ -418,6 +416,17 @@ class WeatherSkill(MycroftSkill):
             self.mark2_forecast(report)
         except HTTPError as e:
             self.log.exception(repr(e))
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
+    # Handle: What is the weather forecast?
+    @intent_file_handler("what.is.three.day.forecast.intent")
+    def handle_three_day_forecast(self, message):
+        try:
+            report = self.__initialize_report(message)
+            self.report_threeday_forecast(report)
+        except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
@@ -729,12 +738,9 @@ class WeatherSkill(MycroftSkill):
         report['humidity'] = forecast_weather.get_humidity()
         report['wind'] = self.get_wind_speed(forecast_weather)[0]
 
-        # TODO: Run off of status IDs instead of the status text?
-        # This converts a status like "sky is clear" to a different
-        # text and tense, because you don't want:
-        # "Friday it will be 82 and the sky is clear", it should be
-        # 'Friday it will be 82 and the sky will be clear' or just
-        # 'Friday it will be 82 and clear.
+        # TODO: Run off of status IDs instead of the status text? This converts a status like "sky is clear" to
+        # a different text and tense, because you don't want: "Friday it will be 82 and the sky is clear", it
+        # should be 'Friday it will be 82 and the sky will be clear' or just 'Friday it will be 82 and clear.
         report['condition'] = self.__translate(
             forecast_weather.get_detailed_status(), True)
 
@@ -756,6 +762,26 @@ class WeatherSkill(MycroftSkill):
             return
 
         self.__report_weather('forecast', report, rtype=dialog)
+
+    def report_threeday_forecast(self, report, dialog='weather', unit=None):
+        """ Speak forecast for today, tomorrow and next day.
+
+        Arguments:
+            report (dict): report base
+            when : date for report
+            dialog (str): dialog type, defaults to 'weather'
+            unit: Unit type to use when presenting
+        """
+        days = [extract_datetime(" ")[0],
+                extract_datetime("tomorrow", lang="en-us")[0],
+                extract_datetime("48 hours", lang="en-us")[0]]
+
+        for day in days:
+            report = self.__populate_forecast(report, day, unit)
+            if report is None:
+                self.speak_dialog("no forecast", {'day': self.__to_day(day)})
+                return
+            self.__report_weather('forecast', report, rtype=dialog)
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
     @intent_handler(IntentBuilder("").require("Query").require(
@@ -1147,7 +1173,7 @@ class WeatherSkill(MycroftSkill):
         """ Get temperature unit from config and skill settings.
 
         Config setting of 'metric' implies celsius for unit
-        
+
         Returns: (str) "celcius" or "fahrenheit"
         """
         system_unit = self.config_core.get('system_unit')
