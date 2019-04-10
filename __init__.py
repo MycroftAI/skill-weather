@@ -148,7 +148,7 @@ class OWMApi(Api):
 
     def weather_at_location(self, name):
         if name == '':
-            raise ValueError
+            raise ValueError('The location couldn\'t be found')
 
         q = {"q": name}
         try:
@@ -193,13 +193,34 @@ class OWMApi(Api):
         })
         return self.to_forecast(data, "3h")
 
+    def _daily_forecast_at_location(self, name, limit):
+        if name in self.location_translations:
+            name = self.location_translations[name]
+        orig_name = name
+        while name != '':
+            try:
+                q = {"q": name}
+                if limit is not None:
+                    q["cnt"] = limit
+                data = self.request({
+                    "path": "/forecast/daily",
+                    "query": q
+                })
+                forecast = self.to_forecast(data, 'daily')
+                self.location_translations[orig_name] = name
+                return forecast
+            except HTTPError as e:
+                if e.response.status_code == 404:
+                    # Remove last word in name
+                    name = ' '.join(name.split()[:-1])
+
+        raise ValueError('The location couldn\'t be found')
+
     def daily_forecast(self, name, lat, lon, limit=None):
         if lat and lon:
             q = {"lat": lat, "lon": lon}
         else:
-            if name in self.location_translations:
-                name = self.location_translations[name]
-            q = {"q": name}
+            return self._daily_forecast_at_location(name, limit)
 
         if limit is not None:
             q["cnt"] = limit
