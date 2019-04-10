@@ -1,3 +1,3 @@
-Mit einem Höchstwert von {{temp_max}} und Minimum von {{temp_min}} Grad, ist es in {{location}} {{condition}} bei gerade {{temp}} Grad.
-Es ist gerade {{condition}} und {{temp}} Grad {{scale}} in {{location}}. Das heutige Maximum beträgt {{temp_max}} und das Minimum {{temp_min}} Grad.
-Gerade ist es {{condition}} bei {{temp}} Grad, mit einem Höchstwert {{temp_max}} und Tiefsttemperatur {{temp_min}} in {{location}}.
+Es ist gerade {{condition}} bei {{temp}} Grad {{scale}} in {{location}}. Der heutige Höchstwert beträgt {{temp_max}} und der Tiefstwert {{temp_min}} Grad.
+Gerade ist es {{condition}} bei {{temp}} Grad, mit einem Höchstwert von {{temp_max}} und einem Tiefstwert von {{temp_min}} in {{location}}.
+Mit einem Höchstwert von {{temp_max}} und einem Tiefstwert von {{temp_min}} Grad, ist es in {{location}} {{condition}} bei {{temp}} Grad.

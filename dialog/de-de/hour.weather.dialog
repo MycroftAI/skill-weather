@@ -1,4 +1,4 @@
 {{location}} Wetter in den nächsten Stunden wird {{condition}} und {{temp_max}} Grad
-Später gibt es {{condition}} in {{location}}, mit Temperatur um die {{temp_max}} Grad
-In {{location}} wird es um die {{temp_max}} Grad bei {{condition}}
-In {{location}} wird es {{temp_max}} Grad bei {{condition}}
+Später gibt es {{condition}} in {{location}}, mit Temperaturen um die {{temp_max}} Grad
+In {{location}} werden es um die {{temp_max}} Grad mit {{condition}}
+In {{location}} werden es ungefähr {{temp_max}} Grad mit {{condition}}
