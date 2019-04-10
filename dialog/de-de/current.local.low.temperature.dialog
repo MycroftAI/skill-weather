@@ -1,0 +1,3 @@
+Als Tiefstwert wird {{temp_min}} degrees {{scale}} erwartet. 
+Als Tiefstwert kann {{temp_min}} Grad erwartet werden.
+Heute wird es bis zu {{temp_min}} grad kalt.

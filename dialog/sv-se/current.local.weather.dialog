@@ -1,4 +1,3 @@
-Det är nu {{condition}} och {{temp}} grader {{scale}}. Dagens prognos har en topp på {{temp_max}} och en botten på {{temp_min}}.
-Det är nu {{condition}} och {{temp}} grader. Dagens prognos har en topp på {{temp_max}} och en botten på {{temp_min}}.
-Just nu, är det {{condition}} och {{temp}} grader, med en topp på {{temp_max}} och en botten på {{temp_min}}.
-Med en topp på {{temp_max}} och en botten på {{temp_min}}, {{location}} har {{condition}} och nu {{temp}} grader.
+För närvarande {{condition}} och {{temp}} grader {{scale}}.
+Just nu är det {{condition}} och {{temp}} grader.
+Just nu är det {{condition}} och {{temp}} grader.

@@ -1,0 +1,3 @@
+Ein Höchstwert von {{temp_max}} Grad {{scale}} wird erwartet in {{location}}. 
+Ein Höchstwert von {{temp_max}} Grad {{scale}} kann in {{location}} erwartet werden.
+In {{location}} wird die Temperatur heute {{temp_max}} Grad erreichen.

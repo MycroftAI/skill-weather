@@ -1,3 +1,3 @@
-På {{day}} kommer det vara {{condition}}, med en topp på {{temp_max}} och en botten på {{temp_min}}
+På {{day}} kommer det vara {{condition}}, med en topptemperatur på {{temp_max}} och en lägsta temperature på {{temp_min}} grader
 På {{day}} kommer toppen bli {{temp_max}} och botten {{temp_min}}, med {{condition}}
 {{day}}s prognos är {{temp_max}} som högst och {{temp_min}} som lägst

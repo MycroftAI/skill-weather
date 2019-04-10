@@ -1,4 +1,3 @@
-Es ist gerade {{condition}} und {{temp}} Grad {{scale}}. Das heute vorhergesagte Maximum beträgt {{temp_max}} und das Minimum {{temp_min}}.
-Es ist gerade {{condition}} und {{temp}} Grad. Das heutige Maximun ist {{temp_max}} und der Tiefstwert {{temp_min}}.
-Jetzt ist es {{condition}} und {{temp}} Grad, mit maximal {{temp_max}} und minimal {{temp_min}} Grad.
-Mit einem Höchstwert von {{temp_max}} und Minimum von {{temp_min}} Grad, ist es in {{location}} {{condition}} bei gerade {{temp}} Grad.
+Es ist im Moment {{condition}} bei {{temp}} Grad {{scale}}. 
+Es ist im Moment {{condition}} bei {{temp}} Grad.
+Im Moment ist es {{condition}} bei {{temp}} Grad.
