@@ -518,7 +518,8 @@ class WeatherSkill(MycroftSkill):
         dialog = []
         if 'day' in report:
             dialog.append('forecast')
-
+        if "Location" not in message.data:
+            dialog.append('local')
         if int(report['wind']) >= limits['hard']:
             dialog.append('hard')
         elif int(report['wind']) >= limits['medium']:
@@ -550,6 +551,8 @@ class WeatherSkill(MycroftSkill):
         else:
             dialog = 'no.snow.predicted'
 
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
         self.speak_dialog(dialog, report)
@@ -567,6 +570,8 @@ class WeatherSkill(MycroftSkill):
         else:
             dialog = 'no.clear.predicted'
 
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
         self.speak_dialog(dialog, report)
@@ -584,6 +589,8 @@ class WeatherSkill(MycroftSkill):
         else:
             dialog = 'no.cloudy.predicted'
 
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
         self.speak_dialog(dialog, report)
@@ -601,6 +608,8 @@ class WeatherSkill(MycroftSkill):
         else:
             dialog = 'no.fog.predicted'
 
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
         self.speak_dialog(dialog, report)
@@ -618,6 +627,8 @@ class WeatherSkill(MycroftSkill):
         else:
             dialog = 'no.rain.predicted'
 
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
         self.speak_dialog(dialog, report)

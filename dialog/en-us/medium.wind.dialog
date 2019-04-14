@@ -1,2 +1,2 @@
-Currently {wind} {wind_unit}, so a bit windy
-It's a bit windy today, currently {wind} {wind_unit}
+Currently {wind} {wind_unit} in {location}, so a bit windy
+It's a bit windy in {location} today, currently {wind} {wind_unit}

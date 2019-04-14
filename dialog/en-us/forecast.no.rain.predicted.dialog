@@ -1,4 +1,4 @@
 # When user asks if it's raining but no rain or alternative is forcasted
-No rain is predicted
-On {day}, it will most likely not rain
-There's no need for an umbrella
+No rain is predicted for {location} on {day}
+On {day}, it will most likely not rain in {location}
+There's no need for an umbrella in {location}
