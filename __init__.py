@@ -441,9 +441,13 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
-    # Handle: What is the weather forecast?
     @intent_file_handler("what.is.three.day.forecast.intent")
     def handle_three_day_forecast(self, message):
+        """ Handler for three day forecast without specified location
+
+        Examples:   "What is the 3 day forecast?"
+                    "What is the weather forecast?"
+        """
         try:
             report = self.__initialize_report(message)
             self.report_threeday_forecast(report)
@@ -451,6 +455,17 @@ class WeatherSkill(MycroftSkill):
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
+
+    @intent_file_handler("what.is.three.day.forecast.location.intent")
+    def handle_three_day_forecast_location(self, message):
+        """ Handler for three day forecast for a specific location
+
+        Example: "What is the 3 day forecast for London?"
+        """
+        # padatious lowercases everything including these keys
+        message.data['Location'] = message.data.pop('location')
+        return self.handle_three_day_forecast(message)
+
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").require(
