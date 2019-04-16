@@ -468,7 +468,7 @@ class WeatherSkill(MycroftSkill):
 
 
     # Handle: What is the weather forecast?
-    @intent_handler(IntentBuilder("").require(
+    @intent_handler(IntentBuilder("").require("query").require(
         "Forecast").optionally("Location").build())
     def handle_forecast(self, message):
         try:
