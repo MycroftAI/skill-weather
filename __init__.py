@@ -456,12 +456,10 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
-    #@intent_file_handler("what.is.three.day.forecast.location.intent")
+    @intent_file_handler("what.is.three.day.forecast.location.intent")
     def handle_three_day_forecast_location(self, message):
         """ Handler for three day forecast for a specific location
 
-        THIS INTENT HANDLER IS DISABLED DUE TO CATASTROPHIC ISSUES
-        PADATIOUS CAN'T LOAD
         Example: "What is the 3 day forecast for London?"
         """
         # padatious lowercases everything including these keys
@@ -821,9 +819,9 @@ class WeatherSkill(MycroftSkill):
             dialog (str): dialog type, defaults to 'weather'
             unit: Unit type to use when presenting
         """
-        days = [extract_datetime(" ")[0],
-                extract_datetime("tomorrow", lang="en-us")[0],
-                extract_datetime("48 hours", lang="en-us")[0]]
+        days = [extract_datetime('today', lang='en-us')[0],
+                extract_datetime('tomorrow', lang='en-us')[0],
+                extract_datetime('48 hours', lang='en-us')[0]]
 
         for day in days:
             report = self.__populate_forecast(report, day, unit)
