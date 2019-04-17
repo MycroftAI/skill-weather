@@ -14,6 +14,7 @@
 
 import time
 from datetime import datetime
+import datetime as dt
 from copy import copy
 import json
 
@@ -715,50 +716,53 @@ class WeatherSkill(MycroftSkill):
             report = self.__initialize_report(message)
             if today != when:
                 LOG.info("Doing a forecast" + str(today) + " " + str(when))
-                return self.__populate_forecast(report, when)
-
-            # Get current conditions
-            currentWeather = self.owm.weather_at_place(
-                report['full_location'], report['lat'],
-                report['lon']).get_weather()
-
-            # Change encoding of the localized report to utf8 if needed
-            condition = currentWeather.get_detailed_status()
-            if self.owm.encoding != 'utf8':
-                condition = self.__translate(
-                    condition.encode(self.owm.encoding).decode('utf8')
-                )
-
-            report['condition'] = condition
-            report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                    unit)
-            report['icon'] = currentWeather.get_weather_icon_name()
-
-            # Get forecast for the day
-            # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
-            # Set time to 12 instead of 00 to accomodate for timezones
-            forecastWeather = self.__get_forecast(
-                today.replace(
-                    hour=12),
-                report['full_location'],
-                report['lat'],
-                report['lon'])
-            report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
-                                                        unit)
-            report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
-                                                        unit)
-            report['humidity'] = forecastWeather.get_humidity()
-
-            wind = self.get_wind_speed(forecastWeather)
-            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-            return report
-
+                return self.__populate_forecast(report, when, unit)
+            else:
+                return self.__populate_current(report, when, unit)
         except HTTPError as e:
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
         return None
+
+    def __populate_current(self, report, when, unit=None):
+        # Get current conditions
+        today = extract_datetime(" ")[0]
+        currentWeather = self.owm.weather_at_place(
+            report['full_location'], report['lat'],
+            report['lon']).get_weather()
+
+        # Change encoding of the localized report to utf8 if needed
+        condition = currentWeather.get_detailed_status()
+        if self.owm.encoding != 'utf8':
+            condition = self.__translate(
+                condition.encode(self.owm.encoding).decode('utf8')
+            )
+
+        report['condition'] = condition
+        report['temp'] = self.__get_temperature(currentWeather, 'temp',
+                                                unit)
+        report['icon'] = currentWeather.get_weather_icon_name()
+
+        # Get forecast for the day
+        # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
+        # Set time to 12 instead of 00 to accomodate for timezones
+        forecastWeather = self.__get_forecast(
+            today.replace(
+                hour=12),
+            report['full_location'],
+            report['lat'],
+            report['lon'])
+        report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                                                        unit)
+        report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                                                    unit)
+        report['humidity'] = forecastWeather.get_humidity()
+
+        wind = self.get_wind_speed(forecastWeather)
+        report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+        return report
 
     def __populate_forecast(self, report, when, unit=None):
         """ Populate the report and return it.
@@ -819,15 +823,17 @@ class WeatherSkill(MycroftSkill):
             dialog (str): dialog type, defaults to 'weather'
             unit: Unit type to use when presenting
         """
-        days = [extract_datetime('today', lang='en-us')[0],
-                extract_datetime('tomorrow', lang='en-us')[0],
+        days = [extract_datetime('tomorrow', lang='en-us')[0],
                 extract_datetime('48 hours', lang='en-us')[0]]
 
+        self.__populate_current(report, extract_datetime(' ')[0])
+        report['day'] = self.__to_day(extract_datetime(' ')[0])
+        self.__report_weather('forecast', report, rtype=dialog)
         for day in days:
             report = self.__populate_forecast(report, day, unit)
             if report is None:
                 self.speak_dialog("no forecast", {'day': self.__to_day(day)})
-                return
+                continue
             self.__report_weather('forecast', report, rtype=dialog)
 
     # Handle: When will it rain again? | Will it rain on Tuesday?
