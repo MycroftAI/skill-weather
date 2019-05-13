@@ -42,8 +42,11 @@ except Exception:
 
 MINUTES = 60 # Minutes to seconds multiplier
 
+class LocationNotFoundError(ValueError):
+    pass
 
-APIErrors = (ValueError, HTTPError)
+
+APIErrors = (LocationNotFoundError, HTTPError)
 
 
 """
@@ -153,7 +156,7 @@ class OWMApi(Api):
 
     def weather_at_location(self, name):
         if name == '':
-            raise ValueError('The location couldn\'t be found')
+            raise LocationNotFoundError('The location couldn\'t be found')
 
         q = {"q": name}
         try:
@@ -219,7 +222,7 @@ class OWMApi(Api):
                     # Remove last word in name
                     name = ' '.join(name.split()[:-1])
 
-        raise ValueError('The location couldn\'t be found')
+        raise LocationNotFoundError('The location couldn\'t be found')
 
     def daily_forecast(self, name, lat, lon, limit=None):
         if lat and lon:
@@ -1106,9 +1109,9 @@ class WeatherSkill(MycroftSkill):
                     ", " + state["country"]["name"], self.location_pretty
 
             return None
-        except BaseException:
+        except Exception:
             self.speak_dialog("location.not.found")
-            raise ValueError("Location not found")
+            raise LocationNotFoundError("Location not found")
 
     def __initialize_report(self, message):
         """ Creates a report base with location, unit. """
@@ -1253,9 +1256,9 @@ class WeatherSkill(MycroftSkill):
             return ""
 
     def __api_error(self, e):
-        if isinstance(e, ValueError):
+        if isinstance(e, LocationNotFoundError):
             self.speak_dialog('location.not.found')
-        if e.response.status_code == 401:
+        elif e.response.status_code == 401:
             from mycroft import Message
             self.bus.emit(Message("mycroft.not.paired"))
 
