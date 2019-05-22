@@ -130,7 +130,6 @@ class OWMApi(Api):
                 owmlang = lang[1]
         return owmlang
 
-
     def build_query(self, params):
         params.get("query").update({"lang": self.owmlang})
         return params.get("query")
@@ -140,7 +139,7 @@ class OWMApi(Api):
         req_hash = hash(json.dumps(data, sort_keys=True))
         cache = self.query_cache.get(req_hash, (0, None))
 
-        # Use cached response if recent and cached value exists
+        # Use cached response if value exists and was fetched within 15 min
         now = time.monotonic()
         if now > (cache[0] + 15 * MINUTES) or cache[1] is None:
             resp = super().request(data)
@@ -148,7 +147,6 @@ class OWMApi(Api):
         else:
             LOG.debug('Using cached OWM Response from {}'.format(cache[0]))
             resp = cache[1]
-
         return resp
 
     def get_data(self, response):
@@ -257,6 +255,7 @@ class OWMApi(Api):
         }
         self.encoding = encodings.get(lang, 'utf8')
 
+##########################################################################
 
 class WeatherSkill(MycroftSkill):
     def __init__(self):
@@ -303,6 +302,49 @@ class WeatherSkill(MycroftSkill):
         self.add_event(msg_type, self.handle_idle)
         self.add_event('mycroft.mark2.collect_idle',
                        self.handle_collect_request)
+
+        self.schedule_for_daily_use()
+
+        # self.test_screen()    # DEBUG:  Used during screen testing/debugging
+
+    def test_screen(self):
+        self.gui["current"] = 72                # report["temp"]
+        self.gui["min"] = 83                    # report["temp_min"]
+        self.gui["max"] = 5                     # report["temp_max"]
+        self.gui["location"] = "kansas city"    # report["full_location"].replace(', ', '\n')
+        self.gui["condition"] = "sunny"         # report["condition"]
+        self.gui["icon"] = "sunny"              # report["icon"]
+        self.gui["weathercode"] = 0             # img_code (0-7)
+        self.gui["humidity"] = "100%"           # report.get("humidity", "--")
+        self.gui["wind"] = "--"                 # report.get("wind", "--")
+
+        self.gui.show_page('weather.qml')
+
+    def prime_weather_cache(self):
+        # If not already cached, this will reach out for current conditions
+        report = self.__initialize_report(None)
+        currentWeather = self.owm.weather_at_place(
+            report['full_location'], report['lat'],
+            report['lon']).get_weather()
+
+    def schedule_for_daily_use(self):
+        # Assume the user has a semi-regular schedule.  Whenever this method
+        # is called, it will establish a 45 minute window of pre-cached
+        # weather info for the next day allowing for snappy responses to the
+        # daily query.
+        self.prime_weather_cache()
+        self.cancel_scheduled_event("precache1")
+        self.cancel_scheduled_event("precache2")
+        self.cancel_scheduled_event("precache3")
+        self.schedule_repeating_event(self.prime_weather_cache, None,
+                                      60*60*24,         # One day in seconds
+                                      name="precache1")
+        self.schedule_repeating_event(self.prime_weather_cache, None,
+                                      60*60*24-60*15,   # One day - 15 minutes
+                                      name="precache2")
+        self.schedule_repeating_event(self.prime_weather_cache, None,
+                                      60*60*24+60*15,   # One day + 15 minutes
+                                      name="precache3")
 
     def handle_collect_request(self, message):
         self.bus.emit(Message('mycroft.mark2.register_idle',
@@ -355,7 +397,6 @@ class WeatherSkill(MycroftSkill):
             forecast['first'] = forecast_list[0:2]
             forecast['second'] = forecast_list[2:4]
             self.gui['forecast'] = forecast
-
 
     @intent_handler(IntentBuilder("").require("Query").one_of(
         "Weather", "Forecast").require("Weekend").require(
@@ -443,6 +484,9 @@ class WeatherSkill(MycroftSkill):
             self.__report_weather("current", report,
                 separate_min_max='Location' not in message.data)
             self.mark2_forecast(report)
+
+            # Establish the daily cadence
+            self.schedule_for_daily_use()
         except APIErrors as e:
             self.log.exception(repr(e))
             self.__api_error(e)
@@ -486,6 +530,9 @@ class WeatherSkill(MycroftSkill):
             when = extract_datetime(message.data.get('utterance'),
                                     lang=self.lang)[0]
             self.report_forecast(report, when)
+
+            # Establish the daily cadence
+            self.schedule_for_daily_use()
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
@@ -500,7 +547,7 @@ class WeatherSkill(MycroftSkill):
         Returns:
             'fahrenheit', 'celsius' or None
         """
-        if 'Unit' in message.data:
+        if message and message.data and 'Unit' in message.data:
             if self.voc_match(message.data['Unit'], 'Fahrenheit'):
                 return 'fahrenheit'
             else:
@@ -1329,6 +1376,7 @@ class WeatherSkill(MycroftSkill):
         if not (lang[0:2] in nt_supported_languages):
             lang = "en-us"
         return nice_time(dt, lang, speech, use_24hour, use_ampm)
+
 
 def create_skill():
     return WeatherSkill()
