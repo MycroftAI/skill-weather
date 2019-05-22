@@ -323,9 +323,13 @@ class WeatherSkill(MycroftSkill):
     def prime_weather_cache(self):
         # If not already cached, this will reach out for current conditions
         report = self.__initialize_report(None)
-        currentWeather = self.owm.weather_at_place(
-            report['full_location'], report['lat'],
-            report['lon']).get_weather()
+        try:
+            self.owm.weather_at_place(
+                report['full_location'], report['lat'],
+                report['lon']).get_weather()
+        except Exception as e:
+            self.log.error('Failed to prime weather cache '
+                           '({})'.format(repr(e)))
 
     def schedule_for_daily_use(self):
         # Assume the user has a semi-regular schedule.  Whenever this method
