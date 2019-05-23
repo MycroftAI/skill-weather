@@ -973,7 +973,6 @@ class WeatherSkill(MycroftSkill):
                                                         'temp_max')
             report['condition'] = forecastWeather.get_detailed_status()
             report['icon'] = forecastWeather.get_weather_icon_name()
-
             self.__report_weather("hour", report)
         except APIErrors as e:
             self.__api_error(e)
@@ -1302,9 +1301,15 @@ class WeatherSkill(MycroftSkill):
         # Typically it has: 'temp', 'min', 'max', 'morn', 'day', 'night'
         try:
             unit = unit or self.__get_temperature_unit()
-            return str(int(round(weather.get_temperature(unit)[key])))
-        except BaseException:
-            return ""
+            # fallback to general temperature if missing
+            temp = weather.get_temperature(unit)[key]
+            if temp:
+                return str(int(round(temp)))
+            else:
+                return ''
+        except Exception as e:
+            self.log.warning('No temperature available ({})'.format(repr(e)))
+            return ''
 
     def __api_error(self, e):
         if isinstance(e, LocationNotFoundError):
