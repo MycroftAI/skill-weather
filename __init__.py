@@ -1131,8 +1131,8 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunset_time())
-        dtLocal = self.__to_Local(dtSunriseUTC)
+        dtSunsetUTC = datetime.fromtimestamp(weather.get_sunset_time())
+        dtLocal = self.__to_Local(dtSunsetUTC)
         self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
 
     def __get_location(self, message):
