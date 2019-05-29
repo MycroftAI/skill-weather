@@ -1,3 +1,3 @@
 # When user asks if it's foggy but no snow or alternative is forcasted
-Sikten verkar bli god
-Ingen dimma idag enligt prognosen
+Det verkar vara god sikt i {location}
+Ingen dimma förutspås för {location} idag

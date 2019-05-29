@@ -1,3 +1,3 @@
-Der Wind wird nicht so schlimm sein, etwa {wind} {wind_unit}
-Die Vorhersage sagt {wind} {wind_unit}, nicht zu schlecht
-Es könnte Wind bis zu {wind} {wind_unit} geben
+Der Wind wird nicht so schlimm in {location}, etwa {wind} {wind_unit}
+laut Vorhersage ist {location} {wind} {wind_unit} hat, halb so schlimm
+Es könnte Wind bis zu {wind} {wind_unit} in {location} geben

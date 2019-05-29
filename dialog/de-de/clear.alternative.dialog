@@ -1,4 +1,4 @@
 # Informieren, dass es eine Alternative zum klaren Himmel gibt
-Nein, die Prognose ist {condition}
-Es sieht so aus, als gäbe es {condition}
-Chancen stehen gut, dass es {condition} wird
+Nein, aber die Prognose ist {condition} in {location}
+Es sieht so aus, als wäre {condition} in {location}
+Wahrscheinlich wird es {condition} in {location} sein

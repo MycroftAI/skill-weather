@@ -1,3 +1,3 @@
-Nein, aber die Prognose ist {condition}
+Nein, aber die Prognose ist {condition} in {location}
 # Informieren, dass eine Alternative zum Schneefall auftritt
-Es ist kein Schnee für heute vorhergesagt, aber die Chancen stehen gut, dass es {condition} wird.
+Es ist kein Schnee {location} vorhergesagt heute, aber die Chancen stehen gut, dass es {condition} wird.

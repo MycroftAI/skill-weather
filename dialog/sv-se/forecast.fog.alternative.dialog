@@ -1,4 +1,4 @@
-Nej, prognosen hävdar {condition}
-Det verkar som det kommer vara {condition}
-Det ser ut att bli {condition}
+Det verkar bli {condition} i {location}
+Det ser ut att bli {condition} i {location}
 # Informing that an alternative to fog will occur
+Nej, prognosen för {location} säger att det blir {condition}
