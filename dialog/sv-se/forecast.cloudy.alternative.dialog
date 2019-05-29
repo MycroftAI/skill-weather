@@ -1,4 +1,4 @@
 # Informing that an alternative to clear skies will occur
-Nej, prognosen hävdar {condition}
-Det kommer inte vara mulet utan {condition}
-Det verkar inte som det, troligt vis kommer det vara {condition}
+Nej, men det verkar bli {condition} i {location}
+Det kommer inte vara mulet  i {location} utan {condition}
+Det verkar inte så, {location} ser ut att få {condition}

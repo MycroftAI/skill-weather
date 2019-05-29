@@ -1,4 +1,4 @@
-Det kommer bli {{condition}}, med temperaturer nära {{temp_max}}
-Senare kommer det vara {{condition}} och runt {{temp_max}} grader
+Det kommer bli {{condition}}, med temperaturer nära {{temp_max}} grader
+Senare kommer det vara {{condition}} och runt {{temp_max}}
 Senare kommer det vara {{condition}} och {{temp_max}} grader
 Omkring {{temp_max}} grader med {{condition}}

@@ -1,4 +1,4 @@
-Vädret i {{location}} de kommande få timmarna kommer vara {{condition}} och {{temp_max}} grader
+Vädret i {{location}} de kommande timmarna kommer vara {{condition}} och {{temp_max}} grader
 Senare kommer det vara {{condition}} i {{location}}, med temperaturer omkring {{temp_max}}
 {{location}} kommer vara omkring {{temp_max}} med {{condition}}
 {{location}} kommer vara ungefär {{temp_max}} grader med {{condition}}
