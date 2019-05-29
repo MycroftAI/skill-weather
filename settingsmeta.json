@@ -13,7 +13,7 @@
                         "name": "units",
                         "type": "select",
                         "label": "Temperature units",
-                        "options": "Default (from Basic Settings)|default;Celsius|celsius;Farenheit|farenheit",
+                        "options": "Default (from Basic Settings)|default;Celsius|celsius;Fahrenheit|fahrenheit",
                         "value": "default"
                     }
                 ]
