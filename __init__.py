@@ -895,8 +895,8 @@ class WeatherSkill(MycroftSkill):
                 continue
             self.__report_weather('forecast', report, rtype=dialog)
 
-    # Handle: When will it rain again? | Will it rain on Tuesday?
-    @intent_handler(IntentBuilder("").require("Query").require(
+    # Handle: When will it rain again?
+    @intent_handler(IntentBuilder("").require("When").optionally(
         "Next").require("Precipitation").optionally("Location").build())
     def handle_next_precipitation(self, message):
         report = self.__initialize_report(message)
