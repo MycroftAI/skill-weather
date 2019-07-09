@@ -1078,8 +1078,8 @@ class WeatherSkill(MycroftSkill):
         return speed, dir, unit
 
     # Handle: When is the sunrise?
-    @intent_handler(IntentBuilder("").require(
-        "Query").optionally("Location").require("Sunrise").build())
+    @intent_handler(IntentBuilder("").one_of("Query", "When")
+                    .optionally("Location").require("Sunrise").build())
     def handle_sunrise(self, message):
         report = self.__initialize_report(message)
 
@@ -1107,8 +1107,8 @@ class WeatherSkill(MycroftSkill):
         self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
 
     # Handle: When is the sunset?
-    @intent_handler(IntentBuilder("").require(
-        "Query").optionally("Location").require("Sunset").build())
+    @intent_handler(IntentBuilder("").one_of("Query", "When")
+                    .optionally("Location").require("Sunset").build())
     def handle_sunset(self, message):
         report = self.__initialize_report(message)
 
