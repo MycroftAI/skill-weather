@@ -438,6 +438,11 @@ class WeatherSkill(MycroftSkill):
     def handle_current_weather_alt(self, message):
         self.handle_current_weather(message)
 
+    @intent_handler(IntentBuilder("").require("Weather"
+                   ).one_of("Now", "Today").optionally("Location").build())
+    def handle_current_weather_simple(self, message):
+        self.handle_current_weather(message)
+
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").require("Query").require(
         "Weather").optionally("Location").optionally("Today").build())
