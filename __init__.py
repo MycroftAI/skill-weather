@@ -444,8 +444,8 @@ class WeatherSkill(MycroftSkill):
         self.handle_current_weather(message)
 
     # Handle: what is the weather like?
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").optionally("Location").optionally("Today").build())
+    @intent_handler(IntentBuilder("").require("Weather").optionally("Query")
+                   .optionally("Location").optionally("Today").build())
     def handle_current_weather(self, message):
         try:
             # Get a date from requests like "weather for next Tuesday"
