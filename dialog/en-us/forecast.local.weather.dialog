@@ -1,3 +1,5 @@
 On {{day}} expect {{condition}}, with a high of {{temp_max}} and a low of {{temp_min}}
+Expect {{condition}}, with a high of {{temp_max}} and a low of {{temp_min}} on {{day}}
 {{day}} the high will be {{temp_max}} and the low {{temp_min}}, with {{condition}} conditions
-{{day}}'s forecast is {{temp_max}} for a high and {{temp_min}} for a low
+{{day}} will be {{condition}} with a high of {{temp_max}} and a low of {{temp_min}}
+{{day}}'s forecast is for a high of {{temp_max}} and a low of {{temp_min}}

@@ -438,14 +438,15 @@ class WeatherSkill(MycroftSkill):
     def handle_current_weather_alt(self, message):
         self.handle_current_weather(message)
 
-    @intent_handler(IntentBuilder("").require("Weather"
-                   ).one_of("Now", "Today").optionally("Location").build())
+    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
+                   .one_of("Now", "Today").optionally("Location").build())
     def handle_current_weather_simple(self, message):
         self.handle_current_weather(message)
 
     # Handle: what is the weather like?
-    @intent_handler(IntentBuilder("").require("Weather").optionally("Query")
-                   .optionally("Location").optionally("Today").build())
+    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
+                   .optionally("Query").optionally("Location")
+                   .optionally("Today").build())
     def handle_current_weather(self, message):
         try:
             # Get a date from requests like "weather for next Tuesday"
@@ -528,8 +529,8 @@ class WeatherSkill(MycroftSkill):
         return self.handle_three_day_forecast(message)
 
     # Handle: What is the weather forecast?
-    @intent_handler(IntentBuilder("").require(
-        "Forecast").optionally("Location").build())
+    @intent_handler(IntentBuilder("").require("Forecast")
+                   .optionally("Location").build())
     def handle_forecast(self, message):
         try:
             report = self.__initialize_report(message)
@@ -1265,15 +1266,17 @@ class WeatherSkill(MycroftSkill):
             lon: Longitude for report
         """
 
-        # convert time to UTC/GMT (forecast is in GMT)
-        whenGMT = self.__to_UTC(when)
+        # TODO Check with Ake - seems to be provided in local time.
+        # One other instance of whenGMT to check too.
+        # # convert time to UTC/GMT (forecast is in GMT)
+        # whenGMT = self.__to_UTC(when)
 
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=10)
         forecasts = forecasts.get_forecast()
         for weather in forecasts.get_weathers():
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
-            if forecastDate.date() == whenGMT.date():
+            if forecastDate.date() == when.date():
                 # found the right day, now format up the results
                 return weather
 
