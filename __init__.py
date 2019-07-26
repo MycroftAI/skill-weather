@@ -563,20 +563,23 @@ class WeatherSkill(MycroftSkill):
         else:
             return None
 
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Temperature").optionally("Location").optionally("Unit").build())
+    @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
+                    .optionally("Location").optionally("Unit")
+                    .optionally("Today").optionally("Now").build())
     def handle_current_temperature(self, message):
         return self.__handle_typed(message, 'temperature')
 
     @intent_handler(IntentBuilder("").require("Query").require("High")
                     .optionally("Temperature").optionally("Location")
-                    .optionally("Unit").build())
+                    .optionally("Unit").optionally("Today").optionally("Now")
+                    .build())
     def handle_high_temperature(self, message):
         return self.__handle_typed(message, 'high.temperature')
 
     @intent_handler(IntentBuilder("").require("Query").require("Low")
                     .optionally("Temperature").optionally("Location")
-                    .optionally("Unit").build())
+                    .optionally("Unit").optionally("Today").optionally("Now")
+                    .build())
     def handle_low_temperature(self, message):
         return self.__handle_typed(message, 'low.temperature')
 
