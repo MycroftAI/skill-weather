@@ -998,7 +998,7 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        speed, dir, unit = self.get_wind_speed(weather)
+        speed, dir, unit, strength = self.get_wind_speed(weather)
         if dir:
             dir = self.__translate(dir)
             value = self.__translate("wind.speed.dir",
@@ -1011,6 +1011,8 @@ class WeatherSkill(MycroftSkill):
                                            "unit": unit})
         loc = message.data.get('Location')
         self.__report_condition(self.__translate("winds"), value, when, loc)
+        self.speak_dialog('wind.strength.' + strength)
+
 
     def get_wind_speed(self, weather):
         wind = weather.get_wind()
@@ -1018,11 +1020,22 @@ class WeatherSkill(MycroftSkill):
         speed = wind["speed"]
         # get speed
         if self.__get_speed_unit() == "mph":
-            speed *= 2.23694
             unit = self.__translate("miles per hour")
+            speed_multiplier = 2.23694
+            speed *= speed_multiplier
         else:
             unit = self.__translate("meters per second")
+            speed_multiplier = 1
         speed = round(speed)
+
+        if (speed / speed_multiplier) < 0:
+            self.log.error("Wind speed below zero")
+        if (speed / speed_multiplier) <= 2.2352:
+            strength = "light"
+        elif (speed / speed_multiplier) <= 6.7056:
+            strength = "medium"
+        else:
+            strength = "hard"
 
         # get direction, convert compass degrees to named direction
         if "deg" in wind:
@@ -1048,7 +1061,7 @@ class WeatherSkill(MycroftSkill):
         else:
             dir = None
 
-        return speed, dir, unit
+        return speed, dir, unit, strength
 
     # Handle: When is the sunrise?
     @intent_handler(IntentBuilder("").one_of("Query", "When")
@@ -1214,11 +1227,10 @@ class WeatherSkill(MycroftSkill):
             "condition": name,
             "value": value,
         }
-        if when == extract_datetime(" ")[0]:
-            report_type = "report.condition"
-        else:
+        report_type = "report.condition"
+        if when != extract_datetime(" ")[0]:
             data["day"] = self.__to_day(when)
-            report_type = "report.future.condition"
+            report_type += ".future"
         if location:
             data["location"] = location
             report_type += ".at.location"
