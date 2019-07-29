@@ -1,3 +1,4 @@
-# Informing that an alternative to rain will occur
-No, but the forecast calls for {condition}
-On {day}, there is no rain predicted but it looks like there'll be {condition}
+# Informing that an alternative to clear skies will occur
+No, the forecast calls for {condition}
+On {day}, it looks like there'll be {condition}
+No. On {day}, it looks like there'll be {condition}
