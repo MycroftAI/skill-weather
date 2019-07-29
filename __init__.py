@@ -612,13 +612,26 @@ class WeatherSkill(MycroftSkill):
         dialog = '.'.join(dialog)
         self.speak_dialog(dialog, report)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
-        "Hot", "Cold").optionally("Location").build())
+    @intent_handler(IntentBuilder("").require("ConfirmQueryCurrent").one_of(
+        "Hot", "Cold").optionally("Location").optionally("Today").build())
     def handle_isit_hot(self, message):
         """ Handler for utterances similar to
-        is it hot today?, is it cold? will it be hot tomorrow?, etc
+        is it hot today?, is it cold? etc
         """
         return self.__handle_typed(message, 'hot')
+
+    # TODO This seems to present current temp, or possibly just hottest temp
+    @intent_handler(IntentBuilder("").optionally("How").one_of("Hot", "Cold")
+                   .require("ConfirmQueryFuture").optionally("Location")
+                   .optionally("Today").build())
+    def handle_how_hot_or_cold(self, message):
+        """ Handler for utterances similar to
+        how hot will it be today?, how cold will it be? , etc
+        """
+        response_type = 'high.temperature' if message.data.get('Hot') \
+            else 'low.temperature'
+        return self.__handle_typed(message, response_type)
+
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Snowing").optionally("Location").build())
@@ -725,7 +738,7 @@ class WeatherSkill(MycroftSkill):
 
             report = self.__initialize_report(message)
             if today != when:
-                LOG.info("Doing a forecast" + str(today) + " " + str(when))
+                self.log.debug("Doing a forecast" + str(today) + " " + str(when))
                 return self.report_forecast(report, when,
                                             dialog=response_type)
 
