@@ -974,12 +974,13 @@ class WeatherSkill(MycroftSkill):
             return
 
         value = str(weather.get_humidity()) + "%"
-        self.__report_condition(self.__translate("humidity"), value, when)
+        loc = message.data.get('Location')
+        self.__report_condition(self.__translate("humidity"), value, when, loc)
 
     # Handle: How windy is it?
-    @intent_handler(IntentBuilder("").require(
-        "Query").optionally("Location").require("Windy").optionally(
-        "ConfirmQuery").build())
+    @intent_handler(IntentBuilder("").require("Query").require("Windy")
+                   .optionally("Location").optionally("ConfirmQuery")
+                   .optionally("Today").build())
     def handle_windy(self, message):
         report = self.__initialize_report(message)
 
@@ -1008,8 +1009,8 @@ class WeatherSkill(MycroftSkill):
             value = self.__translate("wind.speed",
                                      data={"speed": nice_number(speed),
                                            "unit": unit})
-
-        self.__report_condition(self.__translate("winds"), value, when)
+        loc = message.data.get('Location')
+        self.__report_condition(self.__translate("winds"), value, when, loc)
 
     def get_wind_speed(self, weather):
         wind = weather.get_wind()
@@ -1207,17 +1208,21 @@ class WeatherSkill(MycroftSkill):
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
 
-    def __report_condition(self, name, value, when):
+    def __report_condition(self, name, value, when, location=None):
         # Report a specific value
         data = {
             "condition": name,
             "value": value,
         }
         if when == extract_datetime(" ")[0]:
-            self.speak_dialog("report.condition", data)
+            report_type = "report.condition"
         else:
             data["day"] = self.__to_day(when)
-            self.speak_dialog("report.future.condition", data)
+            report_type = "report.future.condition"
+        if location:
+            data["location"] = location
+            report_type += ".at.location"
+        self.speak_dialog(report_type, data)
 
     def __get_forecast(self, when, location, lat, lon):
         """ Get a forecast for the given time and location.
