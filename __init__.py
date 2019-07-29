@@ -764,7 +764,6 @@ class WeatherSkill(MycroftSkill):
         currentWeather = self.owm.weather_at_place(
             report['full_location'], report['lat'],
             report['lon']).get_weather()
-
         # Get forecast for the day
         # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
         # Set time to 12 instead of 00 to accomodate for timezones
@@ -778,10 +777,8 @@ class WeatherSkill(MycroftSkill):
         # Change encoding of the localized report to utf8 if needed
         condition = currentWeather.get_detailed_status()
         if self.owm.encoding != 'utf8':
-            condition = self.__translate(
-                condition.encode(self.owm.encoding).decode('utf8')
-            )
-        report['condition'] = condition
+            condition.encode(self.owm.encoding).decode('utf8')
+        report['condition'] = self.__translate(condition)
 
         report['icon'] = currentWeather.get_weather_icon_name()
         report['temp'] = self.__get_temperature(currentWeather, 'temp',
@@ -811,11 +808,11 @@ class WeatherSkill(MycroftSkill):
         if forecast_weather is None:
             return None  # No forecast available
 
-        # TODO: Run off of status IDs instead of the status text? This converts
-        # a status like "sky is clear" to a different text and tense, because
-        # you don't want: "Friday it will be 82 and the sky is clear", it
-        # should be 'Friday it will be 82 and the sky will be clear' or
-        # just 'Friday it will be 82 and clear.
+        # This converts a status like "sky is clear" to new text and tense,
+        # because you don't want: "Friday it will be 82 and the sky is clear",
+        # it should be 'Friday it will be 82 and the sky will be clear'
+        # or just 'Friday it will be 82 and clear.
+        # TODO: Run off of status IDs instead of text `.get_weather_code()`?
         report['condition'] = self.__translate(
             forecast_weather.get_detailed_status(), True)
 
