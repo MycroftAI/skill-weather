@@ -674,7 +674,7 @@ class WeatherSkill(MycroftSkill):
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Cloudy").optionally("Location").build())
     def handle_isit_cloudy(self, message):
-        """ Handler for utterances similar to "is it clear skies today?"
+        """ Handler for utterances similar to "is it cloudy skies today?"
         """
         report = self.__populate_report(message)
         if self.voc_match(report['condition'], 'Cloudy'):
@@ -712,7 +712,7 @@ class WeatherSkill(MycroftSkill):
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Raining").optionally("Location").build())
     def handle_isit_raining(self, message):
-        """ Handler for utterances similar to "is it snowing today?"
+        """ Handler for utterances similar to "is it raining today?"
         """
         report = self.__populate_report(message)
         if self.voc_match(report['condition'], 'Raining'):
@@ -721,6 +721,25 @@ class WeatherSkill(MycroftSkill):
             dialog = 'raining.alternative'
         else:
             dialog = 'no.rain.predicted'
+
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
+        if report.get('day'):
+            dialog = 'forecast.' + dialog
+        self.speak_dialog(dialog, report)
+
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+        "Storm").optionally("Location").build())
+    def handle_isit_raining(self, message):
+        """ Handler for utterances similar to "is it storming today?"
+        """
+        report = self.__populate_report(message)
+        if self.voc_match(report['condition'], 'Storm'):
+            dialog = 'affirmative.condition'
+        elif self.voc_match(report['condition'], 'StormAlternatives'):
+            dialog = 'storm.alternative'
+        else:
+            dialog = 'no.storm.predicted'
 
         if "Location" not in message.data:
             dialog = 'local.' + dialog
