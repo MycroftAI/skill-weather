@@ -1,2 +1,2 @@
-{{day}} it will be as high as {{temp_max}} degrees in {{location}}
-{{day}}, {{location}} will have a high of {{temp_max}} degrees
+It will be as high as {temp_max} degrees in {location} on {day}
+{location} will have a high of {temp_max} degrees on {day}
