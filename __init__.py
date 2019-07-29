@@ -730,7 +730,7 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Storm").optionally("Location").build())
-    def handle_isit_raining(self, message):
+    def handle_isit_storming(self, message):
         """ Handler for utterances similar to "is it storming today?"
         """
         report = self.__populate_report(message)
