@@ -446,7 +446,7 @@ class WeatherSkill(MycroftSkill):
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
                    .optionally("Query").optionally("Location")
-                   .optionally("Today").build())
+                   .optionally("RelativeDay").build())
     def handle_current_weather(self, message):
         try:
             # Get a date from requests like "weather for next Tuesday"
@@ -541,15 +541,15 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(IntentBuilder("").require("Query").require("High")
                     .optionally("Temperature").optionally("Location")
-                    .optionally("Unit").optionally("Today").optionally("Now")
-                    .build())
+                    .optionally("Unit").optionally("RelativeDay")
+                    .optionally("Now").build())
     def handle_high_temperature(self, message):
         return self.__handle_typed(message, 'high.temperature')
 
     @intent_handler(IntentBuilder("").require("Query").require("Low")
                     .optionally("Temperature").optionally("Location")
-                    .optionally("Unit").optionally("Today").optionally("Now")
-                    .build())
+                    .optionally("Unit").optionally("RelativeDay")
+                    .optionally("Now").build())
     def handle_low_temperature(self, message):
         return self.__handle_typed(message, 'low.temperature')
 
@@ -592,7 +592,7 @@ class WeatherSkill(MycroftSkill):
     # TODO This seems to present current temp, or possibly just hottest temp
     @intent_handler(IntentBuilder("").optionally("How").one_of("Hot", "Cold")
                    .require("ConfirmQueryFuture").optionally("Location")
-                   .optionally("Today").build())
+                   .optionally("RelativeDay").build())
     def handle_how_hot_or_cold(self, message):
         """ Handler for utterances similar to
         how hot will it be today?, how cold will it be? , etc
@@ -954,7 +954,7 @@ class WeatherSkill(MycroftSkill):
 
     # Handle: How humid is it?
     @intent_handler(IntentBuilder("").require("Query").require("Humidity")
-                   .optionally("Today").optionally("Location").build())
+                   .optionally("RelativeDay").optionally("Location").build())
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
 
@@ -980,7 +980,7 @@ class WeatherSkill(MycroftSkill):
     # Handle: How windy is it?
     @intent_handler(IntentBuilder("").require("Query").require("Windy")
                    .optionally("Location").optionally("ConfirmQuery")
-                   .optionally("Today").build())
+                   .optionally("RelativeDay").build())
     def handle_windy(self, message):
         report = self.__initialize_report(message)
 
