@@ -765,18 +765,6 @@ class WeatherSkill(MycroftSkill):
             report['full_location'], report['lat'],
             report['lon']).get_weather()
 
-        # Change encoding of the localized report to utf8 if needed
-        condition = currentWeather.get_detailed_status()
-        if self.owm.encoding != 'utf8':
-            condition = self.__translate(
-                condition.encode(self.owm.encoding).decode('utf8')
-            )
-
-        report['condition'] = condition
-        report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                unit)
-        report['icon'] = currentWeather.get_weather_icon_name()
-
         # Get forecast for the day
         # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
         # Set time to 12 instead of 00 to accomodate for timezones
@@ -786,14 +774,26 @@ class WeatherSkill(MycroftSkill):
             report['full_location'],
             report['lat'],
             report['lon'])
+
+        # Change encoding of the localized report to utf8 if needed
+        condition = currentWeather.get_detailed_status()
+        if self.owm.encoding != 'utf8':
+            condition = self.__translate(
+                condition.encode(self.owm.encoding).decode('utf8')
+            )
+        report['condition'] = condition
+
+        report['icon'] = currentWeather.get_weather_icon_name()
+        report['temp'] = self.__get_temperature(currentWeather, 'temp',
+                                                unit)
         report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
                                                     unit)
         report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
                                                     unit)
         report['humidity'] = forecastWeather.get_humidity()
-
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+
         return report
 
     def __populate_forecast(self, report, when, unit=None):
@@ -811,16 +811,6 @@ class WeatherSkill(MycroftSkill):
         if forecast_weather is None:
             return None  # No forecast available
 
-        # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
-        report['temp'] = self.__get_temperature(forecast_weather, 'day', unit)
-        report['temp_min'] = self.__get_temperature(forecast_weather, 'min',
-                                                    unit)
-        report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
-                                                    unit)
-        report['icon'] = forecast_weather.get_weather_icon_name()
-        report['humidity'] = forecast_weather.get_humidity()
-        report['wind'] = self.get_wind_speed(forecast_weather)[0]
-
         # TODO: Run off of status IDs instead of the status text? This converts
         # a status like "sky is clear" to a different text and tense, because
         # you don't want: "Friday it will be 82 and the sky is clear", it
@@ -829,7 +819,17 @@ class WeatherSkill(MycroftSkill):
         report['condition'] = self.__translate(
             forecast_weather.get_detailed_status(), True)
 
+        report['icon'] = forecast_weather.get_weather_icon_name()
+        # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
+        report['temp'] = self.__get_temperature(forecast_weather, 'day', unit)
+        report['temp_min'] = self.__get_temperature(forecast_weather, 'min',
+                                                    unit)
+        report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
+                                                    unit)
+        report['humidity'] = forecast_weather.get_humidity()
+        report['wind'] = self.get_wind_speed(forecast_weather)[0]
         report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
+
         return report
 
     def report_forecast(self, report, when, dialog='weather', unit=None):
