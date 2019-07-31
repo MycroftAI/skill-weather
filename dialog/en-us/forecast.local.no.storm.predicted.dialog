@@ -1,4 +1,4 @@
 # When user asks if it's raining but no rain or alternative is forcasted
-No storm is predicted on {day}
-On {day}, it should not storm
-It should not storm on {day}
+No storm is predicted {day}
+{day}, it should not storm
+It should not storm {day}

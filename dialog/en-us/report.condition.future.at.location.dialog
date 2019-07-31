@@ -1,2 +1,2 @@
-{condition} in {location} on {day} will be {value}
-On {day} the forecast in {location} calls for {condition} of {value}
+{condition} in {location} {day} will be {value}
+{day} the forecast in {location} calls for {condition} of {value}
