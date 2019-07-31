@@ -1319,9 +1319,9 @@ class WeatherSkill(MycroftSkill):
         if -1 > days_diff or days_diff > 1:
             speakable_date = "{} {}".format(self.translate('on.date'),
                                             speakable_date)
-        # # If day is less than a week in advance, just say day of week.
-        # if days_diff <= 6:
-        #     speakable_date = speakable_date.split(',')[0]
+        # If day is less than a week in advance, just say day of week.
+        if days_diff <= 6:
+            speakable_date = speakable_date.split(',')[0]
         return speakable_date
 
     def __to_UTC(self, when):
