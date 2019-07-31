@@ -23,7 +23,7 @@ from mycroft.api import Api
 from mycroft.skills.core import (MycroftSkill, intent_handler,
                                  intent_file_handler)
 from mycroft.messagebus.message import Message
-from mycroft.util.format import nice_time
+from mycroft.util.format import nice_date, nice_time
 from mycroft.util.log import LOG
 from mycroft.util.parse import extract_datetime
 from mycroft.util.format import nice_number
@@ -1313,30 +1313,17 @@ class WeatherSkill(MycroftSkill):
             self.bus.emit(Message("mycroft.not.paired"))
 
     def __to_day(self, when):
-        # TODO: This will be a compatibility wrapper for
-        #       mycroft.util.format.relative_day(when)
-        if self.lang.lower().startswith("sv"):
-            days = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag',
-                    'Lördag', 'Söndag']
-        elif self.lang.lower().startswith("de"):
-            days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag',
-                    'Samstag', 'Sonntag']
-        elif self.lang.lower().startswith("es"):
-            days = ['Lunes', 'Martes', u'Miércoles',
-                    'Jueves', 'Viernes', u'Sábado', 'Domingo']
-        elif self.lang.lower().startswith("fr"):
-            days = ["Lundi", "Mardi", "Mercredi",
-                    "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-        elif self.lang.lower().startswith("it"):
-            days = ['Lunedi', 'Martedi', 'Mercoledi',
-                    'Giovedi', 'Venerdi', 'Sabato', 'Domenica']
-        elif self.lang.lower().startswith("pt"):
-            days = ['Segunda', 'Terca', 'Quarta',
-                    'Quinta', 'Sexta', 'Sabado', 'Domingo']
-        else:
-            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
-                    'Saturday', 'Sunday']
-        return days[when.weekday()]
+        now = datetime.now()
+        speakable_date = nice_date(when, lang=self.lang, now=now)
+        # Test if speakable_date is a relative reference eg "tomorrow"
+        days_diff = (when.date() - now.date()).days
+        if -1 > days_diff or days_diff > 1:
+            speakable_date = "{} {}".format(self.translate('on.date'),
+                                            speakable_date)
+        # # If day is less than a week in advance, just say day of week.
+        # if days_diff <= 6:
+        #     speakable_date = speakable_date.split(',')[0]
+        return speakable_date
 
     def __to_UTC(self, when):
         try:
@@ -1363,12 +1350,11 @@ class WeatherSkill(MycroftSkill):
         # behaviour of method dialog_renderer.render(...) has changed - instead
         # of exception when given template is not found now simply the
         # templatename is returned!?!
-        if future:
-            if (condition + ".future") in self.dialog_renderer.templates:
-                return self.dialog_renderer.render(condition + ".future", data)
-
+        if future and (
+            condition + ".future") in self.dialog_renderer.templates:
+            return self.translate(condition + ".future", data)
         if condition in self.dialog_renderer.templates:
-            return self.dialog_renderer.render(condition, data)
+            return self.translate(condition, data)
         else:
             return condition
 
