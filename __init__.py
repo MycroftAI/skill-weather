@@ -516,23 +516,6 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
-    def __get_requested_unit(self, message):
-        """ Get selected unit from message.
-
-        Arguments:
-            message (Message): messagebus message from intent service
-
-        Returns:
-            'fahrenheit', 'celsius' or None
-        """
-        if message and message.data and 'Unit' in message.data:
-            if self.voc_match(message.data['Unit'], 'Fahrenheit'):
-                return 'fahrenheit'
-            else:
-                return 'celsius'
-        else:
-            return None
-
     @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
                     .optionally("Location").optionally("Unit")
                     .optionally("Today").optionally("Now").build())
@@ -716,6 +699,300 @@ class WeatherSkill(MycroftSkill):
             dialog = 'forecast.' + dialog
         self.speak_dialog(dialog, report)
 
+    # Handle: When will it rain again?
+    @intent_handler(IntentBuilder("").require("When").optionally(
+        "Next").require("Precipitation").optionally("Location").build())
+    def handle_next_precipitation(self, message):
+        report = self.__initialize_report(message)
+
+        # Get a date from spoken request
+        today = extract_datetime(" ")[0]
+        when = extract_datetime(message.data.get('utterance'),
+                                lang=self.lang)[0]
+
+        # search the forecast for precipitation
+        for weather in self.owm.daily_forecast(
+                report['full_location'],
+                report['lat'],
+                report['lon'], 10).get_forecast().get_weathers():
+
+            forecastDate = datetime.fromtimestamp(weather.get_reference_time())
+
+            if when != today:
+                # User asked about a specific date, is this it?
+                whenGMT = self.__to_UTC(when)
+                if forecastDate.date() != whenGMT.date():
+                    continue
+
+            rain = weather.get_rain()
+            if rain and rain["all"] > 0:
+                data = {
+                    "modifier": "",
+                    "precip": "rain",
+                    "day": self.__to_day(forecastDate)
+                }
+                if rain["all"] < 10:
+                    data["modifier"] = self.__translate("light")
+                elif rain["all"] > 20:
+                    data["modifier"] = self.__translate("heavy")
+
+                self.speak_dialog("precipitation expected", data)
+                return
+
+            snow = weather.get_snow()
+            if snow and snow["all"] > 0:
+                data = {
+                    "modifier": "",
+                    "precip": "snow",
+                    "day": self.__to_day(forecastDate)
+                }
+                if snow["all"] < 10:
+                    data["modifier"] = self.__translate("light")
+                elif snow["all"] > 20:
+                    data["modifier"] = self.__translate("heavy")
+
+                self.speak_dialog("precipitation expected", data)
+                return
+
+        self.speak_dialog("no precipitation expected", report)
+
+    # Handle: What's the weather later?
+    @intent_handler(IntentBuilder("").require("Query").require(
+        "Weather").optionally("Location").require("Later").build())
+    def handle_next_hour(self, message):
+        try:
+            report = self.__initialize_report(message)
+
+            # Get near-future forecast
+            forecastWeather = self.owm.three_hours_forecast(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_forecast().get_weathers()[0]
+
+            # NOTE: The 3-hour forecast uses different temperature labels,
+            # temp, temp_min and temp_max.
+            report['temp'] = self.__get_temperature(forecastWeather, 'temp')
+            report['temp_min'] = self.__get_temperature(forecastWeather,
+                                                        'temp_min')
+            report['temp_max'] = self.__get_temperature(forecastWeather,
+                                                        'temp_max')
+            report['condition'] = forecastWeather.get_detailed_status()
+            report['icon'] = forecastWeather.get_weather_icon_name()
+            self.__report_weather("hour", report)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.error("Error: {0}".format(e))
+
+    # Handle: How humid is it?
+    @intent_handler(IntentBuilder("").require("Query").require("Humidity")
+                   .optionally("RelativeDay").optionally("Location").build())
+    def handle_humidity(self, message):
+        report = self.__initialize_report(message)
+
+        when = extract_datetime(message.data.get('utterance'),
+                                lang=self.lang)[0]
+        if when == extract_datetime(" ")[0]:
+            weather = self.owm.weather_at_place(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_weather()
+        else:
+            # Get forecast for that day
+            weather = self.__get_forecast(
+                when, report['full_location'], report['lat'], report['lon'])
+        if not weather or weather.get_humidity() == 0:
+            self.speak_dialog("do not know")
+            return
+
+        value = str(weather.get_humidity()) + "%"
+        loc = message.data.get('Location')
+        self.__report_condition(self.__translate("humidity"), value, when, loc)
+
+    # Handle: How windy is it?
+    @intent_handler(IntentBuilder("").require("Query").require("Windy")
+                   .optionally("Location").optionally("ConfirmQuery")
+                   .optionally("RelativeDay").build())
+    def handle_windy(self, message):
+        report = self.__initialize_report(message)
+
+        when = extract_datetime(message.data.get('utterance'))[0]
+        if when == extract_datetime(" ")[0]:
+            weather = self.owm.weather_at_place(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_weather()
+        else:
+            # Get forecast for that day
+            weather = self.__get_forecast(
+                when, report['full_location'], report['lat'], report['lon'])
+        if not weather or weather.get_wind() == 0:
+            self.speak_dialog("do not know")
+            return
+
+        speed, dir, unit, strength = self.get_wind_speed(weather)
+        if dir:
+            dir = self.__translate(dir)
+            value = self.__translate("wind.speed.dir",
+                                     data={"dir": dir,
+                                           "speed": nice_number(speed),
+                                           "unit": unit})
+        else:
+            value = self.__translate("wind.speed",
+                                     data={"speed": nice_number(speed),
+                                           "unit": unit})
+        loc = message.data.get('Location')
+        self.__report_condition(self.__translate("winds"), value, when, loc)
+        self.speak_dialog('wind.strength.' + strength)
+
+    def get_wind_speed(self, weather):
+        wind = weather.get_wind()
+
+        speed = wind["speed"]
+        # get speed
+        if self.__get_speed_unit() == "mph":
+            unit = self.__translate("miles per hour")
+            speed_multiplier = 2.23694
+            speed *= speed_multiplier
+        else:
+            unit = self.__translate("meters per second")
+            speed_multiplier = 1
+        speed = round(speed)
+
+        if (speed / speed_multiplier) < 0:
+            self.log.error("Wind speed below zero")
+        if (speed / speed_multiplier) <= 2.2352:
+            strength = "light"
+        elif (speed / speed_multiplier) <= 6.7056:
+            strength = "medium"
+        else:
+            strength = "hard"
+
+        # get direction, convert compass degrees to named direction
+        if "deg" in wind:
+            deg = wind["deg"]
+            if deg < 22.5:
+                dir = "N"
+            elif deg < 67.5:
+                dir = "NE"
+            elif deg < 112.5:
+                dir = "E"
+            elif deg < 157.5:
+                dir = "SE"
+            elif deg < 202.5:
+                dir = "S"
+            elif deg < 247.5:
+                dir = "SW"
+            elif deg < 292.5:
+                dir = "W"
+            elif deg < 337.5:
+                dir = "NW"
+            else:
+                dir = "N"
+        else:
+            dir = None
+
+        return speed, dir, unit, strength
+
+    # Handle: When is the sunrise?
+    @intent_handler(IntentBuilder("").one_of("Query", "When")
+                    .optionally("Location").require("Sunrise").build())
+    def handle_sunrise(self, message):
+        report = self.__initialize_report(message)
+
+        when = extract_datetime(message.data.get('utterance'))[0]
+        if when == extract_datetime(" ")[0]:
+            weather = self.owm.weather_at_place(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_weather()
+        else:
+            # Get forecast for that day
+            # weather = self.__get_forecast(when, report['full_location'],
+            #                               report['lat'], report['lon'])
+
+            # There appears to be a bug in OWM, it can't extract the sunrise/
+            # sunset from forecast objects.  Look in to this later, but say
+            # "I don't know" for now
+            weather = None
+        if not weather or weather.get_humidity() == 0:
+            self.speak_dialog("do not know")
+            return
+
+        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunrise_time())
+        dtLocal = self.__to_Local(dtSunriseUTC)
+        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
+
+    # Handle: When is the sunset?
+    @intent_handler(IntentBuilder("").one_of("Query", "When")
+                    .optionally("Location").require("Sunset").build())
+    def handle_sunset(self, message):
+        report = self.__initialize_report(message)
+
+        when = extract_datetime(message.data.get('utterance'))[0]
+        if when == extract_datetime(" ")[0]:
+            weather = self.owm.weather_at_place(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_weather()
+        else:
+            # Get forecast for that day
+            # weather = self.__get_forecast(when, report['full_location'],
+            #                               report['lat'], report['lon'])
+
+            # There appears to be a bug in OWM, it can't extract the sunrise/
+            # sunset from forecast objects.  Look in to this later, but say
+            # "I don't know" for now
+            weather = None
+        if not weather or weather.get_humidity() == 0:
+            self.speak_dialog("do not know")
+            return
+
+        dtSunsetUTC = datetime.fromtimestamp(weather.get_sunset_time())
+        dtLocal = self.__to_Local(dtSunsetUTC)
+        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
+
+    def __get_location(self, message):
+        """ Attempt to extract a location from the spoken phrase.
+
+        If none is found return the default location instead.
+
+        Arguments:
+            message (Message): messagebus message
+        Returns: tuple (lat, long, location string)
+        """
+        try:
+            location = message.data.get("Location", None) if message else None
+            if location:
+                return None, None, location, location
+
+            location = self.location
+
+            if isinstance(location, dict):
+                lat = location["coordinate"]["latitude"]
+                lon = location["coordinate"]["longitude"]
+                city = location["city"]
+                state = city["state"]
+                return lat, lon, city["name"] + ", " + state["name"] + \
+                    ", " + state["country"]["name"], self.location_pretty
+
+            return None
+        except Exception:
+            self.speak_dialog("location.not.found")
+            raise LocationNotFoundError("Location not found")
+
+    def __initialize_report(self, message):
+        """ Creates a report base with location, unit. """
+        lat, lon, location, pretty_location = self.__get_location(message)
+        temp_unit = self.__get_requested_unit(message)
+        return {
+            'lat': lat,
+            'lon': lon,
+            'location': pretty_location,
+            'full_location': location,
+            'scale': self.translate(temp_unit or self.__get_temperature_unit())
+        }
+
     def __handle_typed(self, message, response_type):
         try:
             # Get a date from requests like "weather for next Tuesday"
@@ -867,301 +1144,6 @@ class WeatherSkill(MycroftSkill):
                 continue
             self.__report_weather('forecast', report, rtype=dialog)
 
-    # Handle: When will it rain again?
-    @intent_handler(IntentBuilder("").require("When").optionally(
-        "Next").require("Precipitation").optionally("Location").build())
-    def handle_next_precipitation(self, message):
-        report = self.__initialize_report(message)
-
-        # Get a date from spoken request
-        today = extract_datetime(" ")[0]
-        when = extract_datetime(message.data.get('utterance'),
-                                lang=self.lang)[0]
-
-        # search the forecast for precipitation
-        for weather in self.owm.daily_forecast(
-                report['full_location'],
-                report['lat'],
-                report['lon'], 10).get_forecast().get_weathers():
-
-            forecastDate = datetime.fromtimestamp(weather.get_reference_time())
-
-            if when != today:
-                # User asked about a specific date, is this it?
-                whenGMT = self.__to_UTC(when)
-                if forecastDate.date() != whenGMT.date():
-                    continue
-
-            rain = weather.get_rain()
-            if rain and rain["all"] > 0:
-                data = {
-                    "modifier": "",
-                    "precip": "rain",
-                    "day": self.__to_day(forecastDate)
-                }
-                if rain["all"] < 10:
-                    data["modifier"] = self.__translate("light")
-                elif rain["all"] > 20:
-                    data["modifier"] = self.__translate("heavy")
-
-                self.speak_dialog("precipitation expected", data)
-                return
-
-            snow = weather.get_snow()
-            if snow and snow["all"] > 0:
-                data = {
-                    "modifier": "",
-                    "precip": "snow",
-                    "day": self.__to_day(forecastDate)
-                }
-                if snow["all"] < 10:
-                    data["modifier"] = self.__translate("light")
-                elif snow["all"] > 20:
-                    data["modifier"] = self.__translate("heavy")
-
-                self.speak_dialog("precipitation expected", data)
-                return
-
-        self.speak_dialog("no precipitation expected", report)
-
-    # Handle: What's the weather later?
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").optionally("Location").require("Later").build())
-    def handle_next_hour(self, message):
-        try:
-            report = self.__initialize_report(message)
-
-            # Get near-future forecast
-            forecastWeather = self.owm.three_hours_forecast(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_forecast().get_weathers()[0]
-
-            # NOTE: The 3-hour forecast uses different temperature labels,
-            # temp, temp_min and temp_max.
-            report['temp'] = self.__get_temperature(forecastWeather, 'temp')
-            report['temp_min'] = self.__get_temperature(forecastWeather,
-                                                        'temp_min')
-            report['temp_max'] = self.__get_temperature(forecastWeather,
-                                                        'temp_max')
-            report['condition'] = forecastWeather.get_detailed_status()
-            report['icon'] = forecastWeather.get_weather_icon_name()
-            self.__report_weather("hour", report)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.error("Error: {0}".format(e))
-
-    # Handle: How humid is it?
-    @intent_handler(IntentBuilder("").require("Query").require("Humidity")
-                   .optionally("RelativeDay").optionally("Location").build())
-    def handle_humidity(self, message):
-        report = self.__initialize_report(message)
-
-        when = extract_datetime(message.data.get('utterance'),
-                                lang=self.lang)[0]
-        if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
-        else:
-            # Get forecast for that day
-            weather = self.__get_forecast(
-                when, report['full_location'], report['lat'], report['lon'])
-        if not weather or weather.get_humidity() == 0:
-            self.speak_dialog("do not know")
-            return
-
-        value = str(weather.get_humidity()) + "%"
-        loc = message.data.get('Location')
-        self.__report_condition(self.__translate("humidity"), value, when, loc)
-
-    # Handle: How windy is it?
-    @intent_handler(IntentBuilder("").require("Query").require("Windy")
-                   .optionally("Location").optionally("ConfirmQuery")
-                   .optionally("RelativeDay").build())
-    def handle_windy(self, message):
-        report = self.__initialize_report(message)
-
-        when = extract_datetime(message.data.get('utterance'))[0]
-        if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
-        else:
-            # Get forecast for that day
-            weather = self.__get_forecast(
-                when, report['full_location'], report['lat'], report['lon'])
-        if not weather or weather.get_wind() == 0:
-            self.speak_dialog("do not know")
-            return
-
-        speed, dir, unit, strength = self.get_wind_speed(weather)
-        if dir:
-            dir = self.__translate(dir)
-            value = self.__translate("wind.speed.dir",
-                                     data={"dir": dir,
-                                           "speed": nice_number(speed),
-                                           "unit": unit})
-        else:
-            value = self.__translate("wind.speed",
-                                     data={"speed": nice_number(speed),
-                                           "unit": unit})
-        loc = message.data.get('Location')
-        self.__report_condition(self.__translate("winds"), value, when, loc)
-        self.speak_dialog('wind.strength.' + strength)
-
-
-    def get_wind_speed(self, weather):
-        wind = weather.get_wind()
-
-        speed = wind["speed"]
-        # get speed
-        if self.__get_speed_unit() == "mph":
-            unit = self.__translate("miles per hour")
-            speed_multiplier = 2.23694
-            speed *= speed_multiplier
-        else:
-            unit = self.__translate("meters per second")
-            speed_multiplier = 1
-        speed = round(speed)
-
-        if (speed / speed_multiplier) < 0:
-            self.log.error("Wind speed below zero")
-        if (speed / speed_multiplier) <= 2.2352:
-            strength = "light"
-        elif (speed / speed_multiplier) <= 6.7056:
-            strength = "medium"
-        else:
-            strength = "hard"
-
-        # get direction, convert compass degrees to named direction
-        if "deg" in wind:
-            deg = wind["deg"]
-            if deg < 22.5:
-                dir = "N"
-            elif deg < 67.5:
-                dir = "NE"
-            elif deg < 112.5:
-                dir = "E"
-            elif deg < 157.5:
-                dir = "SE"
-            elif deg < 202.5:
-                dir = "S"
-            elif deg < 247.5:
-                dir = "SW"
-            elif deg < 292.5:
-                dir = "W"
-            elif deg < 337.5:
-                dir = "NW"
-            else:
-                dir = "N"
-        else:
-            dir = None
-
-        return speed, dir, unit, strength
-
-    # Handle: When is the sunrise?
-    @intent_handler(IntentBuilder("").one_of("Query", "When")
-                    .optionally("Location").require("Sunrise").build())
-    def handle_sunrise(self, message):
-        report = self.__initialize_report(message)
-
-        when = extract_datetime(message.data.get('utterance'))[0]
-        if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
-        else:
-            # Get forecast for that day
-            # weather = self.__get_forecast(when, report['full_location'],
-            #                               report['lat'], report['lon'])
-
-            # There appears to be a bug in OWM, it can't extract the sunrise/
-            # sunset from forecast objects.  Look in to this later, but say
-            # "I don't know" for now
-            weather = None
-        if not weather or weather.get_humidity() == 0:
-            self.speak_dialog("do not know")
-            return
-
-        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunrise_time())
-        dtLocal = self.__to_Local(dtSunriseUTC)
-        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
-
-    # Handle: When is the sunset?
-    @intent_handler(IntentBuilder("").one_of("Query", "When")
-                    .optionally("Location").require("Sunset").build())
-    def handle_sunset(self, message):
-        report = self.__initialize_report(message)
-
-        when = extract_datetime(message.data.get('utterance'))[0]
-        if when == extract_datetime(" ")[0]:
-            weather = self.owm.weather_at_place(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_weather()
-        else:
-            # Get forecast for that day
-            # weather = self.__get_forecast(when, report['full_location'],
-            #                               report['lat'], report['lon'])
-
-            # There appears to be a bug in OWM, it can't extract the sunrise/
-            # sunset from forecast objects.  Look in to this later, but say
-            # "I don't know" for now
-            weather = None
-        if not weather or weather.get_humidity() == 0:
-            self.speak_dialog("do not know")
-            return
-
-        dtSunsetUTC = datetime.fromtimestamp(weather.get_sunset_time())
-        dtLocal = self.__to_Local(dtSunsetUTC)
-        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
-
-    def __get_location(self, message):
-        """ Attempt to extract a location from the spoken phrase.
-
-        If none is found return the default location instead.
-
-        Arguments:
-            message (Message): messagebus message
-        Returns: tuple (lat, long, location string)
-        """
-        try:
-            location = message.data.get("Location", None) if message else None
-            if location:
-                return None, None, location, location
-
-            location = self.location
-
-            if isinstance(location, dict):
-                lat = location["coordinate"]["latitude"]
-                lon = location["coordinate"]["longitude"]
-                city = location["city"]
-                state = city["state"]
-                return lat, lon, city["name"] + ", " + state["name"] + \
-                    ", " + state["country"]["name"], self.location_pretty
-
-            return None
-        except Exception:
-            self.speak_dialog("location.not.found")
-            raise LocationNotFoundError("Location not found")
-
-    def __initialize_report(self, message):
-        """ Creates a report base with location, unit. """
-        lat, lon, location, pretty_location = self.__get_location(message)
-        temp_unit = self.__get_requested_unit(message)
-        return {
-            'lat': lat,
-            'lon': lon,
-            'location': pretty_location,
-            'full_location': location,
-            'scale': self.translate(temp_unit or self.__get_temperature_unit())
-        }
-
     def __report_weather(self, timeframe, report, rtype='weather',
                          separate_min_max=False):
         """ Report the weather verbally and visually.
@@ -1262,6 +1244,23 @@ class WeatherSkill(MycroftSkill):
 
         # No forecast for the given day
         return None
+
+    def __get_requested_unit(self, message):
+        """ Get selected unit from message.
+
+        Arguments:
+            message (Message): messagebus message from intent service
+
+        Returns:
+            'fahrenheit', 'celsius' or None
+        """
+        if message and message.data and 'Unit' in message.data:
+            if self.voc_match(message.data['Unit'], 'Fahrenheit'):
+                return 'fahrenheit'
+            else:
+                return 'celsius'
+        else:
+            return None
 
     def __get_speed_unit(self):
         """ Get speed unit based on config setting.
