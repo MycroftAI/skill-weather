@@ -1065,7 +1065,6 @@ class WeatherSkill(MycroftSkill):
         return None
 
     def __populate_for_time(self, report, when, unit=None):
-        self.log.info("PING")
         three_hr_fcs = self.owm.three_hours_forecast(
             report['full_location'],
             report['lat'],
@@ -1084,8 +1083,6 @@ class WeatherSkill(MycroftSkill):
                 LOG.exception("Error: {0}".format(e))
 
         report['temp'] = self.__get_temperature(fc_weather, 'temp')
-        report['temp_min'] = self.__get_temperature(fc_weather, 'min')
-        report['temp_max'] = self.__get_temperature(fc_weather, 'max')
         report['condition'] = fc_weather.get_detailed_status()
         report['icon'] = fc_weather.get_weather_icon_name()
 
