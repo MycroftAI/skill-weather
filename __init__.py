@@ -1399,6 +1399,24 @@ class WeatherSkill(MycroftSkill):
             timezone = pytz.timezone(self.location["timezone"]["code"])
             return when.astimezone(timezone)
 
+    def __to_time_period(self, when):
+        # Translate a specific time '9am' to period of the day 'morning'
+        hour = when.time().hour()
+        period = None
+        if hour >= 5 and hour < 11:
+            period = "morning"
+        if hour >= 11 and hour < 14:
+            period = "midday"
+        if hour >= 14 and hour < 17:
+            period = "afternoon"
+        if hour >= 17 and hour < 20:
+            period = "evening"
+        if hour >= 20 or hour < 5:
+            period = "night"
+        if period is None:
+            self.log.error("Unable to parse time as a period of day")
+        return period
+
     def __translate(self, condition, future=False, data=None):
         # behaviour of method dialog_renderer.render(...) has changed - instead
         # of exception when given template is not found now simply the
