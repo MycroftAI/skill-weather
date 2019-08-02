@@ -784,13 +784,22 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.error("Error: {0}".format(e))
 
-    # Handle: What's the weather tonight?
-    @intent_handler(IntentBuilder("").require("Weather").require("Tonight")
+    # Handle: What's the weather tonight / tomorrow morning?
+    @intent_handler(IntentBuilder("").require("Weather").require("RelativeTime")
                     .optionally("Query").optionally("Location").build())
-    def handle_weather_tonight(self, message):
+    def handle_weather_at_time(self, message):
+        when, _ = extract_datetime(
+                    message.data.get('utterance'), lang=self.lang)
+        now = self.__to_Local(datetime.utcnow())
+        time_diff = (when - now)
+        mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
+
         try:
-            report = self.__populate_report(message)
-            self.__report_weather("time", report)
+            if mins_diff < 120:
+                self.handle_current_weather(message)
+            else:
+                report = self.__populate_report(message)
+                self.__report_weather("time", report)
 
         except APIErrors as e:
             self.__api_error(e)
