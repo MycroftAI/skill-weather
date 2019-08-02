@@ -784,6 +784,19 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.error("Error: {0}".format(e))
 
+    # Handle: What's the weather tonight?
+    @intent_handler(IntentBuilder("").require("Weather").require("Tonight")
+                    .optionally("Query").optionally("Location").build())
+    def handle_weather_tonight(self, message):
+        try:
+            report = self.__populate_report(message)
+            self.__report_weather("time", report)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.error("Error: {0}".format(e))
+
     # Handle: How humid is it?
     @intent_handler(IntentBuilder("").require("Query").require("Humidity")
                    .optionally("RelativeDay").optionally("Location").build())
@@ -1023,10 +1036,15 @@ class WeatherSkill(MycroftSkill):
                         message.data.get('utterance'), lang=self.lang)
 
             report = self.__initialize_report(message)
-            if today != when:
-                self.log.debug("Forecast for" + str(today) + " " + str(when))
+
+            if when.time() != today.time():
+                self.log.debug("Forecast for time: " + str(when))
+                return self.__populate_for_time(report, when, unit)
+            elif today != when:
+                self.log.debug("Forecast for: " + str(today) + " " + str(when))
                 return self.__populate_forecast(report, when, unit)
             else:
+                self.log.debug("Forecast for now: " + str(when))
                 return self.__populate_current(report, when, unit)
         except APIErrors as e:
             self.__api_error(e)
@@ -1034,6 +1052,35 @@ class WeatherSkill(MycroftSkill):
             LOG.exception("Error: {0}".format(e))
 
         return None
+
+    def __populate_for_time(self, report, when, unit=None):
+        three_hr_fcs = self.owm.three_hours_forecast(
+            report['full_location'],
+            report['lat'],
+            report['lon'])
+
+        whenGMT = self.__to_UTC(when)
+
+        earliest_fc = three_hr_fcs.get_forecast().get_weathers()[0]
+        if whenGMT < earliest_fc.get_reference_time(timeformat='date'):
+            fc_weather = earliest_fc
+        else:
+            try:
+                fc_weather = three_hr_fcs.get_weather_at(whenGMT)
+            except Exception as e:
+                fc_weather = three_hr_fcs.get_forecast().get_weathers()[0]
+                LOG.exception("Error: {0}".format(e))
+
+        report['temp'] = self.__get_temperature(fc_weather, 'temp')
+        report['temp_min'] = self.__get_temperature(fc_weather, 'min')
+        report['temp_max'] = self.__get_temperature(fc_weather, 'max')
+        report['condition'] = fc_weather.get_detailed_status()
+        report['icon'] = fc_weather.get_weather_icon_name()
+
+        fc_time = fc_weather.get_reference_time(timeformat='date')
+        report['time'] = nice_time(self.__to_Local(fc_time))
+
+        return report
 
     def __populate_current(self, report, when, unit=None):
         # Get current conditions
@@ -1227,18 +1274,15 @@ class WeatherSkill(MycroftSkill):
             lat: Latitude for report
             lon: Longitude for report
         """
-
-        # TODO Check with Ake - seems to be provided in local time.
-        # One other instance of whenGMT to check too.
-        # # convert time to UTC/GMT (forecast is in GMT)
-        # whenGMT = self.__to_UTC(when)
+        # convert time to UTC/GMT (forecast is in GMT)
+        whenGMT = self.__to_UTC(when)
 
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=10)
         forecasts = forecasts.get_forecast()
         for weather in forecasts.get_weathers():
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
-            if forecastDate.date() == when.date():
+            if forecastDate.date() == whenGMT.date():
                 # found the right day, now format up the results
                 return weather
 
