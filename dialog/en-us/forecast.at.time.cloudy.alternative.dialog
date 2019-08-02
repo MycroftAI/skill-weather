@@ -1,0 +1,4 @@
+# Informing that an alternative to clear skies will occur at specified time
+No, the {time} forecast {day} calls for {condition} in {location}
+It should not be cloudy in {location} around {time} {day}, it looks like there'll be {condition}
+Doesn't seem so, chances are {location} will have {condition} around {time} {day}

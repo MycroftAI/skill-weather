@@ -624,7 +624,7 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
-        "Cloudy").optionally("Location").build())
+        "Cloudy").optionally("Location").optionally("RelativeTime").build())
     def handle_isit_cloudy(self, message):
         """ Handler for utterances similar to "is it cloudy skies today?"
         """
@@ -636,6 +636,8 @@ class WeatherSkill(MycroftSkill):
         else:
             dialog = 'no.cloudy.predicted'
 
+        if report.get('time'):
+            dialog = 'at.time.' + dialog
         if "Location" not in message.data:
             dialog = 'local.' + dialog
         if report.get('day'):
@@ -1063,6 +1065,7 @@ class WeatherSkill(MycroftSkill):
         return None
 
     def __populate_for_time(self, report, when, unit=None):
+        self.log.info("PING")
         three_hr_fcs = self.owm.three_hours_forecast(
             report['full_location'],
             report['lat'],
@@ -1088,6 +1091,7 @@ class WeatherSkill(MycroftSkill):
 
         fc_time = fc_weather.get_reference_time(timeformat='date')
         report['time'] = nice_time(self.__to_Local(fc_time))
+        report['day'] = self.__to_day(when)
 
         return report
 

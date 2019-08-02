@@ -1,0 +1,5 @@
+# When user asks if it's cloudy but it's not
+It doesn't seem like it's going to be cloudy around {time} {day}
+Clear skies are forecast around {time} {day}
+Expect clear skies {day} around {time}
+It should not be cloudy {day} around {time} 
