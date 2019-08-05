@@ -1,2 +1,2 @@
 # The queried condition will occur today
-Yes, the forecast for {time} predicts {condition}
+Yes, the {time} forecast for predicts {condition}

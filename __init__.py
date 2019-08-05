@@ -632,16 +632,25 @@ class WeatherSkill(MycroftSkill):
         if self.voc_match(report['condition'], 'Cloudy'):
             dialog = 'affirmative.condition'
         elif self.voc_match(report['condition'], 'CloudyAlternatives'):
+
             dialog = 'cloudy.alternative'
         else:
             dialog = 'no.cloudy.predicted'
 
         if report.get('time'):
-            dialog = 'at.time.' + dialog
+            if report['time'] == "midday":
+                dialog = 'at.midday.' + dialog
+            else:
+                dialog = 'at.time.' + dialog
         if "Location" not in message.data:
             dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
+        # if (report.get('day') == "today") and (report.get('time') == "night"):
+        #     report['day'] = ""
+        #     report['time'] = "tonight"
+        if (report['time'] == "midday") and (dialog not in self.dialog_renderer.templates):
+            dialog = dialog.replace('midday', 'time')
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -1087,7 +1096,7 @@ class WeatherSkill(MycroftSkill):
         report['icon'] = fc_weather.get_weather_icon_name()
 
         fc_time = fc_weather.get_reference_time(timeformat='date')
-        report['time'] = nice_time(self.__to_Local(fc_time))
+        report['time'] = self.__to_time_period(self.__to_Local(fc_time))
         report['day'] = self.__to_day(when)
 
         return report
@@ -1401,7 +1410,7 @@ class WeatherSkill(MycroftSkill):
 
     def __to_time_period(self, when):
         # Translate a specific time '9am' to period of the day 'morning'
-        hour = when.time().hour()
+        hour = when.time().hour
         period = None
         if hour >= 5 and hour < 11:
             period = "morning"

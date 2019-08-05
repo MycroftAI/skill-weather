@@ -1,4 +1,4 @@
 # Informing that an alternative to clear skies will occur at a specified time
-No, the forecast for {time} calls for {condition}
+No, the {time} forecast calls for {condition}
 It should not be cloudy, the {time} forecast predicts there'll be {condition}
 Doesn't seem so, the {time} forecast suggests it's going to be {condition}
