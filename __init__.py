@@ -591,17 +591,8 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it snowing today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Snowing'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'SnowAlternatives'):
-            dialog = 'snowing.alternative'
-        else:
-            dialog = 'no.snow.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report,
+                                                "snow", "snowing")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -610,17 +601,7 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it clear skies today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Clear'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'ClearAlternatives'):
-            dialog = 'clear.alternative'
-        else:
-            dialog = 'no.clear.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "clear")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -629,28 +610,7 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it cloudy skies today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Cloudy'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'CloudyAlternatives'):
-
-            dialog = 'cloudy.alternative'
-        else:
-            dialog = 'no.cloudy.predicted'
-
-        if report.get('time'):
-            if report['time'] == "midday":
-                dialog = 'at.midday.' + dialog
-            else:
-                dialog = 'at.time.' + dialog
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
-        # if (report.get('day') == "today") and (report.get('time') == "night"):
-        #     report['day'] = ""
-        #     report['time'] = "tonight"
-        if (report['time'] == "midday") and (dialog not in self.dialog_renderer.templates):
-            dialog = dialog.replace('midday', 'time')
+        dialog = self.__select_condition_dialog(message, report, "cloudy")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -659,17 +619,8 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it foggy today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Foggy'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'FoggyAlternatives'):
-            dialog = 'fog.alternative'
-        else:
-            dialog = 'no.fog.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "fog",
+                                                "foggy")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -678,17 +629,8 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it raining today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Raining'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'RainAlternatives'):
-            dialog = 'raining.alternative'
-        else:
-            dialog = 'no.rain.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "rain",
+                                                "raining")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -697,17 +639,7 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it storming today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Storm'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'StormAlternatives'):
-            dialog = 'storm.alternative'
-        else:
-            dialog = 'no.storm.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "storm")
         self.speak_dialog(dialog, report)
 
     # Handle: When will it rain again?
@@ -1171,6 +1103,43 @@ class WeatherSkill(MycroftSkill):
         report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
 
         return report
+
+    def __select_condition_dialog(self, message, report, noun, exp=None):
+        """ Select the relevant dialog file for condition based reports eg snow.
+
+        Arguments:
+            message (obj): message from user
+            report (dict): weather report data
+            noun (string): name of condition eg snow
+            exp (string): condition as verb or adjective eg Snowing
+
+        Returns:
+            dialog (string): name of dialog file
+        """
+        if exp is None:
+            exp = noun
+        alternative_voc = '{}Alternatives'.format(noun.capitalize())
+        if self.voc_match(report['condition'], exp.capitalize()):
+            dialog = 'affirmative.condition'
+        elif self.voc_match(report['condition'], alternative_voc):
+            dialog = '{}.alternative'.format(exp.lower())
+        else:
+            dialog = 'no.{}.predicted'.format(noun.lower())
+
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
+        if report.get('day'):
+            dialog = 'forecast.' + dialog
+        #### Experimental - dialog for specific times of day
+        # if report.get('time'):
+        #     if report['time'] == "midday" and (dialog not in self.dialog_renderer.templates):
+        #         dialog = 'at.midday.' + dialog
+        #     else:
+        #         dialog = 'at.time.' + dialog
+        # if (report.get('day') == "today") and (report.get('time') == "night"):
+        #     report['day'] = ""
+        #     report['time'] = "tonight"
+        return dialog
 
     def report_forecast(self, report, when, dialog='weather', unit=None):
         """ Speak forecast for specific day.
