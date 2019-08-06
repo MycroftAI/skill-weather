@@ -1122,6 +1122,7 @@ class WeatherSkill(MycroftSkill):
             dialog (string): name of dialog file
         """
         if report is None:
+            # Empty report most likely caused by location not found
             return 'do not know'
 
         if exp is None:
@@ -1138,13 +1139,9 @@ class WeatherSkill(MycroftSkill):
             dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
-        #### Experimental - dialog for specific times of day
         if report.get('time'):
             if ('at.time.' + dialog) in self.dialog_renderer.templates:
                 dialog = 'at.time.' + dialog
-        # if (report.get('day') == "today") and (report.get('time') == "night"):
-        #     report['day'] = ""
-        #     report['time'] = "tonight"
         return dialog
 
     def report_forecast(self, report, when, dialog='weather', unit=None):
