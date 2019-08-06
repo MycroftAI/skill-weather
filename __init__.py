@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import pytz
 
@@ -482,7 +482,7 @@ class WeatherSkill(MycroftSkill):
         """
         try:
             report = self.__initialize_report(message)
-            self.report_threeday_forecast(report)
+            self.report_multiday_forecast(report)
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
@@ -1181,27 +1181,48 @@ class WeatherSkill(MycroftSkill):
 
         self.__report_weather('forecast', report, rtype=dialog)
 
-    def report_threeday_forecast(self, report, dialog='weather', unit=None):
-        """ Speak forecast for today, tomorrow and next day.
+    def report_multiday_forecast(self, report, when=extract_datetime(' ')[0],
+                                 num_days=3, dialog='weather', unit=None):
+        """ Speak forecast for multiple sequential days.
 
         Arguments:
             report (dict): report base
-            when : date for report
+            when (datetime): date of first day for report, defaults to today
+            num_days (int): number of days to report, defaults to 3
             dialog (str): dialog type, defaults to 'weather'
-            unit: Unit type to use when presenting
+            unit: Unit type to use when presenting, defaults to user preference
         """
-        days = [extract_datetime('tomorrow', lang='en-us')[0],
-                extract_datetime('48 hours', lang='en-us')[0]]
 
-        self.__populate_current(report, extract_datetime(' ')[0])
-        report['day'] = self.__to_day(extract_datetime(' ')[0])
-        self.__report_weather('forecast', report, rtype=dialog)
+        days = []
+        for i in range(num_days):
+            days.append(when + timedelta(days=i))
+
+        today = extract_datetime(' ')[0]
         for day in days:
-            report = self.__populate_forecast(report, day, unit)
-            if report is None:
-                self.speak_dialog("no forecast", {'day': self.__to_day(day)})
-                continue
-            self.__report_weather('forecast', report, rtype=dialog)
+            if day == today:
+                self.__populate_current(report, day)
+                report['day'] = self.__to_day(day)
+                self.__report_weather('forecast', report, rtype=dialog)
+            else:
+                report = self.__populate_forecast(report, day, unit)
+                if report is None:
+                    self.speak_dialog("no forecast",
+                                      {'day': self.__to_day(day)})
+                    continue
+                self.__report_weather('forecast', report, rtype=dialog)
+
+        # days = [extract_datetime('tomorrow', lang='en-us')[0],
+        #         extract_datetime('48 hours', lang='en-us')[0]]
+        #
+        # self.__populate_current(report, extract_datetime(' ')[0])
+        # report['day'] = self.__to_day(extract_datetime(' ')[0])
+        # self.__report_weather('forecast', report, rtype=dialog)
+        # for day in days:
+        #     report = self.__populate_forecast(report, day, unit)
+        #     if report is None:
+        #         self.speak_dialog("no forecast", {'day': self.__to_day(day)})
+        #         continue
+        #     self.__report_weather('forecast', report, rtype=dialog)
 
     def __report_weather(self, timeframe, report, rtype='weather',
                          separate_min_max=False):
