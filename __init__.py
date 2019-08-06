@@ -15,6 +15,7 @@
 import time
 from datetime import datetime
 import json
+import pytz
 
 import mycroft.audio
 from adapt.intent import IntentBuilder
@@ -881,16 +882,18 @@ class WeatherSkill(MycroftSkill):
             #                               report['lat'], report['lon'])
 
             # There appears to be a bug in OWM, it can't extract the sunrise/
-            # sunset from forecast objects.  Look in to this later, but say
-            # "I don't know" for now
+            # sunset from forecast objects.  As of March 2018 OWM said it was
+            # "in the roadmap". Just say "I don't know" for now
             weather = None
         if not weather or weather.get_humidity() == 0:
             self.speak_dialog("do not know")
             return
 
-        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunrise_time())
-        dtLocal = self.__to_Local(dtSunriseUTC)
-        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
+        # uses device tz unless set .fromtimestamp(stamp, tz=pytz.UTC)
+        # TODO need tzinfo of location from geolocation API
+        dtSunrise = datetime.fromtimestamp(weather.get_sunrise_time())
+        spoken_time = self.__nice_time(dtSunrise, use_ampm=True)
+        self.speak_dialog('sunrise', {'time': spoken_time})
 
     # Handle: When is the sunset?
     @intent_handler(IntentBuilder("").one_of("Query", "When")
@@ -910,16 +913,18 @@ class WeatherSkill(MycroftSkill):
             #                               report['lat'], report['lon'])
 
             # There appears to be a bug in OWM, it can't extract the sunrise/
-            # sunset from forecast objects.  Look in to this later, but say
-            # "I don't know" for now
+            # sunset from forecast objects.  As of March 2018 OWM said it was
+            # "in the roadmap". Just say "I don't know" for now
             weather = None
         if not weather or weather.get_humidity() == 0:
             self.speak_dialog("do not know")
             return
 
-        dtSunsetUTC = datetime.fromtimestamp(weather.get_sunset_time())
-        dtLocal = self.__to_Local(dtSunsetUTC)
-        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
+        # uses device tz unless set .fromtimestamp(stamp, tz=pytz.UTC)
+        # TODO need tzinfo of location from geolocation API
+        dtSunset = datetime.fromtimestamp(weather.get_sunset_time())
+        spoken_time = self.__nice_time(dtSunset, use_ampm=True)
+        self.speak_dialog('sunset', {'time': spoken_time})
 
     def __get_location(self, message):
         """ Attempt to extract a location from the spoken phrase.
