@@ -1015,6 +1015,8 @@ class WeatherSkill(MycroftSkill):
 
         whenGMT = self.__to_UTC(when)
 
+        if not three_hr_fcs:
+            return None
         earliest_fc = three_hr_fcs.get_forecast().get_weathers()[0]
         if whenGMT < earliest_fc.get_reference_time(timeformat='date'):
             fc_weather = earliest_fc
@@ -1023,7 +1025,6 @@ class WeatherSkill(MycroftSkill):
                 fc_weather = three_hr_fcs.get_weather_at(whenGMT)
             except Exception as e:
                 # fc_weather = three_hr_fcs.get_forecast().get_weathers()[0]
-                self.speak_dialog('do not know')
                 self.log.error("Error: {0}".format(e))
                 return None
 
@@ -1120,6 +1121,9 @@ class WeatherSkill(MycroftSkill):
         Returns:
             dialog (string): name of dialog file
         """
+        if report is None:
+            return 'do not know'
+
         if exp is None:
             exp = noun
         alternative_voc = '{}Alternatives'.format(noun.capitalize())
