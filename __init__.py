@@ -631,8 +631,6 @@ class WeatherSkill(MycroftSkill):
         report = self.__populate_report(message)
         dialog = self.__select_condition_dialog(message, report, "rain",
                                                 "raining")
-        self.log.info(dialog)
-        self.log.info(report.get('time'))
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -994,7 +992,6 @@ class WeatherSkill(MycroftSkill):
             if when.time() == today.time() and \
                 "tonight" in message.data.get('utterance'):
                 when = when.replace(hour=22)
-            self.log.info(when)
 
             report = self.__initialize_report(message)
 
@@ -1157,7 +1154,6 @@ class WeatherSkill(MycroftSkill):
         if report.get('time') and \
             ('at.time.' + dialog) in self.dialog_renderer.templates:
                 dialog = 'at.time.' + dialog
-        self.log.info(dialog)
         return dialog
 
     def report_forecast(self, report, when, dialog='weather', unit=None):
