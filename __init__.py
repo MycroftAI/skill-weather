@@ -987,6 +987,12 @@ class WeatherSkill(MycroftSkill):
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
 
+            # extract_datetime cannot handle "tonight" without a time.
+            # TODO remove workaround when updated in Lingua Franca
+            if when.time() == today.time() and \
+                "tonight" in message.data.get('utterance'):
+                when = when.replace(hour=22)
+
             report = self.__initialize_report(message)
 
             if when.time() != today.time():
@@ -1393,7 +1399,7 @@ class WeatherSkill(MycroftSkill):
         if hour >= 17 and hour < 20:
             period = "evening"
         if hour >= 20 or hour < 1:
-            period = "night"
+            period = "overnight"
         if period is None:
             self.log.error("Unable to parse time as a period of day")
         return period
