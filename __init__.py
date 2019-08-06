@@ -1006,6 +1006,8 @@ class WeatherSkill(MycroftSkill):
         return None
 
     def __populate_for_time(self, report, when, unit=None):
+        # TODO localize time to report location
+
         three_hr_fcs = self.owm.three_hours_forecast(
             report['full_location'],
             report['lat'],
@@ -1020,8 +1022,10 @@ class WeatherSkill(MycroftSkill):
             try:
                 fc_weather = three_hr_fcs.get_weather_at(whenGMT)
             except Exception as e:
-                fc_weather = three_hr_fcs.get_forecast().get_weathers()[0]
-                LOG.exception("Error: {0}".format(e))
+                # fc_weather = three_hr_fcs.get_forecast().get_weathers()[0]
+                self.speak_dialog('do not know')
+                self.log.error("Error: {0}".format(e))
+                return None
 
         report['temp'] = self.__get_temperature(fc_weather, 'temp')
         report['condition'] = fc_weather.get_detailed_status()
@@ -1131,11 +1135,9 @@ class WeatherSkill(MycroftSkill):
         if report.get('day'):
             dialog = 'forecast.' + dialog
         #### Experimental - dialog for specific times of day
-        # if report.get('time'):
-        #     if report['time'] == "midday" and (dialog not in self.dialog_renderer.templates):
-        #         dialog = 'at.midday.' + dialog
-        #     else:
-        #         dialog = 'at.time.' + dialog
+        if report.get('time'):
+            if ('at.time.' + dialog) in self.dialog_renderer.templates:
+                dialog = 'at.time.' + dialog
         # if (report.get('day') == "today") and (report.get('time') == "night"):
         #     report['day'] = ""
         #     report['time'] = "tonight"
@@ -1381,15 +1383,15 @@ class WeatherSkill(MycroftSkill):
         # Translate a specific time '9am' to period of the day 'morning'
         hour = when.time().hour
         period = None
-        if hour >= 5 and hour < 11:
+        if hour >= 1 and hour < 5:
+            period = "early morning"
+        if hour >= 5 and hour < 12:
             period = "morning"
-        if hour >= 11 and hour < 14:
-            period = "midday"
-        if hour >= 14 and hour < 17:
+        if hour >= 12 and hour < 17:
             period = "afternoon"
         if hour >= 17 and hour < 20:
             period = "evening"
-        if hour >= 20 or hour < 5:
+        if hour >= 20 or hour < 1:
             period = "night"
         if period is None:
             self.log.error("Unable to parse time as a period of day")
