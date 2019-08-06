@@ -633,6 +633,10 @@ class WeatherSkill(MycroftSkill):
                                                 "raining")
         self.speak_dialog(dialog, report)
 
+    @intent_file_handler("do.i.need.an.umbrella.intent")
+    def handle_need_umbrella(self, message):
+        self.handle_isit_raining(message)
+
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Storm").optionally("Location").build())
     def handle_isit_storming(self, message):
