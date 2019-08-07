@@ -1,4 +1,6 @@
-what's the weather like over the next {num} days
-what's the weather like in the next {num} days
-what's the weather like (on|next|) {day_one} and {day_two}
-what's the weather gonna be like in the coming days
+weather (in|over|for) the next {num} days
+what('s| is| will) the weather like (in|over|for) the next {num} days
+what('s| is| will) the weather (going to |gonna |)be (like |)(in|over|for) the next {num} days
+weather (for|on|) (next|) {day_one} and {day_two}
+what('s| is| will) the weather (going to |gonna |)be (like |)(for|on|) (next|) {day_one} and {day_two}
+what('s| is| will) the weather (going to |gonna |)be (like |)(in|over|for) the (coming|next) (few|couple (of|)|) days

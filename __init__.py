@@ -511,6 +511,8 @@ class WeatherSkill(MycroftSkill):
         try:
             report = self.__initialize_report(message)
             if message.data.get('num'):
+                if self.voc_match(message.data['num'], 'Couple'):
+                    self.report_multiday_forecast(report, num_days=2)
                 # report x number of days
                 when = extract_datetime("tomorrow")[0]
                 num_days = int(extract_number(message.data['num']))
