@@ -25,9 +25,9 @@ from mycroft.skills.core import (MycroftSkill, intent_handler,
                                  intent_file_handler)
 from mycroft.messagebus.message import Message
 from mycroft.util.format import nice_date, nice_time
+from mycroft.util.format import nice_number, pronounce_number
 from mycroft.util.log import LOG
-from mycroft.util.parse import extract_datetime
-from mycroft.util.format import nice_number
+from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
@@ -497,6 +497,44 @@ class WeatherSkill(MycroftSkill):
         # padatious lowercases everything including these keys
         message.data['Location'] = message.data.pop('location')
         return self.handle_three_day_forecast(message)
+
+    @intent_file_handler("what.is.two.day.forecast.intent")
+    def handle_two_day_forecast(self, message):
+        """ Handler for two day forecast with no specified location
+
+        Examples:   "What's the weather like in the next 2 days?"
+                    "What's the weather like next Monday and Tuesday?"
+                    "What's the weather gonna be like in the coming days?"
+        """
+        # TODO consider merging in weekend intent
+        # TODO consider shift to Adapt, at least expand vocab
+        try:
+            report = self.__initialize_report(message)
+            if message.data.get('num'):
+                # report x number of days
+                when = extract_datetime("tomorrow")[0]
+                num_days = int(extract_number(message.data['num']))
+                self.report_multiday_forecast(report, when,
+                                              num_days=num_days)
+            elif message.data.get('day_one'):
+                #report two or more specific days
+                days = []
+                day_num = 1
+                day = message.data['day_one']
+                while day:
+                    days.append(extract_datetime(day)[0])
+                    day_num += 1
+                    next_day = 'day_{}'.format(pronounce_number(day_num))
+                    day = message.data.get(next_day)
+                self.report_multiday_forecast(report, set_days=days)
+            else:
+                # report next two days
+                self.report_multiday_forecast(report, num_days=2)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").require("Forecast")
@@ -1182,20 +1220,25 @@ class WeatherSkill(MycroftSkill):
         self.__report_weather('forecast', report, rtype=dialog)
 
     def report_multiday_forecast(self, report, when=extract_datetime(' ')[0],
-                                 num_days=3, dialog='weather', unit=None):
+                                 num_days=3, set_days=None, dialog='weather',
+                                 unit=None):
         """ Speak forecast for multiple sequential days.
 
         Arguments:
             report (dict): report base
             when (datetime): date of first day for report, defaults to today
             num_days (int): number of days to report, defaults to 3
+            set_days (list(datetime)): list of specific days to report
             dialog (str): dialog type, defaults to 'weather'
             unit: Unit type to use when presenting, defaults to user preference
         """
 
-        days = []
-        for i in range(num_days):
-            days.append(when + timedelta(days=i))
+        if set_days:
+            days = set_days
+        else:
+            days = []
+            for i in range(num_days):
+                days.append(when + timedelta(days=i))
 
         today = extract_datetime(' ')[0]
         for day in days:
@@ -1210,19 +1253,6 @@ class WeatherSkill(MycroftSkill):
                                       {'day': self.__to_day(day)})
                     continue
                 self.__report_weather('forecast', report, rtype=dialog)
-
-        # days = [extract_datetime('tomorrow', lang='en-us')[0],
-        #         extract_datetime('48 hours', lang='en-us')[0]]
-        #
-        # self.__populate_current(report, extract_datetime(' ')[0])
-        # report['day'] = self.__to_day(extract_datetime(' ')[0])
-        # self.__report_weather('forecast', report, rtype=dialog)
-        # for day in days:
-        #     report = self.__populate_forecast(report, day, unit)
-        #     if report is None:
-        #         self.speak_dialog("no forecast", {'day': self.__to_day(day)})
-        #         continue
-        #     self.__report_weather('forecast', report, rtype=dialog)
 
     def __report_weather(self, timeframe, report, rtype='weather',
                          separate_min_max=False):

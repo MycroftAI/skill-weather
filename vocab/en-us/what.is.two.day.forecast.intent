@@ -1,0 +1,4 @@
+what's the weather like over the next {num} days
+what's the weather like in the next {num} days
+what's the weather like (on|next|) {day_one} and {day_two}
+what's the weather gonna be like in the coming days
