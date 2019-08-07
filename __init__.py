@@ -401,49 +401,7 @@ class WeatherSkill(MycroftSkill):
             forecast['second'] = forecast_list[2:4]
             self.gui['forecast'] = forecast
 
-    @intent_handler(IntentBuilder("").require("Query").one_of(
-        "Weather", "Forecast").require("Weekend").require(
-        "Next").optionally("Location").build())
-    def handle_next_weekend_weather(self, message):
-        """ Handle next weekends weather """
-        try:
-            report = self.__initialize_report(message)
-            when, _ = extract_datetime('next saturday', lang='en-us')
-            self.report_forecast(report, when)
-            when, _ = extract_datetime('next sunday', lang='en-us')
-            self.report_forecast(report, when)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
-
-    @intent_handler(IntentBuilder("").require("Query")
-                    .one_of("Weather", "Forecast").require("Weekend")
-                    .optionally("Location").build())
-    def handle_weekend_weather(self, message):
-        """ Handle weather for weekend. """
-        try:
-            report = self.__initialize_report(message)
-
-            # Get a date from spoken request
-            when, _ = extract_datetime('this saturday', lang='en-us')
-            self.report_forecast(report, when)
-            when, _ = extract_datetime('this sunday', lang='en-us')
-            self.report_forecast(report, when)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
-
-    @intent_file_handler("whats.weather.like.intent")
-    def handle_current_weather_alt(self, message):
-        self.handle_current_weather(message)
-
-    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
-                   .one_of("Now", "Today").optionally("Location").build())
-    def handle_current_weather_simple(self, message):
-        self.handle_current_weather(message)
-
+    #### DATETIME BASED QUERIES ####
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
                    .optionally("Query").optionally("Location")
@@ -472,6 +430,15 @@ class WeatherSkill(MycroftSkill):
             self.__api_error(e)
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
+
+    @intent_file_handler("whats.weather.like.intent")
+    def handle_current_weather_alt(self, message):
+        self.handle_current_weather(message)
+
+    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
+                   .one_of("Now", "Today").optionally("Location").build())
+    def handle_current_weather_simple(self, message):
+        self.handle_current_weather(message)
 
     @intent_file_handler("what.is.three.day.forecast.intent")
     def handle_three_day_forecast(self, message):
@@ -507,7 +474,6 @@ class WeatherSkill(MycroftSkill):
                     "What's the weather gonna be like in the coming days?"
         """
         # TODO consider merging in weekend intent
-        # TODO consider shift to Adapt, at least expand vocab
         try:
             report = self.__initialize_report(message)
             if message.data.get('num'):
@@ -557,6 +523,91 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
+    # Handle: What's the weather later?
+    @intent_handler(IntentBuilder("").require("Query").require(
+        "Weather").optionally("Location").require("Later").build())
+    def handle_next_hour(self, message):
+        try:
+            report = self.__initialize_report(message)
+
+            # Get near-future forecast
+            forecastWeather = self.owm.three_hours_forecast(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_forecast().get_weathers()[0]
+
+            # NOTE: The 3-hour forecast uses different temperature labels,
+            # temp, temp_min and temp_max.
+            report['temp'] = self.__get_temperature(forecastWeather, 'temp')
+            report['temp_min'] = self.__get_temperature(forecastWeather,
+                                                        'temp_min')
+            report['temp_max'] = self.__get_temperature(forecastWeather,
+                                                        'temp_max')
+            report['condition'] = forecastWeather.get_detailed_status()
+            report['icon'] = forecastWeather.get_weather_icon_name()
+            self.__report_weather("hour", report)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.error("Error: {0}".format(e))
+
+    # Handle: What's the weather tonight / tomorrow morning?
+    @intent_handler(IntentBuilder("").require("Weather").require("RelativeTime")
+                    .optionally("Query").optionally("Location").build())
+    def handle_weather_at_time(self, message):
+        when, _ = extract_datetime(
+                    message.data.get('utterance'), lang=self.lang)
+        now = self.__to_Local(datetime.utcnow())
+        time_diff = (when - now)
+        mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
+
+        try:
+            if mins_diff < 120:
+                self.handle_current_weather(message)
+            else:
+                report = self.__populate_report(message)
+                self.__report_weather("time", report)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.error("Error: {0}".format(e))
+
+    @intent_handler(IntentBuilder("").require("Query").one_of(
+        "Weather", "Forecast").require("Weekend").require(
+        "Next").optionally("Location").build())
+    def handle_next_weekend_weather(self, message):
+        """ Handle next weekends weather """
+        try:
+            report = self.__initialize_report(message)
+            when, _ = extract_datetime('next saturday', lang='en-us')
+            self.report_forecast(report, when)
+            when, _ = extract_datetime('next sunday', lang='en-us')
+            self.report_forecast(report, when)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
+    @intent_handler(IntentBuilder("").require("Query")
+                    .one_of("Weather", "Forecast").require("Weekend")
+                    .optionally("Location").build())
+    def handle_weekend_weather(self, message):
+        """ Handle weather for weekend. """
+        try:
+            report = self.__initialize_report(message)
+
+            # Get a date from spoken request
+            when, _ = extract_datetime('this saturday', lang='en-us')
+            self.report_forecast(report, when)
+            when, _ = extract_datetime('this sunday', lang='en-us')
+            self.report_forecast(report, when)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
+    #### CONDITION BASED QUERY HANDLERS ####
     @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
                     .optionally("Location").optionally("Unit")
                     .optionally("Today").optionally("Now").build())
@@ -743,56 +794,6 @@ class WeatherSkill(MycroftSkill):
                 return
 
         self.speak_dialog("no precipitation expected", report)
-
-    # Handle: What's the weather later?
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").optionally("Location").require("Later").build())
-    def handle_next_hour(self, message):
-        try:
-            report = self.__initialize_report(message)
-
-            # Get near-future forecast
-            forecastWeather = self.owm.three_hours_forecast(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_forecast().get_weathers()[0]
-
-            # NOTE: The 3-hour forecast uses different temperature labels,
-            # temp, temp_min and temp_max.
-            report['temp'] = self.__get_temperature(forecastWeather, 'temp')
-            report['temp_min'] = self.__get_temperature(forecastWeather,
-                                                        'temp_min')
-            report['temp_max'] = self.__get_temperature(forecastWeather,
-                                                        'temp_max')
-            report['condition'] = forecastWeather.get_detailed_status()
-            report['icon'] = forecastWeather.get_weather_icon_name()
-            self.__report_weather("hour", report)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.error("Error: {0}".format(e))
-
-    # Handle: What's the weather tonight / tomorrow morning?
-    @intent_handler(IntentBuilder("").require("Weather").require("RelativeTime")
-                    .optionally("Query").optionally("Location").build())
-    def handle_weather_at_time(self, message):
-        when, _ = extract_datetime(
-                    message.data.get('utterance'), lang=self.lang)
-        now = self.__to_Local(datetime.utcnow())
-        time_diff = (when - now)
-        mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
-
-        try:
-            if mins_diff < 120:
-                self.handle_current_weather(message)
-            else:
-                report = self.__populate_report(message)
-                self.__report_weather("time", report)
-
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.error("Error: {0}".format(e))
 
     # Handle: How humid is it?
     @intent_handler(IntentBuilder("").require("Query").require("Humidity")
