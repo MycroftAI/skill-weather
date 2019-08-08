@@ -607,6 +607,123 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             LOG.exception("Error: {0}".format(e))
 
+    @intent_handler(IntentBuilder("").optionally("Query")
+                    .one_of("Weather", "Forecast").require("Week")
+                    .optionally("Location").build())
+    def handle_week_weather(self, message):
+        """ Handle weather for week.
+            Speaks overview of week, not daily forecasts """
+        try:
+            report = self.__initialize_report(message)
+            when, _ = extract_datetime(message.data['utterance'])
+            today, _ = extract_datetime("today")
+            if not when:
+                when = today
+            days = [when + timedelta(days=i) for i in range(7)]
+            # Fetch forecasts/reports for week
+            forecasts = [dict(self.__populate_forecast(report, day))
+                            if day != today
+                            else dict(self.__populate_current(report, day))
+                            for day in days]
+
+            # collate forecasts
+            collated = {
+                'condition': [],
+                'condition_cat': [],
+                'icon': [],
+                'temp': [],
+                'temp_min': [],
+                'temp_max': []
+            }
+            for fc in forecasts:
+                for attribute in collated.keys():
+                    collated[attribute].append(fc.get(attribute))
+
+            # analyse for commonality/difference
+            primary_category = max(collated['condition_cat'],
+                                   key=collated['condition_cat'].count)
+            days_with_primary_cat = []
+            conditions_in_primary_cat = []
+            days_with_other_cat = {}
+            # days_not_primary_cat, conditions_not_in_primary = [], []
+            for i, item in enumerate(collated['condition_cat']):
+                if item == primary_category:
+                    days_with_primary_cat.append(i)
+                    conditions_in_primary_cat.append(collated['condition'][i])
+                else:
+                    if not days_with_other_cat.get(item):
+                        days_with_other_cat[item] = []
+                    days_with_other_cat[item].append(i)
+                    # days_not_primary_cat.append(i)
+                    # conditions_not_in_primary.append(item)
+            primary_condition = max(conditions_in_primary_cat,
+                                    key=conditions_in_primary_cat.count)
+
+            # construct dialog
+            speak_category = self.translate_namedvalues('condition.category')
+            dialog = ""
+            ### 1. whichever is longest (has most days), report first
+            # if over half the days => "it will be mostly {cond}"
+            speak_primary = speak_category[primary_category]
+            seq_primary_days = self.__get_seqs_from_list(days_with_primary_cat)
+            if len(days_with_primary_cat) >= (len(days) / 2):
+                dialog = self.translate('weekly.conditions.mostly.one',
+                                  {'condition': speak_primary})
+            elif seq_primary_days:
+                #if condition occurs on sequential days, report date range
+                dialog = self.translate('weekly.conditions.seq.start',
+                                        {'condition': speak_primary})
+                for seq in seq_primary_days:
+                    if seq is not seq_primary_days[0]:
+                        dialog = self.concat_dialog(dialog, 'and')
+                    day_from = self.__to_day(days[seq[0]])
+                    day_to = self.__to_day(days[seq[-1]])
+                    dialog = self.concat_dialog(dialog,
+                                                'weekly.conditions.seq.period',
+                                                {'from': day_from,
+                                                 'to': day_to})
+            else:
+                # condition occurs on random days
+                dialog = self.translate('weekly.conditions.some.days',
+                                  {'condition': speak_primary})
+            self.speak_dialog(dialog)
+            ### 2. Any other conditions present:
+            # "it will also be"
+            # for each extra condition => "{cond} on {list days}"
+            for cat in days_with_other_cat:
+                spoken_cat = speak_category[cat]
+                dialog = self.translate('weekly.conditions.seq.extra',
+                                        {'condition': spoken_cat})
+                cat_days = days_with_other_cat[cat]
+                seq_days = self.__get_seqs_from_list(cat_days)
+                for seq in seq_days:
+                    if seq is not seq_days[0]:
+                        dialog = self.concat_dialog(dialog, 'and')
+                    day_from = self.__to_day(days[seq[0]])
+                    day_to = self.__to_day(days[seq[-1]])
+                    dialog = self.concat_dialog(dialog,
+                                                'weekly.conditions.seq.period',
+                                                {'from': day_from,
+                                                 'to': day_to})
+                # TODO add individual day report for remainder
+                self.speak_dialog(dialog)
+
+            ### 3. Report temps:
+            # "lows will be between {low['lowest']} and {low['highest']}"
+            # "with highs between {high['lowest']} and {high['highest']}"
+            temp_ranges = {
+                'low_min': min(collated['temp_min']),
+                'low_max': max(collated['temp_min']),
+                'high_min': min(collated['temp_max']),
+                'high_max': max(collated['temp_max'])
+            }
+            self.speak_dialog('weekly.temp.range', temp_ranges)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            LOG.exception("Error: {0}".format(e))
+
     #### CONDITION BASED QUERY HANDLERS ####
     @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
                     .optionally("Location").optionally("Unit")
@@ -1115,6 +1232,7 @@ class WeatherSkill(MycroftSkill):
         if self.owm.encoding != 'utf8':
             condition.encode(self.owm.encoding).decode('utf8')
         report['condition'] = self.__translate(condition)
+        report['condition_cat'] = currentWeather.get_status()
 
         report['icon'] = currentWeather.get_weather_icon_name()
         report['temp'] = self.__get_temperature(currentWeather, 'temp',
@@ -1126,6 +1244,7 @@ class WeatherSkill(MycroftSkill):
         report['humidity'] = forecastWeather.get_humidity()
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+        report['day'] = "today"
 
         return report
 
@@ -1151,6 +1270,7 @@ class WeatherSkill(MycroftSkill):
         # TODO: Run off of status IDs instead of text `.get_weather_code()`?
         report['condition'] = self.__translate(
             forecast_weather.get_detailed_status(), True)
+        report['condition_cat'] = forecast_weather.get_status()
 
         report['icon'] = forecast_weather.get_weather_icon_name()
         # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
@@ -1239,9 +1359,7 @@ class WeatherSkill(MycroftSkill):
         if set_days:
             days = set_days
         else:
-            days = []
-            for i in range(num_days):
-                days.append(when + timedelta(days=i))
+            days = [when + timedelta(days=i) for i in range(num_days)]
 
         today = extract_datetime(' ')[0]
         for day in days:
@@ -1344,7 +1462,7 @@ class WeatherSkill(MycroftSkill):
         whenGMT = self.__to_UTC(when)
 
         # search for the requested date in the returned forecast data
-        forecasts = self.owm.daily_forecast(location, lat, lon, limit=10)
+        forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
         forecasts = forecasts.get_forecast()
         for weather in forecasts.get_weathers():
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
@@ -1371,6 +1489,36 @@ class WeatherSkill(MycroftSkill):
                 return 'celsius'
         else:
             return None
+
+    def concat_dialog(self, current, dialog, data=None):
+        return current + " " + self.translate(dialog, data)
+
+    def __get_seqs_from_list(self, nums):
+        """Get lists of sequential numbers from list.
+
+        Arguments:
+            nums (list): list of int eg indices
+
+        Returns:
+            None if no sequential numbers found
+            seq_nums (list[list]): list of sequence lists
+        """
+        current_seq, seq_nums = [], []
+        seq_active = False
+        for idx, day in enumerate(nums):
+            if idx+1 < len(nums) and nums[idx+1] == (day + 1):
+                current_seq.append(day)
+                seq_active = True
+            elif seq_active:
+                # last day in sequence
+                current_seq.append(day)
+                seq_nums.append(current_seq.copy())
+                current_seq = []
+                seq_active = False
+
+        if len(seq_nums) == 0:
+            return None
+        return seq_nums
 
     def __get_speed_unit(self):
         """ Get speed unit based on config setting.
@@ -1421,12 +1569,12 @@ class WeatherSkill(MycroftSkill):
             from mycroft import Message
             self.bus.emit(Message("mycroft.not.paired"))
 
-    def __to_day(self, when):
+    def __to_day(self, when, preface=False):
         now = datetime.now()
         speakable_date = nice_date(when, lang=self.lang, now=now)
         # Test if speakable_date is a relative reference eg "tomorrow"
         days_diff = (when.date() - now.date()).days
-        if -1 > days_diff or days_diff > 1:
+        if preface and (-1 > days_diff or days_diff > 1):
             speakable_date = "{} {}".format(self.translate('on.date'),
                                             speakable_date)
         # If day is less than a week in advance, just say day of week.
