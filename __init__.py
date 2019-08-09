@@ -622,19 +622,13 @@ class WeatherSkill(MycroftSkill):
             days = [when + timedelta(days=i) for i in range(7)]
             # Fetch forecasts/reports for week
             forecasts = [dict(self.__populate_forecast(report, day))
-                            if day != today
-                            else dict(self.__populate_current(report, day))
-                            for day in days]
+                         if day != today
+                         else dict(self.__populate_current(report, day))
+                         for day in days]
 
             # collate forecasts
-            collated = {
-                'condition': [],
-                'condition_cat': [],
-                'icon': [],
-                'temp': [],
-                'temp_min': [],
-                'temp_max': []
-            }
+            collated = {'condition': [], 'condition_cat': [], 'icon': [],
+                        'temp': [], 'temp_min': [], 'temp_max': []}
             for fc in forecasts:
                 for attribute in collated.keys():
                     collated[attribute].append(fc.get(attribute))
@@ -642,10 +636,8 @@ class WeatherSkill(MycroftSkill):
             # analyse for commonality/difference
             primary_category = max(collated['condition_cat'],
                                    key=collated['condition_cat'].count)
-            days_with_primary_cat = []
-            conditions_in_primary_cat = []
+            days_with_primary_cat, conditions_in_primary_cat = [], []
             days_with_other_cat = {}
-            # days_not_primary_cat, conditions_not_in_primary = [], []
             for i, item in enumerate(collated['condition_cat']):
                 if item == primary_category:
                     days_with_primary_cat.append(i)
@@ -654,25 +646,31 @@ class WeatherSkill(MycroftSkill):
                     if not days_with_other_cat.get(item):
                         days_with_other_cat[item] = []
                     days_with_other_cat[item].append(i)
-                    # days_not_primary_cat.append(i)
-                    # conditions_not_in_primary.append(item)
             primary_condition = max(conditions_in_primary_cat,
                                     key=conditions_in_primary_cat.count)
 
-            # construct dialog
+            ## CONSTRUCT DIALOG
             speak_category = self.translate_namedvalues('condition.category')
-            dialog = ""
-            ### 1. whichever is longest (has most days), report first
+            ### 0. Report period starting day
+            if days[0] == today:
+                dialog = self.translate('this.week')
+            else:
+                speak_day = self.__to_day(days[0])
+                dialog = self.translate('from.day', {'day': speak_day})
+
+            ### 1. whichever is longest (has most days), report as primary
             # if over half the days => "it will be mostly {cond}"
             speak_primary = speak_category[primary_category]
             seq_primary_days = self.__get_seqs_from_list(days_with_primary_cat)
             if len(days_with_primary_cat) >= (len(days) / 2):
-                dialog = self.translate('weekly.conditions.mostly.one',
-                                  {'condition': speak_primary})
+                dialog = self.concat_dialog(dialog,
+                                            'weekly.conditions.mostly.one',
+                                            {'condition': speak_primary})
             elif seq_primary_days:
                 #if condition occurs on sequential days, report date range
-                dialog = self.translate('weekly.conditions.seq.start',
-                                        {'condition': speak_primary})
+                dialog = self.concat_dialog(dialog,
+                                            'weekly.conditions.seq.start',
+                                            {'condition': speak_primary})
                 for seq in seq_primary_days:
                     if seq is not seq_primary_days[0]:
                         dialog = self.concat_dialog(dialog, 'and')
@@ -684,20 +682,27 @@ class WeatherSkill(MycroftSkill):
                                                  'to': day_to})
             else:
                 # condition occurs on random days
-                dialog = self.translate('weekly.conditions.some.days',
-                                  {'condition': speak_primary})
+                dialog = self.concat_dialog(dialog,
+                                            'weekly.conditions.some.days',
+                                            {'condition': speak_primary})
             self.speak_dialog(dialog)
+
             ### 2. Any other conditions present:
-            # "it will also be"
-            # for each extra condition => "{cond} on {list days}"
+            if len(days_with_other_cat) > 0:
+                dialog = self.translate('weekly.conditions.seq.extra')
+                first_category = True
             for cat in days_with_other_cat:
+                if first_category:
+                    first_category = False
+                else:
+                    dialog = self.concat_dialog(dialog, 'and')
                 spoken_cat = speak_category[cat]
-                dialog = self.translate('weekly.conditions.seq.extra',
-                                        {'condition': spoken_cat})
                 cat_days = days_with_other_cat[cat]
                 seq_days = self.__get_seqs_from_list(cat_days)
                 for seq in seq_days:
-                    if seq is not seq_days[0]:
+                    if seq is seq_days[0]:
+                        dialog = self.concat_dialog(dialog, spoken_cat)
+                    else:
                         dialog = self.concat_dialog(dialog, 'and')
                     day_from = self.__to_day(days[seq[0]])
                     day_to = self.__to_day(days[seq[-1]])
@@ -705,12 +710,18 @@ class WeatherSkill(MycroftSkill):
                                                 'weekly.conditions.seq.period',
                                                 {'from': day_from,
                                                  'to': day_to})
-                # TODO add individual day report for remainder
+                if not seq_days:
+                    for day in cat_days:
+                        if day is not cat_days[0]:
+                            dialog = self.concat_dialog(dialog, 'and')
+                        speak_day = self.__to_day(days[day])
+                        dialog = self.concat_dialog(dialog,
+                                        'weekly.condition.on.day',
+                                        {'condition': collated['condition'][day],
+                                         'day': speak_day})
                 self.speak_dialog(dialog)
 
             ### 3. Report temps:
-            # "lows will be between {low['lowest']} and {low['highest']}"
-            # "with highs between {high['lowest']} and {high['highest']}"
             temp_ranges = {
                 'low_min': min(collated['temp_min']),
                 'low_max': max(collated['temp_min']),
@@ -1516,8 +1527,8 @@ class WeatherSkill(MycroftSkill):
                 current_seq = []
                 seq_active = False
 
-        if len(seq_nums) == 0:
-            return None
+        # if len(seq_nums) == 0:
+        #     return None
         return seq_nums
 
     def __get_speed_unit(self):
