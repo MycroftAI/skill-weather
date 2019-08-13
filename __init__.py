@@ -896,7 +896,7 @@ class WeatherSkill(MycroftSkill):
                 data = {
                     "modifier": "",
                     "precip": "rain",
-                    "day": self.__to_day(forecastDate)
+                    "day": self.__to_day(forecastDate, preface=True)
                 }
                 if rain["all"] < 10:
                     data["modifier"] = self.__translate("light")
@@ -911,7 +911,7 @@ class WeatherSkill(MycroftSkill):
                 data = {
                     "modifier": "",
                     "precip": "snow",
-                    "day": self.__to_day(forecastDate)
+                    "day": self.__to_day(forecastDate, preface=True)
                 }
                 if snow["all"] < 10:
                     data["modifier"] = self.__translate("light")
@@ -1218,7 +1218,7 @@ class WeatherSkill(MycroftSkill):
 
         fc_time = fc_weather.get_reference_time(timeformat='date')
         report['time'] = self.__to_time_period(self.__to_Local(fc_time))
-        report['day'] = self.__to_day(when)
+        report['day'] = self.__to_day(when, preface=True)
 
         return report
 
@@ -1348,7 +1348,8 @@ class WeatherSkill(MycroftSkill):
         """
         report = self.__populate_forecast(report, when, unit)
         if report is None:
-            self.speak_dialog("no forecast", {'day': self.__to_day(when)})
+            self.speak_dialog("no forecast",
+                              {'day': self.__to_day(when, preface=True)})
             return
 
         self.__report_weather('forecast', report, rtype=dialog)
@@ -1376,13 +1377,13 @@ class WeatherSkill(MycroftSkill):
         for day in days:
             if day == today:
                 self.__populate_current(report, day)
-                report['day'] = self.__to_day(day)
+                report['day'] = self.__to_day(day, preface=True)
                 self.__report_weather('forecast', report, rtype=dialog)
             else:
                 report = self.__populate_forecast(report, day, unit)
                 if report is None:
                     self.speak_dialog("no forecast",
-                                      {'day': self.__to_day(day)})
+                                      {'day': self.__to_day(day, preface=True)})
                     continue
                 self.__report_weather('forecast', report, rtype=dialog)
 
@@ -1453,7 +1454,7 @@ class WeatherSkill(MycroftSkill):
         }
         report_type = "report.condition"
         if when != extract_datetime(" ")[0]:
-            data["day"] = self.__to_day(when)
+            data["day"] = self.__to_day(when, preface=True)
             report_type += ".future"
         if location:
             data["location"] = location
@@ -1581,6 +1582,15 @@ class WeatherSkill(MycroftSkill):
             self.bus.emit(Message("mycroft.not.paired"))
 
     def __to_day(self, when, preface=False):
+        """ Provide date in speakable form
+
+            Arguments:
+                when (datetime)
+                preface (bool): if appropriate preface should be included
+                                eg "on Monday" but NOT "on tomorrow"
+            Returns:
+                string: the speakable date text
+        """
         now = datetime.now()
         speakable_date = nice_date(when, lang=self.lang, now=now)
         # Test if speakable_date is a relative reference eg "tomorrow"
