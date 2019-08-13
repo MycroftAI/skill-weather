@@ -26,7 +26,6 @@ from mycroft.skills.core import (MycroftSkill, intent_handler,
 from mycroft.messagebus.message import Message
 from mycroft.util.format import nice_date, nice_time
 from mycroft.util.format import nice_number, pronounce_number
-from mycroft.util.log import LOG
 from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
@@ -145,7 +144,7 @@ class OWMApi(Api):
             resp = super().request(data)
             self.query_cache[req_hash] = (now, resp)
         else:
-            LOG.debug('Using cached OWM Response from {}'.format(cache[0]))
+            self.log.debug('Using cached OWM Response from {}'.format(cache[0]))
             resp = cache[1]
         return resp
 
@@ -294,7 +293,7 @@ class WeatherSkill(MycroftSkill):
         try:
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
-            LOG.warning('Could not prepare forecasts. ({})'.format(repr(e)))
+            self.log.warning('Could not prepare forecasts. ({})'.format(repr(e)))
 
         # Register for handling idle/resting screen
         msg_type = '{}.{}'.format(self.skill_id, 'idle')
@@ -429,7 +428,7 @@ class WeatherSkill(MycroftSkill):
             self.log.exception(repr(e))
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     @intent_file_handler("whats.weather.like.intent")
     def handle_current_weather_alt(self, message):
@@ -453,7 +452,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     @intent_file_handler("what.is.three.day.forecast.location.intent")
     def handle_three_day_forecast_location(self, message):
@@ -502,7 +501,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").require("Forecast")
@@ -521,7 +520,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     # Handle: What's the weather later?
     @intent_handler(IntentBuilder("").require("Query").require(
@@ -549,7 +548,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.error("Error: {0}".format(e))
+            self.log.error("Error: {0}".format(e))
 
     # Handle: What's the weather tonight / tomorrow morning?
     @intent_handler(IntentBuilder("").require("Weather").require("RelativeTime")
@@ -571,7 +570,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.error("Error: {0}".format(e))
+            self.log.error("Error: {0}".format(e))
 
     @intent_handler(IntentBuilder("").require("Query").one_of(
         "Weather", "Forecast").require("Weekend").require(
@@ -587,7 +586,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     @intent_handler(IntentBuilder("").require("Query")
                     .one_of("Weather", "Forecast").require("Weekend")
@@ -605,7 +604,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     @intent_handler(IntentBuilder("").optionally("Query")
                     .one_of("Weather", "Forecast").require("Week")
@@ -734,7 +733,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     #### CONDITION BASED QUERY HANDLERS ####
     @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
@@ -1156,7 +1155,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     def __populate_report(self, message):
         try:
@@ -1187,7 +1186,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
         return None
 
