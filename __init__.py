@@ -621,7 +621,8 @@ class WeatherSkill(MycroftSkill):
                 when = today
             days = [when + timedelta(days=i) for i in range(7)]
             # Fetch forecasts/reports for week
-            forecasts = [dict(self.__populate_forecast(report, day))
+            forecasts = [dict(self.__populate_forecast(report, day,
+                                                       preface_day=False))
                          if day != today
                          else dict(self.__populate_current(report, day))
                          for day in days]
@@ -1164,7 +1165,7 @@ class WeatherSkill(MycroftSkill):
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
-
+            self.log.debug('extracted when: {}'.format(when))
             # extract_datetime cannot handle "tonight" without a time.
             # TODO remove workaround when updated in Lingua Franca
             if when.time() == today.time() and \
@@ -1178,7 +1179,8 @@ class WeatherSkill(MycroftSkill):
                 return self.__populate_for_time(report, when, unit)
             elif today != when:
                 self.log.debug("Forecast for: " + str(today) + " " + str(when))
-                return self.__populate_forecast(report, when, unit)
+                return self.__populate_forecast(report, when, unit,
+                                                preface_day=True)
             else:
                 self.log.debug("Forecast for now: " + str(when))
                 return self.__populate_current(report, when, unit)
@@ -1259,7 +1261,7 @@ class WeatherSkill(MycroftSkill):
 
         return report
 
-    def __populate_forecast(self, report, when, unit=None):
+    def __populate_forecast(self, report, when, unit=None, preface_day=False):
         """ Populate the report and return it.
 
         Arguments:
@@ -1292,7 +1294,7 @@ class WeatherSkill(MycroftSkill):
                                                     unit)
         report['humidity'] = forecast_weather.get_humidity()
         report['wind'] = self.get_wind_speed(forecast_weather)[0]
-        report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
+        report['day'] = self.__to_day(when, preface_day)  # Tuesday, tomorrow, etc.
 
         return report
 
@@ -1337,7 +1339,8 @@ class WeatherSkill(MycroftSkill):
                 dialog = 'at.time.' + dialog
         return dialog
 
-    def report_forecast(self, report, when, dialog='weather', unit=None):
+    def report_forecast(self, report, when, dialog='weather', unit=None,
+                        preface_day=True):
         """ Speak forecast for specific day.
 
         Arguments:
@@ -1345,18 +1348,20 @@ class WeatherSkill(MycroftSkill):
             when : date for report
             dialog (str): dialog type, defaults to 'weather'
             unit: Unit type to use when presenting
+            preface_day (bool): if appropriate day preface should be added
+                                eg "on Tuesday" but NOT "on tomorrow"
         """
-        report = self.__populate_forecast(report, when, unit)
+        report = self.__populate_forecast(report, when, unit, preface_day)
         if report is None:
             self.speak_dialog("no forecast",
-                              {'day': self.__to_day(when, preface=True)})
+                              {'day': self.__to_day(when, preface_day)})
             return
 
         self.__report_weather('forecast', report, rtype=dialog)
 
     def report_multiday_forecast(self, report, when=extract_datetime(' ')[0],
                                  num_days=3, set_days=None, dialog='weather',
-                                 unit=None):
+                                 unit=None, preface_day=True):
         """ Speak forecast for multiple sequential days.
 
         Arguments:
@@ -1366,6 +1371,8 @@ class WeatherSkill(MycroftSkill):
             set_days (list(datetime)): list of specific days to report
             dialog (str): dialog type, defaults to 'weather'
             unit: Unit type to use when presenting, defaults to user preference
+            preface_day (bool): if appropriate day preface should be added
+                                eg "on Tuesday" but NOT "on tomorrow"
         """
 
         if set_days:
@@ -1377,13 +1384,14 @@ class WeatherSkill(MycroftSkill):
         for day in days:
             if day == today:
                 self.__populate_current(report, day)
-                report['day'] = self.__to_day(day, preface=True)
+                report['day'] = self.__to_day(day, preface_day)
                 self.__report_weather('forecast', report, rtype=dialog)
             else:
-                report = self.__populate_forecast(report, day, unit)
+                report = self.__populate_forecast(report, day, unit,
+                                                  preface_day)
                 if report is None:
                     self.speak_dialog("no forecast",
-                                      {'day': self.__to_day(day, preface=True)})
+                                      {'day': self.__to_day(day, preface_day)})
                     continue
                 self.__report_weather('forecast', report, rtype=dialog)
 
