@@ -720,7 +720,7 @@ class WeatherSkill(MycroftSkill):
                                         'weekly.condition.on.day',
                                         {'condition': collated['condition'][day],
                                          'day': speak_day})
-                self.speak_dialog(dialog)
+            self.speak_dialog(dialog)
 
             ### 3. Report temps:
             temp_ranges = {
