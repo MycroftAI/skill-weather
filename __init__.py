@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import time
+from copy import deepcopy
 from datetime import datetime, timedelta
 import json
 import pytz
@@ -25,6 +26,7 @@ from mycroft.skills.core import (MycroftSkill, intent_handler,
                                  intent_file_handler)
 from mycroft.messagebus.message import Message
 from mycroft.util.format import nice_date, nice_time
+from mycroft.util.log import LOG
 from mycroft.util.format import nice_number, pronounce_number
 from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
@@ -137,14 +139,22 @@ class OWMApi(Api):
         """ Caching the responses """
         req_hash = hash(json.dumps(data, sort_keys=True))
         cache = self.query_cache.get(req_hash, (0, None))
-
+        # check for caches with more days data than requested
+        if data['query'].get('cnt') and cache == (0, None):
+            test_req_data = deepcopy(data)
+            while test_req_data['query']['cnt'] < 16 and cache == (0, None):
+                test_req_data['query']['cnt'] += 1
+                test_hash = hash(json.dumps(test_req_data, sort_keys=True))
+                test_cache = self.query_cache.get(test_hash, (0, None))
+                if test_cache != (0, None):
+                    cache = test_cache
         # Use cached response if value exists and was fetched within 15 min
         now = time.monotonic()
         if now > (cache[0] + 15 * MINUTES) or cache[1] is None:
             resp = super().request(data)
             self.query_cache[req_hash] = (now, resp)
         else:
-            self.log.debug('Using cached OWM Response from {}'.format(cache[0]))
+            LOG.debug('Using cached OWM Response from {}'.format(cache[0]))
             resp = cache[1]
         return resp
 
@@ -290,6 +300,7 @@ class WeatherSkill(MycroftSkill):
         if self.owm:
             self.owm.set_OWM_language(lang=OWMApi.get_language(self.lang))
 
+        self.schedule_for_daily_use()
         try:
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
@@ -301,7 +312,6 @@ class WeatherSkill(MycroftSkill):
         self.add_event('mycroft.mark2.collect_idle',
                        self.handle_collect_request)
 
-        self.schedule_for_daily_use()
 
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
@@ -325,6 +335,8 @@ class WeatherSkill(MycroftSkill):
             self.owm.weather_at_place(
                 report['full_location'], report['lat'],
                 report['lon']).get_weather()
+            self.owm.daily_forecast(report['full_location'],
+                                    report['lat'], report['lon'], limit=16)
         except Exception as e:
             self.log.error('Failed to prime weather cache '
                            '({})'.format(repr(e)))
