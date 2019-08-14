@@ -416,9 +416,10 @@ class WeatherSkill(MycroftSkill):
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
                    .optionally("Query").optionally("Location")
-                   .optionally("RelativeDay").build())
+                   .optionally("Today").build())
     def handle_current_weather(self, message):
         try:
+            self.log.debug("Handler: handle_current_weather")
             # Get a date from requests like "weather for next Tuesday"
             today = extract_datetime(" ")[0]
             when, _ = extract_datetime(
@@ -563,9 +564,11 @@ class WeatherSkill(MycroftSkill):
             self.log.error("Error: {0}".format(e))
 
     # Handle: What's the weather tonight / tomorrow morning?
-    @intent_handler(IntentBuilder("").require("Weather").require("RelativeTime")
-                    .optionally("Query").optionally("Location").build())
+    @intent_handler(IntentBuilder("").require("RelativeTime")
+                    .one_of("Weather", "Forecast").optionally("Query")
+                    .optionally("RelativeDay").optionally("Location").build())
     def handle_weather_at_time(self, message):
+        self.log.debug("Handler: handle_weather_at_time")
         when, _ = extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
         now = self.__to_Local(datetime.utcnow())
@@ -577,7 +580,7 @@ class WeatherSkill(MycroftSkill):
                 self.handle_current_weather(message)
             else:
                 report = self.__populate_report(message)
-                self.__report_weather("time", report)
+                self.__report_weather("at.time", report)
 
         except APIErrors as e:
             self.__api_error(e)
@@ -1162,7 +1165,10 @@ class WeatherSkill(MycroftSkill):
                                             dialog=response_type)
             report = self.__populate_report(message)
 
-            self.__report_weather('current', report, response_type)
+            if report.get('time'):
+                self.__report_weather("at.time", report, response_type)
+            else:
+                self.__report_weather('current', report, response_type)
             self.mark2_forecast(report)
         except APIErrors as e:
             self.__api_error(e)
@@ -1204,7 +1210,6 @@ class WeatherSkill(MycroftSkill):
 
     def __populate_for_time(self, report, when, unit=None):
         # TODO localize time to report location
-
         three_hr_fcs = self.owm.three_hours_forecast(
             report['full_location'],
             report['lat'],
@@ -1225,9 +1230,15 @@ class WeatherSkill(MycroftSkill):
                 self.log.error("Error: {0}".format(e))
                 return None
 
-        report['temp'] = self.__get_temperature(fc_weather, 'temp')
         report['condition'] = fc_weather.get_detailed_status()
+        report['condition_cat'] = fc_weather.get_status()
         report['icon'] = fc_weather.get_weather_icon_name()
+        report['temp'] = self.__get_temperature(fc_weather, 'temp')
+        # Min and Max temps not available in 3hr forecast
+        report['temp_min'] = None
+        report['temp_max'] = None
+        report['humidity'] = fc_weather.get_humidity()
+        report['wind'] = self.get_wind_speed(fc_weather)[0]
 
         fc_time = fc_weather.get_reference_time(timeformat='date')
         report['time'] = self.__to_time_period(self.__to_Local(fc_time))
@@ -1236,6 +1247,7 @@ class WeatherSkill(MycroftSkill):
         return report
 
     def __populate_current(self, report, when, unit=None):
+        self.log.debug("Populating report for now: {}".format(when))
         # Get current conditions
         today = extract_datetime(" ")[0]
         currentWeather = self.owm.weather_at_place(
@@ -1282,6 +1294,8 @@ class WeatherSkill(MycroftSkill):
 
         Returns: None if no report available otherwise dict with weather info
         """
+        self.log.debug("Populating forecast report for: {}".format(when))
+
         forecast_weather = self.__get_forecast(
             when, report['full_location'], report['lat'], report['lon'])
         if forecast_weather is None:
@@ -1451,6 +1465,7 @@ class WeatherSkill(MycroftSkill):
         dialog_name = timeframe
         if report['location'] == self.location_pretty:
             dialog_name += ".local"
+        self.log.debug("Dialog: " + dialog_name + "." + rtype)
         self.speak_dialog(dialog_name + "." + rtype, report)
 
         # Just show the icons while still speaking
