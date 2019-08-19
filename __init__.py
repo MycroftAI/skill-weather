@@ -526,6 +526,11 @@ class WeatherSkill(MycroftSkill):
             # Get a date from spoken request
             when = extract_datetime(message.data.get('utterance'),
                                     lang=self.lang)[0]
+            today = extract_datetime(" ")[0]
+            if today == when:
+                self.handle_current_weather(message)
+                return
+            
             self.report_forecast(report, when)
 
             # Establish the daily cadence
@@ -809,8 +814,8 @@ class WeatherSkill(MycroftSkill):
 
     # TODO This seems to present current temp, or possibly just hottest temp
     @intent_handler(IntentBuilder("").optionally("How").one_of("Hot", "Cold")
-                   .require("ConfirmQueryFuture").optionally("Location")
-                   .optionally("RelativeDay").build())
+                   .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
+                   .optionally("Location").optionally("RelativeDay").build())
     def handle_how_hot_or_cold(self, message):
         """ Handler for utterances similar to
         how hot will it be today?, how cold will it be? , etc
