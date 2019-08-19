@@ -530,7 +530,7 @@ class WeatherSkill(MycroftSkill):
             if today == when:
                 self.handle_current_weather(message)
                 return
-            
+
             self.report_forecast(report, when)
 
             # Establish the daily cadence
@@ -823,6 +823,12 @@ class WeatherSkill(MycroftSkill):
         response_type = 'high.temperature' if message.data.get('Hot') \
             else 'low.temperature'
         return self.__handle_typed(message, response_type)
+
+    @intent_handler(IntentBuilder("").require("How").one_of("Hot", "Cold")
+                   .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
+                   .optionally("Location").optionally("RelativeDay").build())
+    def handle_how_hot_or_cold_alt(self, message):
+        self.handle_how_hot_or_cold(message)
 
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
