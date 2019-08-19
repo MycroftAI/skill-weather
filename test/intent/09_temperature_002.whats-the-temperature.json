@@ -1,5 +1,5 @@
 {
-    "utterance": "what is the temperature",
+    "utterance": "what's the temperature",
     "intent_type": "handle_current_temperature",
     "expected_dialog": "current.local.temperature"
 }

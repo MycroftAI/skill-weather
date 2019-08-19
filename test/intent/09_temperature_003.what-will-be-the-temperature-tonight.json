@@ -1,0 +1,5 @@
+{
+    "utterance": "what will the temperature be tonight",
+    "intent_type": "handle_current_temperature",
+    "expected_dialog": "at.time.local.temperature"
+}

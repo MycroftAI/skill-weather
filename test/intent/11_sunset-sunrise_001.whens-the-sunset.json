@@ -1,0 +1,5 @@
+{
+    "utterance": "when's the sunset",
+    "intent_type": "handle_sunset",
+    "expected_dialog": "sunset"
+}

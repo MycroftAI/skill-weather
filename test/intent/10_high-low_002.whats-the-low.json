@@ -1,0 +1,5 @@
+{
+    "utterance": "what's the low today",
+    "intent_type": "handle_low_temperature",
+    "expected_dialog": "current.local.low.temperature"
+}
