@@ -1,2 +1,5 @@
-(tell me|what is) the (3 day|three-day|extended) (forecast|weather forecast)
-(tell me|what (is|will)) the (weather|forecast) ((be|) like|going to be (like|)|) for (the|this) (next|coming|) (several days|3 days)
+(3|three) day forecast
+(tell me|what is) the (3 day|three day|extended) (forecast|weather forecast)
+tell me the (weather|forecast) for (the|this) (next|coming|) (several days|(3|three) days)
+what is the (weather|forecast) (going to be (like|)) for (the|this) (next|coming|) (several days|(3|three) days)
+what will the (weather|forecast) be (like|) for (the|this) (next|coming|) (several days|(3|three) days)
