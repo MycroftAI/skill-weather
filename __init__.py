@@ -1476,8 +1476,9 @@ class WeatherSkill(MycroftSkill):
         dialog_name = timeframe
         if report['location'] == self.location_pretty:
             dialog_name += ".local"
-        self.log.debug("Dialog: " + dialog_name + "." + rtype)
-        self.speak_dialog(dialog_name + "." + rtype, report)
+        dialog_name += "." + rtype
+        self.log.debug("Dialog: " + dialog_name)
+        self.speak_dialog(dialog_name, report)
 
         # Just show the icons while still speaking
         mycroft.audio.wait_while_speaking()
