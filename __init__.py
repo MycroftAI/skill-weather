@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
-from copy import deepcopy
-from datetime import datetime, timedelta, timezone
 import json
 import pytz
+import time
+from copy import deepcopy
+from datetime import datetime, timedelta
 
 import mycroft.audio
 from adapt.intent import IntentBuilder
@@ -27,7 +27,7 @@ from mycroft.skills.core import (MycroftSkill, intent_handler,
 from mycroft.messagebus.message import Message
 from mycroft.util.format import nice_date, nice_time
 from mycroft.util.log import LOG
-from mycroft.util.format import nice_number, pronounce_number
+from mycroft.util.format import nice_number, pronounce_number, join_list
 from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
@@ -728,15 +728,17 @@ class WeatherSkill(MycroftSkill):
                 seq_days = self.__get_seqs_from_list(cat_days)
                 for seq in seq_days:
                     if seq is seq_days[0]:
-                        dialog_list.append(spoken_cat)
+                        seq_dialog = spoken_cat
                     else:
-                        dialog_list.append(self.translate('and'))
+                        seq_dialog = self.translate('and')
                     day_from = self.__to_day(days[seq[0]])
                     day_to = self.__to_day(days[seq[-1]])
-                    dialog_list.append(self.translate(
-                        'weekly.conditions.seq.period',
-                        {'from': day_from,
-                         'to': day_to}))
+                    seq_dialog = self.concat_dialog(seq_dialog,
+                                                self.translate(
+                                                'weekly.conditions.seq.period',
+                                                {'from': day_from,
+                                                 'to': day_to}))
+                    dialog_list.append(seq_dialog)
                 if not seq_days:
                     for day in cat_days:
                         speak_day = self.__to_day(days[day])
@@ -744,10 +746,7 @@ class WeatherSkill(MycroftSkill):
                             'weekly.condition.on.day',
                             {'condition': collated['condition'][day],
                              'day': speak_day}))
-            if len(dialog_list) > 1:
-                dialog_list.insert(-1, self.translate('and'))
-            for d in dialog_list:
-                dialog = self.concat_dialog(dialog, d)
+            dialog = join_list(dialog_list, 'and')
             self.speak_dialog(dialog)
 
             ### 3. Report temps:
