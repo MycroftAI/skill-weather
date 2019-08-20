@@ -720,37 +720,34 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog(dialog)
 
             ### 2. Any other conditions present:
-            if len(days_with_other_cat) > 0:
-                dialog = self.translate('weekly.conditions.seq.extra')
-                first_category = True
+            dialog = ""
+            dialog_list = []
             for cat in days_with_other_cat:
-                if first_category:
-                    first_category = False
-                else:
-                    dialog = self.concat_dialog(dialog, 'and')
                 spoken_cat = speak_category[cat]
                 cat_days = days_with_other_cat[cat]
                 seq_days = self.__get_seqs_from_list(cat_days)
                 for seq in seq_days:
                     if seq is seq_days[0]:
-                        dialog = self.concat_dialog(dialog, spoken_cat)
+                        dialog_list.append(spoken_cat)
                     else:
-                        dialog = self.concat_dialog(dialog, 'and')
+                        dialog_list.append(self.translate('and'))
                     day_from = self.__to_day(days[seq[0]])
                     day_to = self.__to_day(days[seq[-1]])
-                    dialog = self.concat_dialog(dialog,
-                                                'weekly.conditions.seq.period',
-                                                {'from': day_from,
-                                                 'to': day_to})
+                    dialog_list.append(self.translate(
+                        'weekly.conditions.seq.period',
+                        {'from': day_from,
+                         'to': day_to}))
                 if not seq_days:
                     for day in cat_days:
-                        if day is not cat_days[0]:
-                            dialog = self.concat_dialog(dialog, 'and')
                         speak_day = self.__to_day(days[day])
-                        dialog = self.concat_dialog(dialog,
-                                        'weekly.condition.on.day',
-                                        {'condition': collated['condition'][day],
-                                         'day': speak_day})
+                        dialog_list.append(self.translate(
+                            'weekly.condition.on.day',
+                            {'condition': collated['condition'][day],
+                             'day': speak_day}))
+            if len(dialog_list) > 1:
+                dialog_list.insert(-1, self.translate('and'))
+            for d in dialog_list:
+                dialog = self.concat_dialog(dialog, d)
             self.speak_dialog(dialog)
 
             ### 3. Report temps:
