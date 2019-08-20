@@ -959,7 +959,7 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog("no precipitation expected", report)
 
     # Handle: How humid is it?
-    @intent_handler(IntentBuilder("").require("Query").require("Humidity")
+    @intent_handler(IntentBuilder("").optionally("Query").require("Humidity")
                    .optionally("RelativeDay").optionally("Location").build())
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
@@ -979,7 +979,8 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        value = str(weather.get_humidity()) + "%"
+        value = self.translate('percentage.number',
+                               {'num': str(weather.get_humidity())})
         loc = message.data.get('Location')
         self.__report_condition(self.__translate("humidity"), value, when, loc)
 
@@ -1257,7 +1258,8 @@ class WeatherSkill(MycroftSkill):
         # Min and Max temps not available in 3hr forecast
         report['temp_min'] = None
         report['temp_max'] = None
-        report['humidity'] = fc_weather.get_humidity()
+        report['humidity'] = self.translate('percentage.number',
+                                            {'num': fc_weather.get_humidity()})
         report['wind'] = self.get_wind_speed(fc_weather)[0]
 
         fc_time = fc_weather.get_reference_time(timeformat='date')
@@ -1297,7 +1299,9 @@ class WeatherSkill(MycroftSkill):
                                                     unit)
         report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
                                                     unit)
-        report['humidity'] = forecastWeather.get_humidity()
+        report['humidity'] = self.translate('percentage.number',
+                                    {'num': forecastWeather.get_humidity()})
+
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
         report['day'] = "today"
@@ -1337,9 +1341,10 @@ class WeatherSkill(MycroftSkill):
                                                     unit)
         report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
                                                     unit)
-        report['humidity'] = forecast_weather.get_humidity()
+        report['humidity'] = self.translate('percentage.number',
+                                    {'num': forecast_weather.get_humidity()})
         report['wind'] = self.get_wind_speed(forecast_weather)[0]
-        report['day'] = self.__to_day(when, preface_day)  # Tuesday, tomorrow, etc.
+        report['day'] = self.__to_day(when, preface_day)
 
         return report
 
