@@ -14,7 +14,7 @@
 
 import time
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import pytz
 
@@ -1094,9 +1094,10 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        # uses device tz unless set .fromtimestamp(stamp, tz=pytz.UTC)
-        # TODO need tzinfo of location from geolocation API
+        # uses device tz so if not set (eg Mark 1) this is UTC.
         dtSunrise = datetime.fromtimestamp(weather.get_sunrise_time())
+        if time.tzname == ("UTC", "UTC"):
+            dtSunrise = self.__to_Local(dtSunrise.replace(tzinfo=pytz.utc))
         spoken_time = self.__nice_time(dtSunrise, use_ampm=True)
         self.speak_dialog('sunrise', {'time': spoken_time})
 
@@ -1125,9 +1126,10 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        # uses device tz unless set .fromtimestamp(stamp, tz=pytz.UTC)
-        # TODO need tzinfo of location from geolocation API
+        # uses device tz so if not set (eg Mark 1) this is UTC.
         dtSunset = datetime.fromtimestamp(weather.get_sunset_time())
+        if time.tzname == ("UTC", "UTC"):
+            dtSunset = self.__to_Local(dtSunset.replace(tzinfo=pytz.utc))
         spoken_time = self.__nice_time(dtSunset, use_ampm=True)
         self.speak_dialog('sunset', {'time': spoken_time})
 
