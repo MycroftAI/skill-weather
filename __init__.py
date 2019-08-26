@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import time
-from datetime import datetime
 import json
+import pytz
+import time
+from copy import deepcopy
+from datetime import datetime, timedelta
 
 import mycroft.audio
 from adapt.intent import IntentBuilder
@@ -23,10 +25,10 @@ from mycroft.api import Api
 from mycroft.skills.core import (MycroftSkill, intent_handler,
                                  intent_file_handler)
 from mycroft.messagebus.message import Message
-from mycroft.util.format import nice_time
+from mycroft.util.format import nice_date, nice_time
 from mycroft.util.log import LOG
-from mycroft.util.parse import extract_datetime
-from mycroft.util.format import nice_number
+from mycroft.util.format import nice_number, pronounce_number, join_list
+from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
@@ -137,7 +139,15 @@ class OWMApi(Api):
         """ Caching the responses """
         req_hash = hash(json.dumps(data, sort_keys=True))
         cache = self.query_cache.get(req_hash, (0, None))
-
+        # check for caches with more days data than requested
+        if data['query'].get('cnt') and cache == (0, None):
+            test_req_data = deepcopy(data)
+            while test_req_data['query']['cnt'] < 16 and cache == (0, None):
+                test_req_data['query']['cnt'] += 1
+                test_hash = hash(json.dumps(test_req_data, sort_keys=True))
+                test_cache = self.query_cache.get(test_hash, (0, None))
+                if test_cache != (0, None):
+                    cache = test_cache
         # Use cached response if value exists and was fetched within 15 min
         now = time.monotonic()
         if now > (cache[0] + 15 * MINUTES) or cache[1] is None:
@@ -290,10 +300,11 @@ class WeatherSkill(MycroftSkill):
         if self.owm:
             self.owm.set_OWM_language(lang=OWMApi.get_language(self.lang))
 
+        self.schedule_for_daily_use()
         try:
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
-            LOG.warning('Could not prepare forecasts. ({})'.format(repr(e)))
+            self.log.warning('Could not prepare forecasts. ({})'.format(repr(e)))
 
         # Register for handling idle/resting screen
         msg_type = '{}.{}'.format(self.skill_id, 'idle')
@@ -301,7 +312,6 @@ class WeatherSkill(MycroftSkill):
         self.add_event('mycroft.mark2.collect_idle',
                        self.handle_collect_request)
 
-        self.schedule_for_daily_use()
 
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
@@ -325,6 +335,8 @@ class WeatherSkill(MycroftSkill):
             self.owm.weather_at_place(
                 report['full_location'], report['lat'],
                 report['lon']).get_weather()
+            self.owm.daily_forecast(report['full_location'],
+                                    report['lat'], report['lon'], limit=16)
         except Exception as e:
             self.log.error('Failed to prime weather cache '
                            '({})'.format(repr(e)))
@@ -400,6 +412,198 @@ class WeatherSkill(MycroftSkill):
             forecast['second'] = forecast_list[2:4]
             self.gui['forecast'] = forecast
 
+    #### DATETIME BASED QUERIES ####
+    # Handle: what is the weather like?
+    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
+                   .optionally("Query").optionally("Location")
+                   .optionally("Today").build())
+    def handle_current_weather(self, message):
+        try:
+            self.log.debug("Handler: handle_current_weather")
+            # Get a date from requests like "weather for next Tuesday"
+            today = extract_datetime(" ")[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
+            if today != when:
+                self.log.debug("Doing a forecast" + str(today) + " " + str(when))
+                return self.handle_forecast(message)
+
+            report = self.__populate_report(message)
+
+            self.__report_weather(
+                "current", report,
+                separate_min_max='Location' not in message.data)
+            self.mark2_forecast(report)
+
+            # Establish the daily cadence
+            self.schedule_for_daily_use()
+        except APIErrors as e:
+            self.log.exception(repr(e))
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    @intent_file_handler("whats.weather.like.intent")
+    def handle_current_weather_alt(self, message):
+        self.handle_current_weather(message)
+
+    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
+                   .one_of("Now", "Today").optionally("Location").build())
+    def handle_current_weather_simple(self, message):
+        self.handle_current_weather(message)
+
+    @intent_file_handler("what.is.three.day.forecast.intent")
+    def handle_three_day_forecast(self, message):
+        """ Handler for three day forecast without specified location
+
+        Examples:   "What is the 3 day forecast?"
+                    "What is the weather forecast?"
+        """
+        try:
+            report = self.__initialize_report(message)
+            self.report_multiday_forecast(report)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    @intent_file_handler("what.is.three.day.forecast.location.intent")
+    def handle_three_day_forecast_location(self, message):
+        """ Handler for three day forecast for a specific location
+
+        Example: "What is the 3 day forecast for London?"
+        """
+        # padatious lowercases everything including these keys
+        message.data['Location'] = message.data.pop('location')
+        return self.handle_three_day_forecast(message)
+
+    @intent_file_handler("what.is.two.day.forecast.intent")
+    def handle_two_day_forecast(self, message):
+        """ Handler for two day forecast with no specified location
+
+        Examples:   "What's the weather like next Monday and Tuesday?"
+                    "What's the weather gonna be like in the coming days?"
+        """
+        # TODO consider merging in weekend intent
+        try:
+            report = self.__initialize_report(message)
+            if message.data.get('day_one'):
+                #report two or more specific days
+                days = []
+                day_num = 1
+                day = message.data['day_one']
+                while day:
+                    days.append(extract_datetime(day)[0])
+                    day_num += 1
+                    next_day = 'day_{}'.format(pronounce_number(day_num))
+                    day = message.data.get(next_day)
+                self.report_multiday_forecast(report, set_days=days)
+            else:
+                # report next two days
+                self.report_multiday_forecast(report, num_days=2)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    @intent_file_handler("what.is.multi.day.forecast.intent")
+    def handle_multi_day_forecast(self, message):
+        """ Handler for multiple day forecast with no specified location
+
+        Examples:   "What's the weather like in the next 4 days?"
+        """
+        try:
+            report = self.__initialize_report(message)
+            if self.voc_match(message.data['num'], 'Couple'):
+                self.report_multiday_forecast(report, num_days=2)
+            # report x number of days
+            when = extract_datetime("tomorrow")[0]
+            num_days = int(extract_number(message.data['num']))
+            self.report_multiday_forecast(report, when,
+                                          num_days=num_days)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    # Handle: What is the weather forecast?
+    @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
+                   .optionally("Query").optionally("RelativeDay")
+                   .optionally("Location").build())
+    def handle_forecast(self, message):
+        try:
+            report = self.__initialize_report(message)
+
+            # Get a date from spoken request
+            when = extract_datetime(message.data.get('utterance'),
+                                    lang=self.lang)[0]
+            today = extract_datetime(" ")[0]
+            if today == when:
+                self.handle_current_weather(message)
+                return
+
+            self.report_forecast(report, when)
+
+            # Establish the daily cadence
+            self.schedule_for_daily_use()
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    # Handle: What's the weather later?
+    @intent_handler(IntentBuilder("").require("Query").require(
+        "Weather").optionally("Location").require("Later").build())
+    def handle_next_hour(self, message):
+        try:
+            report = self.__initialize_report(message)
+
+            # Get near-future forecast
+            forecastWeather = self.owm.three_hours_forecast(
+                report['full_location'],
+                report['lat'],
+                report['lon']).get_forecast().get_weathers()[0]
+
+            # NOTE: The 3-hour forecast uses different temperature labels,
+            # temp, temp_min and temp_max.
+            report['temp'] = self.__get_temperature(forecastWeather, 'temp')
+            report['temp_min'] = self.__get_temperature(forecastWeather,
+                                                        'temp_min')
+            report['temp_max'] = self.__get_temperature(forecastWeather,
+                                                        'temp_max')
+            report['condition'] = forecastWeather.get_detailed_status()
+            report['icon'] = forecastWeather.get_weather_icon_name()
+            self.__report_weather("hour", report)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.error("Error: {0}".format(e))
+
+    # Handle: What's the weather tonight / tomorrow morning?
+    @intent_handler(IntentBuilder("").require("RelativeTime")
+                    .one_of("Weather", "Forecast").optionally("Query")
+                    .optionally("RelativeDay").optionally("Location").build())
+    def handle_weather_at_time(self, message):
+        self.log.debug("Handler: handle_weather_at_time")
+        when, _ = extract_datetime(
+                    message.data.get('utterance'), lang=self.lang)
+        now = self.__to_Local(datetime.utcnow())
+        time_diff = (when - now)
+        mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
+
+        try:
+            if mins_diff < 120:
+                self.handle_current_weather(message)
+            else:
+                report = self.__populate_report(message)
+                self.__report_weather("at.time", report)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.error("Error: {0}".format(e))
+
     @intent_handler(IntentBuilder("").require("Query").one_of(
         "Weather", "Forecast").require("Weekend").require(
         "Next").optionally("Location").build())
@@ -414,7 +618,7 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
     @intent_handler(IntentBuilder("").require("Query")
                     .one_of("Weather", "Forecast").require("Weekend")
@@ -432,146 +636,151 @@ class WeatherSkill(MycroftSkill):
         except APIErrors as e:
             self.__api_error(e)
         except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            self.log.exception("Error: {0}".format(e))
 
-    @intent_file_handler("whats.weather.like.intent")
-    def handle_current_weather_alt(self, message):
-        self.handle_current_weather(message)
-
-    # Handle: what is the weather like?
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").optionally("Location").optionally("Today").build())
-    def handle_current_weather(self, message):
-        try:
-            # Get a date from requests like "weather for next Tuesday"
-            today = extract_datetime(" ")[0]
-            when, _ = extract_datetime(
-                        message.data.get('utterance'), lang=self.lang)
-            if today != when:
-                LOG.info("Doing a forecast" + str(today) + " " + str(when))
-                return self.handle_forecast(message)
-
-            report = self.__initialize_report(message)
-            # Get current conditions
-            currentWeather = self.owm.weather_at_place(
-                report['full_location'], report['lat'],
-                report['lon']).get_weather()
-
-            # Change encoding of the localized report to utf8 if needed
-            condition = currentWeather.get_detailed_status()
-            if self.owm.encoding != 'utf8':
-                condition = self.__translate(
-                    condition.encode(self.owm.encoding).decode('utf8')
-                )
-
-            report['condition'] = condition
-            report['temp'] = self.__get_temperature(currentWeather, 'temp')
-            report['icon'] = currentWeather.get_weather_icon_name()
-
-            # Get forecast for the day
-            # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
-            # Set time to 12 instead of 00 to accomodate for timezones
-            forecastWeather = self.__get_forecast(
-                today.replace(
-                    hour=12),
-                report['full_location'],
-                report['lat'],
-                report['lon'])
-            report['temp_min'] = self.__get_temperature(forecastWeather, 'min')
-            report['temp_max'] = self.__get_temperature(forecastWeather, 'max')
-            report['humidity'] = forecastWeather.get_humidity()
-
-            wind = self.get_wind_speed(forecastWeather)
-            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-
-            self.__report_weather(
-                "current", report,
-                separate_min_max='Location' not in message.data)
-            self.mark2_forecast(report)
-
-            # Establish the daily cadence
-            self.schedule_for_daily_use()
-        except APIErrors as e:
-            self.log.exception(repr(e))
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
-
-    @intent_file_handler("what.is.three.day.forecast.intent")
-    def handle_three_day_forecast(self, message):
-        """ Handler for three day forecast without specified location
-
-        Examples:   "What is the 3 day forecast?"
-                    "What is the weather forecast?"
-        """
+    @intent_handler(IntentBuilder("").optionally("Query")
+                    .one_of("Weather", "Forecast").require("Week")
+                    .optionally("Location").build())
+    def handle_week_weather(self, message):
+        """ Handle weather for week.
+            Speaks overview of week, not daily forecasts """
         try:
             report = self.__initialize_report(message)
-            self.report_threeday_forecast(report)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
+            when, _ = extract_datetime(message.data['utterance'])
+            today, _ = extract_datetime("today")
+            if not when:
+                when = today
+            days = [when + timedelta(days=i) for i in range(7)]
+            # Fetch forecasts/reports for week
+            forecasts = [dict(self.__populate_forecast(report, day,
+                                                       preface_day=False))
+                         if day != today
+                         else dict(self.__populate_current(report, day))
+                         for day in days]
 
-    @intent_file_handler("what.is.three.day.forecast.location.intent")
-    def handle_three_day_forecast_location(self, message):
-        """ Handler for three day forecast for a specific location
+            # collate forecasts
+            collated = {'condition': [], 'condition_cat': [], 'icon': [],
+                        'temp': [], 'temp_min': [], 'temp_max': []}
+            for fc in forecasts:
+                for attribute in collated.keys():
+                    collated[attribute].append(fc.get(attribute))
 
-        Example: "What is the 3 day forecast for London?"
-        """
-        # padatious lowercases everything including these keys
-        message.data['Location'] = message.data.pop('location')
-        return self.handle_three_day_forecast(message)
+            # analyse for commonality/difference
+            primary_category = max(collated['condition_cat'],
+                                   key=collated['condition_cat'].count)
+            days_with_primary_cat, conditions_in_primary_cat = [], []
+            days_with_other_cat = {}
+            for i, item in enumerate(collated['condition_cat']):
+                if item == primary_category:
+                    days_with_primary_cat.append(i)
+                    conditions_in_primary_cat.append(collated['condition'][i])
+                else:
+                    if not days_with_other_cat.get(item):
+                        days_with_other_cat[item] = []
+                    days_with_other_cat[item].append(i)
+            primary_condition = max(conditions_in_primary_cat,
+                                    key=conditions_in_primary_cat.count)
 
-    # Handle: What is the weather forecast?
-    @intent_handler(IntentBuilder("").require(
-        "Forecast").optionally("Location").build())
-    def handle_forecast(self, message):
-        try:
-            report = self.__initialize_report(message)
-
-            # Get a date from spoken request
-            when = extract_datetime(message.data.get('utterance'),
-                                    lang=self.lang)[0]
-            self.report_forecast(report, when)
-
-            # Establish the daily cadence
-            self.schedule_for_daily_use()
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
-
-    def __get_requested_unit(self, message):
-        """ Get selected unit from message.
-
-        Arguments:
-            message (Message): messagebus message from intent service
-
-        Returns:
-            'fahrenheit', 'celsius' or None
-        """
-        if message and message.data and 'Unit' in message.data:
-            if self.voc_match(message.data['Unit'], 'Fahrenheit'):
-                return 'fahrenheit'
+            ## CONSTRUCT DIALOG
+            speak_category = self.translate_namedvalues('condition.category')
+            ### 0. Report period starting day
+            if days[0] == today:
+                dialog = self.translate('this.week')
             else:
-                return 'celsius'
-        else:
-            return None
+                speak_day = self.__to_day(days[0])
+                dialog = self.translate('from.day', {'day': speak_day})
 
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Temperature").optionally("Location").optionally("Unit").build())
+            ### 1. whichever is longest (has most days), report as primary
+            # if over half the days => "it will be mostly {cond}"
+            speak_primary = speak_category[primary_category]
+            seq_primary_days = self.__get_seqs_from_list(days_with_primary_cat)
+            if len(days_with_primary_cat) >= (len(days) / 2):
+                dialog = self.concat_dialog(dialog,
+                                            'weekly.conditions.mostly.one',
+                                            {'condition': speak_primary})
+            elif seq_primary_days:
+                #if condition occurs on sequential days, report date range
+                dialog = self.concat_dialog(dialog,
+                                            'weekly.conditions.seq.start',
+                                            {'condition': speak_primary})
+                for seq in seq_primary_days:
+                    if seq is not seq_primary_days[0]:
+                        dialog = self.concat_dialog(dialog, 'and')
+                    day_from = self.__to_day(days[seq[0]])
+                    day_to = self.__to_day(days[seq[-1]])
+                    dialog = self.concat_dialog(dialog,
+                                                'weekly.conditions.seq.period',
+                                                {'from': day_from,
+                                                 'to': day_to})
+            else:
+                # condition occurs on random days
+                dialog = self.concat_dialog(dialog,
+                                            'weekly.conditions.some.days',
+                                            {'condition': speak_primary})
+            self.speak_dialog(dialog)
+
+            ### 2. Any other conditions present:
+            dialog = ""
+            dialog_list = []
+            for cat in days_with_other_cat:
+                spoken_cat = speak_category[cat]
+                cat_days = days_with_other_cat[cat]
+                seq_days = self.__get_seqs_from_list(cat_days)
+                for seq in seq_days:
+                    if seq is seq_days[0]:
+                        seq_dialog = spoken_cat
+                    else:
+                        seq_dialog = self.translate('and')
+                    day_from = self.__to_day(days[seq[0]])
+                    day_to = self.__to_day(days[seq[-1]])
+                    seq_dialog = self.concat_dialog(seq_dialog,
+                                                self.translate(
+                                                'weekly.conditions.seq.period',
+                                                {'from': day_from,
+                                                 'to': day_to}))
+                    dialog_list.append(seq_dialog)
+                if not seq_days:
+                    for day in cat_days:
+                        speak_day = self.__to_day(days[day])
+                        dialog_list.append(self.translate(
+                            'weekly.condition.on.day',
+                            {'condition': collated['condition'][day],
+                             'day': speak_day}))
+            dialog = join_list(dialog_list, 'and')
+            self.speak_dialog(dialog)
+
+            ### 3. Report temps:
+            temp_ranges = {
+                'low_min': min(collated['temp_min']),
+                'low_max': max(collated['temp_min']),
+                'high_min': min(collated['temp_max']),
+                'high_max': max(collated['temp_max'])
+            }
+            self.speak_dialog('weekly.temp.range', temp_ranges)
+
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    #### CONDITION BASED QUERY HANDLERS ####
+    @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
+                    .optionally("Location").optionally("Unit")
+                    .optionally("Today").optionally("Now").build())
     def handle_current_temperature(self, message):
         return self.__handle_typed(message, 'temperature')
 
     @intent_handler(IntentBuilder("").require("Query").require("High")
                     .optionally("Temperature").optionally("Location")
-                    .optionally("Unit").build())
+                    .optionally("Unit").optionally("RelativeDay")
+                    .optionally("Now").build())
     def handle_high_temperature(self, message):
         return self.__handle_typed(message, 'high.temperature')
 
     @intent_handler(IntentBuilder("").require("Query").require("Low")
                     .optionally("Temperature").optionally("Location")
-                    .optionally("Unit").build())
+                    .optionally("Unit").optionally("RelativeDay")
+                    .optionally("Now").build())
     def handle_low_temperature(self, message):
         return self.__handle_typed(message, 'low.temperature')
 
@@ -603,13 +812,32 @@ class WeatherSkill(MycroftSkill):
         dialog = '.'.join(dialog)
         self.speak_dialog(dialog, report)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
-        "Hot", "Cold").optionally("Location").build())
+    @intent_handler(IntentBuilder("").require("ConfirmQueryCurrent").one_of(
+        "Hot", "Cold").optionally("Location").optionally("Today").build())
     def handle_isit_hot(self, message):
         """ Handler for utterances similar to
-        is it hot today?, is it cold? will it be hot tomorrow?, etc
+        is it hot today?, is it cold? etc
         """
         return self.__handle_typed(message, 'hot')
+
+    # TODO This seems to present current temp, or possibly just hottest temp
+    @intent_handler(IntentBuilder("").optionally("How").one_of("Hot", "Cold")
+                   .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
+                   .optionally("Location").optionally("RelativeDay").build())
+    def handle_how_hot_or_cold(self, message):
+        """ Handler for utterances similar to
+        how hot will it be today?, how cold will it be? , etc
+        """
+        response_type = 'high.temperature' if message.data.get('Hot') \
+            else 'low.temperature'
+        return self.__handle_typed(message, response_type)
+
+    @intent_handler(IntentBuilder("").require("How").one_of("Hot", "Cold")
+                   .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
+                   .optionally("Location").optionally("RelativeDay").build())
+    def handle_how_hot_or_cold_alt(self, message):
+        self.handle_how_hot_or_cold(message)
+
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Snowing").optionally("Location").build())
@@ -617,17 +845,8 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it snowing today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Snowing'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'SnowAlternatives'):
-            dialog = 'snowing.alternative'
-        else:
-            dialog = 'no.snow.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report,
+                                                "snow", "snowing")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -636,36 +855,16 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it clear skies today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Clear'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'ClearAlternatives'):
-            dialog = 'clear.alternative'
-        else:
-            dialog = 'no.clear.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "clear")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
-        "Cloudy").optionally("Location").build())
+        "Cloudy").optionally("Location").optionally("RelativeTime").build())
     def handle_isit_cloudy(self, message):
-        """ Handler for utterances similar to "is it clear skies today?"
+        """ Handler for utterances similar to "is it cloudy skies today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Cloudy'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'CloudyAlternatives'):
-            dialog = 'cloudy.alternative'
-        else:
-            dialog = 'no.cloudy.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "cloudy")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
@@ -674,226 +873,32 @@ class WeatherSkill(MycroftSkill):
         """ Handler for utterances similar to "is it foggy today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Foggy'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'FoggyAlternatives'):
-            dialog = 'fog.alternative'
-        else:
-            dialog = 'no.fog.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "fog",
+                                                "foggy")
         self.speak_dialog(dialog, report)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
         "Raining").optionally("Location").build())
     def handle_isit_raining(self, message):
-        """ Handler for utterances similar to "is it snowing today?"
+        """ Handler for utterances similar to "is it raining today?"
         """
         report = self.__populate_report(message)
-        if self.voc_match(report['condition'], 'Raining'):
-            dialog = 'affirmative.condition'
-        elif self.voc_match(report['condition'], 'RainAlternatives'):
-            dialog = 'raining.alternative'
-        else:
-            dialog = 'no.rain.predicted'
-
-        if "Location" not in message.data:
-            dialog = 'local.' + dialog
-        if report.get('day'):
-            dialog = 'forecast.' + dialog
+        dialog = self.__select_condition_dialog(message, report, "rain",
+                                                "raining")
         self.speak_dialog(dialog, report)
 
-    def __handle_typed(self, message, response_type):
-        try:
-            unit = self.__get_requested_unit(message)
-            # Get a date from requests like "weather for next Tuesday"
-            today = extract_datetime(" ")[0]
-            when, _ = extract_datetime(
-                        message.data.get('utterance'), lang=self.lang)
+    @intent_file_handler("do.i.need.an.umbrella.intent")
+    def handle_need_umbrella(self, message):
+        self.handle_isit_raining(message)
 
-            report = self.__initialize_report(message)
-            if today != when:
-                LOG.info("Doing a forecast" + str(today) + " " + str(when))
-                return self.report_forecast(report, when,
-                                            dialog=response_type)
-
-            # Get current conditions
-            currentWeather = self.owm.weather_at_place(
-                report['full_location'], report['lat'],
-                report['lon']).get_weather()
-
-            # Change encoding of the localized report to utf8 if needed
-            condition = currentWeather.get_detailed_status()
-            if self.owm.encoding != 'utf8':
-                condition = self.__translate(
-                    condition.encode(self.owm.encoding).decode('utf8')
-                )
-
-            report['condition'] = condition
-            report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                    unit)
-            report['icon'] = currentWeather.get_weather_icon_name()
-
-            # Get forecast for the day
-            # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
-            # Set time to 12 instead of 00 to accomodate for timezones
-            forecastWeather = self.__get_forecast(
-                today.replace(
-                    hour=12),
-                report['full_location'],
-                report['lat'],
-                report['lon'])
-            report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
-                                                        unit)
-            report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
-                                                        unit)
-            report['humidity'] = forecastWeather.get_humidity()
-
-            wind = self.get_wind_speed(forecastWeather)
-            report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-
-            self.__report_weather('current', report, response_type)
-            self.mark2_forecast(report)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
-
-    def __populate_report(self, message):
-        try:
-            unit = self.__get_requested_unit(message)
-            # Get a date from requests like "weather for next Tuesday"
-            today = extract_datetime(" ")[0]
-            when, _ = extract_datetime(
-                        message.data.get('utterance'), lang=self.lang)
-
-            report = self.__initialize_report(message)
-            if today != when:
-                LOG.info("Doing a forecast" + str(today) + " " + str(when))
-                return self.__populate_forecast(report, when, unit)
-            else:
-                return self.__populate_current(report, when, unit)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.exception("Error: {0}".format(e))
-
-        return None
-
-    def __populate_current(self, report, when, unit=None):
-        # Get current conditions
-        today = extract_datetime(" ")[0]
-        currentWeather = self.owm.weather_at_place(
-            report['full_location'], report['lat'],
-            report['lon']).get_weather()
-
-        # Change encoding of the localized report to utf8 if needed
-        condition = currentWeather.get_detailed_status()
-        if self.owm.encoding != 'utf8':
-            condition = self.__translate(
-                condition.encode(self.owm.encoding).decode('utf8')
-            )
-
-        report['condition'] = condition
-        report['temp'] = self.__get_temperature(currentWeather, 'temp',
-                                                unit)
-        report['icon'] = currentWeather.get_weather_icon_name()
-
-        # Get forecast for the day
-        # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
-        # Set time to 12 instead of 00 to accomodate for timezones
-        forecastWeather = self.__get_forecast(
-            today.replace(
-                hour=12),
-            report['full_location'],
-            report['lat'],
-            report['lon'])
-        report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
-                                                    unit)
-        report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
-                                                    unit)
-        report['humidity'] = forecastWeather.get_humidity()
-
-        wind = self.get_wind_speed(forecastWeather)
-        report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-        return report
-
-    def __populate_forecast(self, report, when, unit=None):
-        """ Populate the report and return it.
-
-        Arguments:
-            report (dict): report base
-            when : date for report
-            unit: Unit type to use when presenting
-
-        Returns: None if no report available otherwise dict with weather info
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+        "Storm").optionally("Location").build())
+    def handle_isit_storming(self, message):
+        """ Handler for utterances similar to "is it storming today?"
         """
-        forecast_weather = self.__get_forecast(
-            when, report['full_location'], report['lat'], report['lon'])
-        if forecast_weather is None:
-            return None  # No forecast available
-
-        # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
-        report['temp'] = self.__get_temperature(forecast_weather, 'day', unit)
-        report['temp_min'] = self.__get_temperature(forecast_weather, 'min',
-                                                    unit)
-        report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
-                                                    unit)
-        report['icon'] = forecast_weather.get_weather_icon_name()
-        report['humidity'] = forecast_weather.get_humidity()
-        report['wind'] = self.get_wind_speed(forecast_weather)[0]
-
-        # TODO: Run off of status IDs instead of the status text? This converts
-        # a status like "sky is clear" to a different text and tense, because
-        # you don't want: "Friday it will be 82 and the sky is clear", it
-        # should be 'Friday it will be 82 and the sky will be clear' or
-        # just 'Friday it will be 82 and clear.
-        report['condition'] = self.__translate(
-            forecast_weather.get_detailed_status(), True)
-
-        report['day'] = self.__to_day(when)  # Tuesday, tomorrow, etc.
-        return report
-
-    def report_forecast(self, report, when, dialog='weather', unit=None):
-        """ Speak forecast for specific day.
-
-        Arguments:
-            report (dict): report base
-            when : date for report
-            dialog (str): dialog type, defaults to 'weather'
-            unit: Unit type to use when presenting
-        """
-        report = self.__populate_forecast(report, when, unit)
-        if report is None:
-            self.speak_dialog("no forecast", {'day': self.__to_day(when)})
-            return
-
-        self.__report_weather('forecast', report, rtype=dialog)
-
-    def report_threeday_forecast(self, report, dialog='weather', unit=None):
-        """ Speak forecast for today, tomorrow and next day.
-
-        Arguments:
-            report (dict): report base
-            when : date for report
-            dialog (str): dialog type, defaults to 'weather'
-            unit: Unit type to use when presenting
-        """
-        days = [extract_datetime('tomorrow', lang='en-us')[0],
-                extract_datetime('48 hours', lang='en-us')[0]]
-
-        self.__populate_current(report, extract_datetime(' ')[0])
-        report['day'] = self.__to_day(extract_datetime(' ')[0])
-        self.__report_weather('forecast', report, rtype=dialog)
-        for day in days:
-            report = self.__populate_forecast(report, day, unit)
-            if report is None:
-                self.speak_dialog("no forecast", {'day': self.__to_day(day)})
-                continue
-            self.__report_weather('forecast', report, rtype=dialog)
+        report = self.__populate_report(message)
+        dialog = self.__select_condition_dialog(message, report, "storm")
+        self.speak_dialog(dialog, report)
 
     # Handle: When will it rain again?
     @intent_handler(IntentBuilder("").require("When").optionally(
@@ -925,7 +930,7 @@ class WeatherSkill(MycroftSkill):
                 data = {
                     "modifier": "",
                     "precip": "rain",
-                    "day": self.__to_day(forecastDate)
+                    "day": self.__to_day(forecastDate, preface=True)
                 }
                 if rain["all"] < 10:
                     data["modifier"] = self.__translate("light")
@@ -940,7 +945,7 @@ class WeatherSkill(MycroftSkill):
                 data = {
                     "modifier": "",
                     "precip": "snow",
-                    "day": self.__to_day(forecastDate)
+                    "day": self.__to_day(forecastDate, preface=True)
                 }
                 if snow["all"] < 10:
                     data["modifier"] = self.__translate("light")
@@ -952,37 +957,9 @@ class WeatherSkill(MycroftSkill):
 
         self.speak_dialog("no precipitation expected", report)
 
-    # Handle: What's the weather later?
-    @intent_handler(IntentBuilder("").require("Query").require(
-        "Weather").optionally("Location").require("Later").build())
-    def handle_next_hour(self, message):
-        try:
-            report = self.__initialize_report(message)
-
-            # Get near-future forecast
-            forecastWeather = self.owm.three_hours_forecast(
-                report['full_location'],
-                report['lat'],
-                report['lon']).get_forecast().get_weathers()[0]
-
-            # NOTE: The 3-hour forecast uses different temperature labels,
-            # temp, temp_min and temp_max.
-            report['temp'] = self.__get_temperature(forecastWeather, 'temp')
-            report['temp_min'] = self.__get_temperature(forecastWeather,
-                                                        'temp_min')
-            report['temp_max'] = self.__get_temperature(forecastWeather,
-                                                        'temp_max')
-            report['condition'] = forecastWeather.get_detailed_status()
-            report['icon'] = forecastWeather.get_weather_icon_name()
-            self.__report_weather("hour", report)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            LOG.error("Error: {0}".format(e))
-
     # Handle: How humid is it?
-    @intent_handler(IntentBuilder("").require(
-        "Query").optionally("Location").require("Humidity").build())
+    @intent_handler(IntentBuilder("").optionally("Query").require("Humidity")
+                   .optionally("RelativeDay").optionally("Location").build())
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
 
@@ -1001,13 +978,15 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        value = str(weather.get_humidity()) + "%"
-        self.__report_condition(self.__translate("humidity"), value, when)
+        value = self.translate('percentage.number',
+                               {'num': str(weather.get_humidity())})
+        loc = message.data.get('Location')
+        self.__report_condition(self.__translate("humidity"), value, when, loc)
 
     # Handle: How windy is it?
-    @intent_handler(IntentBuilder("").require(
-        "Query").optionally("Location").require("Windy").optionally(
-        "ConfirmQuery").build())
+    @intent_handler(IntentBuilder("").require("Query").require("Windy")
+                   .optionally("Location").optionally("ConfirmQuery")
+                   .optionally("RelativeDay").build())
     def handle_windy(self, message):
         report = self.__initialize_report(message)
 
@@ -1025,7 +1004,7 @@ class WeatherSkill(MycroftSkill):
             self.speak_dialog("do not know")
             return
 
-        speed, dir, unit = self.get_wind_speed(weather)
+        speed, dir, unit, strength = self.get_wind_speed(weather)
         if dir:
             dir = self.__translate(dir)
             value = self.__translate("wind.speed.dir",
@@ -1036,8 +1015,9 @@ class WeatherSkill(MycroftSkill):
             value = self.__translate("wind.speed",
                                      data={"speed": nice_number(speed),
                                            "unit": unit})
-
-        self.__report_condition(self.__translate("winds"), value, when)
+        loc = message.data.get('Location')
+        self.__report_condition(self.__translate("winds"), value, when, loc)
+        self.speak_dialog('wind.strength.' + strength)
 
     def get_wind_speed(self, weather):
         wind = weather.get_wind()
@@ -1045,11 +1025,22 @@ class WeatherSkill(MycroftSkill):
         speed = wind["speed"]
         # get speed
         if self.__get_speed_unit() == "mph":
-            speed *= 2.23694
             unit = self.__translate("miles per hour")
+            speed_multiplier = 2.23694
+            speed *= speed_multiplier
         else:
             unit = self.__translate("meters per second")
+            speed_multiplier = 1
         speed = round(speed)
+
+        if (speed / speed_multiplier) < 0:
+            self.log.error("Wind speed below zero")
+        if (speed / speed_multiplier) <= 2.2352:
+            strength = "light"
+        elif (speed / speed_multiplier) <= 6.7056:
+            strength = "medium"
+        else:
+            strength = "hard"
 
         # get direction, convert compass degrees to named direction
         if "deg" in wind:
@@ -1075,7 +1066,7 @@ class WeatherSkill(MycroftSkill):
         else:
             dir = None
 
-        return speed, dir, unit
+        return speed, dir, unit, strength
 
     # Handle: When is the sunrise?
     @intent_handler(IntentBuilder("").one_of("Query", "When")
@@ -1095,16 +1086,19 @@ class WeatherSkill(MycroftSkill):
             #                               report['lat'], report['lon'])
 
             # There appears to be a bug in OWM, it can't extract the sunrise/
-            # sunset from forecast objects.  Look in to this later, but say
-            # "I don't know" for now
+            # sunset from forecast objects.  As of March 2018 OWM said it was
+            # "in the roadmap". Just say "I don't know" for now
             weather = None
         if not weather or weather.get_humidity() == 0:
             self.speak_dialog("do not know")
             return
 
-        dtSunriseUTC = datetime.fromtimestamp(weather.get_sunrise_time())
-        dtLocal = self.__to_Local(dtSunriseUTC)
-        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
+        # uses device tz so if not set (eg Mark 1) this is UTC.
+        dtSunrise = datetime.fromtimestamp(weather.get_sunrise_time())
+        if time.tzname == ("UTC", "UTC"):
+            dtSunrise = self.__to_Local(dtSunrise.replace(tzinfo=pytz.utc))
+        spoken_time = self.__nice_time(dtSunrise, use_ampm=True)
+        self.speak_dialog('sunrise', {'time': spoken_time})
 
     # Handle: When is the sunset?
     @intent_handler(IntentBuilder("").one_of("Query", "When")
@@ -1124,16 +1118,19 @@ class WeatherSkill(MycroftSkill):
             #                               report['lat'], report['lon'])
 
             # There appears to be a bug in OWM, it can't extract the sunrise/
-            # sunset from forecast objects.  Look in to this later, but say
-            # "I don't know" for now
+            # sunset from forecast objects.  As of March 2018 OWM said it was
+            # "in the roadmap". Just say "I don't know" for now
             weather = None
         if not weather or weather.get_humidity() == 0:
             self.speak_dialog("do not know")
             return
 
-        dtSunsetUTC = datetime.fromtimestamp(weather.get_sunset_time())
-        dtLocal = self.__to_Local(dtSunsetUTC)
-        self.speak(self.__nice_time(dtLocal, lang=self.lang, use_ampm=True))
+        # uses device tz so if not set (eg Mark 1) this is UTC.
+        dtSunset = datetime.fromtimestamp(weather.get_sunset_time())
+        if time.tzname == ("UTC", "UTC"):
+            dtSunset = self.__to_Local(dtSunset.replace(tzinfo=pytz.utc))
+        spoken_time = self.__nice_time(dtSunset, use_ampm=True)
+        self.speak_dialog('sunset', {'time': spoken_time})
 
     def __get_location(self, message):
         """ Attempt to extract a location from the spoken phrase.
@@ -1175,6 +1172,279 @@ class WeatherSkill(MycroftSkill):
             'full_location': location,
             'scale': self.translate(temp_unit or self.__get_temperature_unit())
         }
+
+    def __handle_typed(self, message, response_type):
+        try:
+            # Get a date from requests like "weather for next Tuesday"
+            today = extract_datetime(" ")[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
+
+            report = self.__initialize_report(message)
+            if today != when:
+                self.log.debug("Doing a forecast" + str(today) + " " + str(when))
+                return self.report_forecast(report, when,
+                                            dialog=response_type)
+            report = self.__populate_report(message)
+
+            if report.get('time'):
+                self.__report_weather("at.time", report, response_type)
+            else:
+                self.__report_weather('current', report, response_type)
+            self.mark2_forecast(report)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+    def __populate_report(self, message):
+        try:
+            unit = self.__get_requested_unit(message)
+            # Get a date from requests like "weather for next Tuesday"
+            today = extract_datetime(" ")[0]
+            when, _ = extract_datetime(
+                        message.data.get('utterance'), lang=self.lang)
+            self.log.debug('extracted when: {}'.format(when))
+            # extract_datetime cannot handle "tonight" without a time.
+            # TODO remove workaround when updated in Lingua Franca
+            if when.time() == today.time() and \
+                "tonight" in message.data.get('utterance'):
+                when = when.replace(hour=22)
+
+            report = self.__initialize_report(message)
+
+            if when.time() != today.time():
+                self.log.debug("Forecast for time: " + str(when))
+                return self.__populate_for_time(report, when, unit)
+            elif today != when:
+                self.log.debug("Forecast for: " + str(today) + " " + str(when))
+                return self.__populate_forecast(report, when, unit,
+                                                preface_day=True)
+            else:
+                self.log.debug("Forecast for now: " + str(when))
+                return self.__populate_current(report, when, unit)
+        except APIErrors as e:
+            self.__api_error(e)
+        except Exception as e:
+            self.log.exception("Error: {0}".format(e))
+
+        return None
+
+    def __populate_for_time(self, report, when, unit=None):
+        # TODO localize time to report location
+        three_hr_fcs = self.owm.three_hours_forecast(
+            report['full_location'],
+            report['lat'],
+            report['lon'])
+
+        whenGMT = self.__to_UTC(when)
+
+        if not three_hr_fcs:
+            return None
+        earliest_fc = three_hr_fcs.get_forecast().get_weathers()[0]
+        if whenGMT < earliest_fc.get_reference_time(timeformat='date'):
+            fc_weather = earliest_fc
+        else:
+            try:
+                fc_weather = three_hr_fcs.get_weather_at(whenGMT)
+            except Exception as e:
+                # fc_weather = three_hr_fcs.get_forecast().get_weathers()[0]
+                self.log.error("Error: {0}".format(e))
+                return None
+
+        report['condition'] = fc_weather.get_detailed_status()
+        report['condition_cat'] = fc_weather.get_status()
+        report['icon'] = fc_weather.get_weather_icon_name()
+        report['temp'] = self.__get_temperature(fc_weather, 'temp')
+        # Min and Max temps not available in 3hr forecast
+        report['temp_min'] = None
+        report['temp_max'] = None
+        report['humidity'] = self.translate('percentage.number',
+                                            {'num': fc_weather.get_humidity()})
+        report['wind'] = self.get_wind_speed(fc_weather)[0]
+
+        fc_time = fc_weather.get_reference_time(timeformat='date')
+        report['time'] = self.__to_time_period(self.__to_Local(fc_time))
+        report['day'] = self.__to_day(when, preface=True)
+
+        return report
+
+    def __populate_current(self, report, when, unit=None):
+        self.log.debug("Populating report for now: {}".format(when))
+        # Get current conditions
+        today = extract_datetime(" ")[0]
+        currentWeather = self.owm.weather_at_place(
+            report['full_location'], report['lat'],
+            report['lon']).get_weather()
+        # Get forecast for the day
+        # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
+        # Set time to 12 instead of 00 to accomodate for timezones
+        forecastWeather = self.__get_forecast(
+            today.replace(
+                hour=12),
+            report['full_location'],
+            report['lat'],
+            report['lon'])
+
+        # Change encoding of the localized report to utf8 if needed
+        condition = currentWeather.get_detailed_status()
+        if self.owm.encoding != 'utf8':
+            condition.encode(self.owm.encoding).decode('utf8')
+        report['condition'] = self.__translate(condition)
+        report['condition_cat'] = currentWeather.get_status()
+
+        report['icon'] = currentWeather.get_weather_icon_name()
+        report['temp'] = self.__get_temperature(currentWeather, 'temp',
+                                                unit)
+        report['temp_min'] = self.__get_temperature(forecastWeather, 'min',
+                                                    unit)
+        report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
+                                                    unit)
+        report['humidity'] = self.translate('percentage.number',
+                                    {'num': forecastWeather.get_humidity()})
+
+        wind = self.get_wind_speed(forecastWeather)
+        report['wind'] = "{} {}".format(wind[0], wind[1] or "")
+        report['day'] = "today"
+
+        return report
+
+    def __populate_forecast(self, report, when, unit=None, preface_day=False):
+        """ Populate the report and return it.
+
+        Arguments:
+            report (dict): report base
+            when : date for report
+            unit: Unit type to use when presenting
+
+        Returns: None if no report available otherwise dict with weather info
+        """
+        self.log.debug("Populating forecast report for: {}".format(when))
+
+        forecast_weather = self.__get_forecast(
+            when, report['full_location'], report['lat'], report['lon'])
+        if forecast_weather is None:
+            return None  # No forecast available
+
+        # This converts a status like "sky is clear" to new text and tense,
+        # because you don't want: "Friday it will be 82 and the sky is clear",
+        # it should be 'Friday it will be 82 and the sky will be clear'
+        # or just 'Friday it will be 82 and clear.
+        # TODO: Run off of status IDs instead of text `.get_weather_code()`?
+        report['condition'] = self.__translate(
+            forecast_weather.get_detailed_status(), True)
+        report['condition_cat'] = forecast_weather.get_status()
+
+        report['icon'] = forecast_weather.get_weather_icon_name()
+        # Can get temps for 'min', 'max', 'eve', 'morn', 'night', 'day'
+        report['temp'] = self.__get_temperature(forecast_weather, 'day', unit)
+        report['temp_min'] = self.__get_temperature(forecast_weather, 'min',
+                                                    unit)
+        report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
+                                                    unit)
+        report['humidity'] = self.translate('percentage.number',
+                                    {'num': forecast_weather.get_humidity()})
+        report['wind'] = self.get_wind_speed(forecast_weather)[0]
+        report['day'] = self.__to_day(when, preface_day)
+
+        return report
+
+    def __select_condition_dialog(self, message, report, noun, exp=None):
+        """ Select the relevant dialog file for condition based reports eg snow.
+
+        Arguments:
+            message (obj): message from user
+            report (dict): weather report data
+            noun (string): name of condition eg snow
+            exp (string): condition as verb or adjective eg Snowing
+
+        Returns:
+            dialog (string): name of dialog file
+        """
+        if report is None:
+            # Empty report most likely caused by location not found
+            return 'do not know'
+
+        if exp is None:
+            exp = noun
+        alternative_voc = '{}Alternatives'.format(noun.capitalize())
+        if self.voc_match(report['condition'], exp.capitalize()):
+            dialog = 'affirmative.condition'
+        elif report.get('time'):
+            # Standard response for time based dialog eg 'evening'
+            if self.voc_match(report['condition'], alternative_voc):
+                dialog = 'cond.alternative'
+            else:
+                dialog = 'no.cond.predicted'
+        elif self.voc_match(report['condition'], alternative_voc):
+            dialog = '{}.alternative'.format(exp.lower())
+        else:
+            dialog = 'no.{}.predicted'.format(noun.lower())
+
+        if "Location" not in message.data:
+            dialog = 'local.' + dialog
+        if report.get('day'):
+            dialog = 'forecast.' + dialog
+        if report.get('time') and \
+            ('at.time.' + dialog) in self.dialog_renderer.templates:
+                dialog = 'at.time.' + dialog
+        return dialog
+
+    def report_forecast(self, report, when, dialog='weather', unit=None,
+                        preface_day=True):
+        """ Speak forecast for specific day.
+
+        Arguments:
+            report (dict): report base
+            when : date for report
+            dialog (str): dialog type, defaults to 'weather'
+            unit: Unit type to use when presenting
+            preface_day (bool): if appropriate day preface should be added
+                                eg "on Tuesday" but NOT "on tomorrow"
+        """
+        report = self.__populate_forecast(report, when, unit, preface_day)
+        if report is None:
+            self.speak_dialog("no forecast",
+                              {'day': self.__to_day(when, preface_day)})
+            return
+
+        self.__report_weather('forecast', report, rtype=dialog)
+
+    def report_multiday_forecast(self, report, when=extract_datetime(' ')[0],
+                                 num_days=3, set_days=None, dialog='weather',
+                                 unit=None, preface_day=True):
+        """ Speak forecast for multiple sequential days.
+
+        Arguments:
+            report (dict): report base
+            when (datetime): date of first day for report, defaults to today
+            num_days (int): number of days to report, defaults to 3
+            set_days (list(datetime)): list of specific days to report
+            dialog (str): dialog type, defaults to 'weather'
+            unit: Unit type to use when presenting, defaults to user preference
+            preface_day (bool): if appropriate day preface should be added
+                                eg "on Tuesday" but NOT "on tomorrow"
+        """
+
+        if set_days:
+            days = set_days
+        else:
+            days = [when + timedelta(days=i) for i in range(num_days)]
+
+        today = extract_datetime(' ')[0]
+        for day in days:
+            if day == today:
+                self.__populate_current(report, day)
+                report['day'] = self.__to_day(day, preface_day)
+                self.__report_weather('forecast', report, rtype=dialog)
+            else:
+                report = self.__populate_forecast(report, day, unit,
+                                                  preface_day)
+                if report is None:
+                    self.speak_dialog("no forecast",
+                                      {'day': self.__to_day(day, preface_day)})
+                    continue
+                self.__report_weather('forecast', report, rtype=dialog)
 
     def __report_weather(self, timeframe, report, rtype='weather',
                          separate_min_max=False):
@@ -1221,7 +1491,9 @@ class WeatherSkill(MycroftSkill):
         dialog_name = timeframe
         if report['location'] == self.location_pretty:
             dialog_name += ".local"
-        self.speak_dialog(dialog_name + "." + rtype, report)
+        dialog_name += "." + rtype
+        self.log.debug("Dialog: " + dialog_name)
+        self.speak_dialog(dialog_name, report)
 
         # Just show the icons while still speaking
         mycroft.audio.wait_while_speaking()
@@ -1235,17 +1507,20 @@ class WeatherSkill(MycroftSkill):
         self.enclosure.activate_mouth_events()
         self.enclosure.mouth_reset()
 
-    def __report_condition(self, name, value, when):
+    def __report_condition(self, name, value, when, location=None):
         # Report a specific value
         data = {
             "condition": name,
             "value": value,
         }
-        if when == extract_datetime(" ")[0]:
-            self.speak_dialog("report.condition", data)
-        else:
-            data["day"] = self.__to_day(when)
-            self.speak_dialog("report.future.condition", data)
+        report_type = "report.condition"
+        if when != extract_datetime(" ")[0]:
+            data["day"] = self.__to_day(when, preface=True)
+            report_type += ".future"
+        if location:
+            data["location"] = location
+            report_type += ".at.location"
+        self.speak_dialog(report_type, data)
 
     def __get_forecast(self, when, location, lat, lon):
         """ Get a forecast for the given time and location.
@@ -1256,12 +1531,11 @@ class WeatherSkill(MycroftSkill):
             lat: Latitude for report
             lon: Longitude for report
         """
-
         # convert time to UTC/GMT (forecast is in GMT)
         whenGMT = self.__to_UTC(when)
 
         # search for the requested date in the returned forecast data
-        forecasts = self.owm.daily_forecast(location, lat, lon, limit=10)
+        forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
         forecasts = forecasts.get_forecast()
         for weather in forecasts.get_weathers():
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
@@ -1271,6 +1545,53 @@ class WeatherSkill(MycroftSkill):
 
         # No forecast for the given day
         return None
+
+    def __get_requested_unit(self, message):
+        """ Get selected unit from message.
+
+        Arguments:
+            message (Message): messagebus message from intent service
+
+        Returns:
+            'fahrenheit', 'celsius' or None
+        """
+        if message and message.data and 'Unit' in message.data:
+            if self.voc_match(message.data['Unit'], 'Fahrenheit'):
+                return 'fahrenheit'
+            else:
+                return 'celsius'
+        else:
+            return None
+
+    def concat_dialog(self, current, dialog, data=None):
+        return current + " " + self.translate(dialog, data)
+
+    def __get_seqs_from_list(self, nums):
+        """Get lists of sequential numbers from list.
+
+        Arguments:
+            nums (list): list of int eg indices
+
+        Returns:
+            None if no sequential numbers found
+            seq_nums (list[list]): list of sequence lists
+        """
+        current_seq, seq_nums = [], []
+        seq_active = False
+        for idx, day in enumerate(nums):
+            if idx+1 < len(nums) and nums[idx+1] == (day + 1):
+                current_seq.append(day)
+                seq_active = True
+            elif seq_active:
+                # last day in sequence
+                current_seq.append(day)
+                seq_nums.append(current_seq.copy())
+                current_seq = []
+                seq_active = False
+
+        # if len(seq_nums) == 0:
+        #     return None
+        return seq_nums
 
     def __get_speed_unit(self):
         """ Get speed unit based on config setting.
@@ -1321,31 +1642,27 @@ class WeatherSkill(MycroftSkill):
             from mycroft import Message
             self.bus.emit(Message("mycroft.not.paired"))
 
-    def __to_day(self, when):
-        # TODO: This will be a compatibility wrapper for
-        #       mycroft.util.format.relative_day(when)
-        if self.lang.lower().startswith("sv"):
-            days = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag',
-                    'Lördag', 'Söndag']
-        elif self.lang.lower().startswith("de"):
-            days = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag',
-                    'Samstag', 'Sonntag']
-        elif self.lang.lower().startswith("es"):
-            days = ['Lunes', 'Martes', u'Miércoles',
-                    'Jueves', 'Viernes', u'Sábado', 'Domingo']
-        elif self.lang.lower().startswith("fr"):
-            days = ["Lundi", "Mardi", "Mercredi",
-                    "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-        elif self.lang.lower().startswith("it"):
-            days = ['Lunedi', 'Martedi', 'Mercoledi',
-                    'Giovedi', 'Venerdi', 'Sabato', 'Domenica']
-        elif self.lang.lower().startswith("pt"):
-            days = ['Segunda', 'Terca', 'Quarta',
-                    'Quinta', 'Sexta', 'Sabado', 'Domingo']
-        else:
-            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
-                    'Saturday', 'Sunday']
-        return days[when.weekday()]
+    def __to_day(self, when, preface=False):
+        """ Provide date in speakable form
+
+            Arguments:
+                when (datetime)
+                preface (bool): if appropriate preface should be included
+                                eg "on Monday" but NOT "on tomorrow"
+            Returns:
+                string: the speakable date text
+        """
+        now = datetime.now()
+        speakable_date = nice_date(when, lang=self.lang, now=now)
+        # Test if speakable_date is a relative reference eg "tomorrow"
+        days_diff = (when.date() - now.date()).days
+        if preface and (-1 > days_diff or days_diff > 1):
+            speakable_date = "{} {}".format(self.translate('on.date'),
+                                            speakable_date)
+        # If day is less than a week in advance, just say day of week.
+        if days_diff <= 6:
+            speakable_date = speakable_date.split(',')[0]
+        return speakable_date
 
     def __to_UTC(self, when):
         try:
@@ -1368,16 +1685,33 @@ class WeatherSkill(MycroftSkill):
             timezone = pytz.timezone(self.location["timezone"]["code"])
             return when.astimezone(timezone)
 
+    def __to_time_period(self, when):
+        # Translate a specific time '9am' to period of the day 'morning'
+        hour = when.time().hour
+        period = None
+        if hour >= 1 and hour < 5:
+            period = "early morning"
+        if hour >= 5 and hour < 12:
+            period = "morning"
+        if hour >= 12 and hour < 17:
+            period = "afternoon"
+        if hour >= 17 and hour < 20:
+            period = "evening"
+        if hour >= 20 or hour < 1:
+            period = "overnight"
+        if period is None:
+            self.log.error("Unable to parse time as a period of day")
+        return period
+
     def __translate(self, condition, future=False, data=None):
         # behaviour of method dialog_renderer.render(...) has changed - instead
         # of exception when given template is not found now simply the
         # templatename is returned!?!
-        if future:
-            if (condition + ".future") in self.dialog_renderer.templates:
-                return self.dialog_renderer.render(condition + ".future", data)
-
+        if future and (
+            condition + ".future") in self.dialog_renderer.templates:
+            return self.translate(condition + ".future", data)
         if condition in self.dialog_renderer.templates:
-            return self.dialog_renderer.render(condition, data)
+            return self.translate(condition, data)
         else:
             return condition
 

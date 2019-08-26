@@ -1,0 +1,4 @@
+It will be {condition}, with temperatures near {temp} in the {time}
+{time}, it will be {condition} and around {temp} degrees
+{time}, it will be {condition} and {temp} degrees
+{time}, it will be {temp} degrees with {condition}

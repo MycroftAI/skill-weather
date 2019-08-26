@@ -1,5 +1,0 @@
-{
-    "utterance": "what will the weather be today",
-    "intent_type": "handle_current_weather",
-    "expected_dialog": "current.local.weather"
-}

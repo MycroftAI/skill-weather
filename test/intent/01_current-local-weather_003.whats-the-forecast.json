@@ -1,0 +1,4 @@
+{
+    "utterance": "what is the forecast",
+    "expected_dialog": "current.local.weather"
+}

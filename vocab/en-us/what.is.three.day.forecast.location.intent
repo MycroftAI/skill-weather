@@ -1,5 +1,1 @@
-(tell me|what is) the (3 day|three-day|extended|weekly|week) (weather|forecast|weather forecast) (for|in) {Location}
-what will this (week|weeks|week's) weather be (like|) in {location}
-what is the forecast this week for {location}
-what is the weather like this week in {location}
-
+(tell me|what is) the (3 day|three-day|extended) (weather|forecast|weather forecast) (for|in) {Location}

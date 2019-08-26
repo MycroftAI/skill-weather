@@ -1,0 +1,5 @@
+{
+    "utterance": "how hot will it be in paris",
+    "intent_type": "handle_how_hot_or_cold_alt",
+    "expected_dialog": "current.high.temperature"
+}
