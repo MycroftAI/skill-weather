@@ -37,7 +37,7 @@ from requests import HTTPError, Response
 try:
     from mycroft.util.time import to_utc, to_local
 except Exception:
-    import pytz
+    pass
 
 MINUTES = 60  # Minutes to seconds multiplier
 
@@ -309,14 +309,14 @@ class WeatherSkill(MycroftSkill):
         try:
             self.mark2_forecast(self.__initialize_report(None))
         except Exception as e:
-            self.log.warning('Could not prepare forecasts. ({})'.format(repr(e)))
+            self.log.warning('Could not prepare forecasts. '
+                             '({})'.format(repr(e)))
 
         # Register for handling idle/resting screen
         msg_type = '{}.{}'.format(self.skill_id, 'idle')
         self.add_event(msg_type, self.handle_idle)
         self.add_event('mycroft.mark2.collect_idle',
                        self.handle_collect_request)
-
 
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
@@ -417,11 +417,11 @@ class WeatherSkill(MycroftSkill):
             forecast['second'] = forecast_list[2:4]
             self.gui['forecast'] = forecast
 
-    #### DATETIME BASED QUERIES ####
+    # DATETIME BASED QUERIES
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
-                   .optionally("Query").optionally("Location")
-                   .optionally("Today").build())
+                    .optionally("Query").optionally("Location")
+                    .optionally("Today").build())
     def handle_current_weather(self, message):
         try:
             self.log.debug("Handler: handle_current_weather")
@@ -430,7 +430,7 @@ class WeatherSkill(MycroftSkill):
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
             if today != when:
-                self.log.debug("Doing a forecast" + str(today) + " " + str(when))
+                self.log.debug("Doing a forecast {} {}".format(today, when))
                 return self.handle_forecast(message)
 
             report = self.__populate_report(message)
@@ -453,7 +453,7 @@ class WeatherSkill(MycroftSkill):
         self.handle_current_weather(message)
 
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
-                   .one_of("Now", "Today").optionally("Location").build())
+                    .one_of("Now", "Today").optionally("Location").build())
     def handle_current_weather_simple(self, message):
         self.handle_current_weather(message)
 
@@ -493,7 +493,7 @@ class WeatherSkill(MycroftSkill):
         try:
             report = self.__initialize_report(message)
             if message.data.get('day_one'):
-                #report two or more specific days
+                # report two or more specific days
                 days = []
                 day_num = 1
                 day = message.data['day_one']
@@ -534,8 +534,8 @@ class WeatherSkill(MycroftSkill):
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
-                   .optionally("Query").optionally("RelativeDay")
-                   .optionally("Location").build())
+                    .optionally("Query").optionally("RelativeDay")
+                    .optionally("Location").build())
     def handle_forecast(self, message):
         try:
             report = self.__initialize_report(message)
@@ -686,16 +686,16 @@ class WeatherSkill(MycroftSkill):
             primary_condition = max(conditions_in_primary_cat,
                                     key=conditions_in_primary_cat.count)
 
-            ## CONSTRUCT DIALOG
+            # CONSTRUCT DIALOG
             speak_category = self.translate_namedvalues('condition.category')
-            ### 0. Report period starting day
+            # 0. Report period starting day
             if days[0] == today:
                 dialog = self.translate('this.week')
             else:
                 speak_day = self.__to_day(days[0])
                 dialog = self.translate('from.day', {'day': speak_day})
 
-            ### 1. whichever is longest (has most days), report as primary
+            # 1. whichever is longest (has most days), report as primary
             # if over half the days => "it will be mostly {cond}"
             speak_primary = speak_category[primary_category]
             seq_primary_days = self.__get_seqs_from_list(days_with_primary_cat)
@@ -704,7 +704,7 @@ class WeatherSkill(MycroftSkill):
                                             'weekly.conditions.mostly.one',
                                             {'condition': speak_primary})
             elif seq_primary_days:
-                #if condition occurs on sequential days, report date range
+                # if condition occurs on sequential days, report date range
                 dialog = self.concat_dialog(dialog,
                                             'weekly.conditions.seq.start',
                                             {'condition': speak_primary})
@@ -724,7 +724,7 @@ class WeatherSkill(MycroftSkill):
                                             {'condition': speak_primary})
             self.speak_dialog(dialog)
 
-            ### 2. Any other conditions present:
+            # 2. Any other conditions present:
             dialog = ""
             dialog_list = []
             for cat in days_with_other_cat:
@@ -738,11 +738,11 @@ class WeatherSkill(MycroftSkill):
                         seq_dialog = self.translate('and')
                     day_from = self.__to_day(days[seq[0]])
                     day_to = self.__to_day(days[seq[-1]])
-                    seq_dialog = self.concat_dialog(seq_dialog,
-                                                self.translate(
-                                                'weekly.conditions.seq.period',
-                                                {'from': day_from,
-                                                 'to': day_to}))
+                    seq_dialog = self.concat_dialog(
+                        seq_dialog,
+                        self.translate('weekly.conditions.seq.period',
+                                       {'from': day_from,
+                                        'to': day_to}))
                     dialog_list.append(seq_dialog)
                 if not seq_days:
                     for day in cat_days:
@@ -754,7 +754,7 @@ class WeatherSkill(MycroftSkill):
             dialog = join_list(dialog_list, 'and')
             self.speak_dialog(dialog)
 
-            ### 3. Report temps:
+            # 3. Report temps:
             temp_ranges = {
                 'low_min': min(collated['temp_min']),
                 'low_max': max(collated['temp_min']),
@@ -768,10 +768,11 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.exception("Error: {0}".format(e))
 
-    #### CONDITION BASED QUERY HANDLERS ####
-    @intent_handler(IntentBuilder("").require("Temperature").optionally("Query")
-                    .optionally("Location").optionally("Unit")
-                    .optionally("Today").optionally("Now").build())
+    # CONDITION BASED QUERY HANDLERS ####
+    @intent_handler(IntentBuilder("").require("Temperature")
+                    .optionally("Query").optionally("Location")
+                    .optionally("Unit").optionally("Today")
+                    .optionally("Now").build())
     def handle_current_temperature(self, message):
         return self.__handle_typed(message, 'temperature')
 
@@ -827,8 +828,8 @@ class WeatherSkill(MycroftSkill):
 
     # TODO This seems to present current temp, or possibly just hottest temp
     @intent_handler(IntentBuilder("").optionally("How").one_of("Hot", "Cold")
-                   .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
-                   .optionally("Location").optionally("RelativeDay").build())
+                    .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
+                    .optionally("Location").optionally("RelativeDay").build())
     def handle_how_hot_or_cold(self, message):
         """ Handler for utterances similar to
         how hot will it be today?, how cold will it be? , etc
@@ -838,14 +839,13 @@ class WeatherSkill(MycroftSkill):
         return self.__handle_typed(message, response_type)
 
     @intent_handler(IntentBuilder("").require("How").one_of("Hot", "Cold")
-                   .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
-                   .optionally("Location").optionally("RelativeDay").build())
+                    .one_of("ConfirmQueryFuture", "ConfirmQueryCurrent")
+                    .optionally("Location").optionally("RelativeDay").build())
     def handle_how_hot_or_cold_alt(self, message):
         self.handle_how_hot_or_cold(message)
 
-
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
-        "Snowing").optionally("Location").build())
+    @intent_handler(IntentBuilder("").require("ConfirmQuery")
+                    .one_of("Snowing").optionally("Location").build())
     def handle_isit_snowing(self, message):
         """ Handler for utterances similar to "is it snowing today?"
         """
@@ -964,7 +964,7 @@ class WeatherSkill(MycroftSkill):
 
     # Handle: How humid is it?
     @intent_handler(IntentBuilder("").optionally("Query").require("Humidity")
-                   .optionally("RelativeDay").optionally("Location").build())
+                    .optionally("RelativeDay").optionally("Location").build())
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
 
@@ -990,8 +990,8 @@ class WeatherSkill(MycroftSkill):
 
     # Handle: How windy is it?
     @intent_handler(IntentBuilder("").require("Query").require("Windy")
-                   .optionally("Location").optionally("ConfirmQuery")
-                   .optionally("RelativeDay").build())
+                    .optionally("Location").optionally("ConfirmQuery")
+                    .optionally("RelativeDay").build())
     def handle_windy(self, message):
         report = self.__initialize_report(message)
 
@@ -1187,7 +1187,7 @@ class WeatherSkill(MycroftSkill):
 
             report = self.__initialize_report(message)
             if today != when:
-                self.log.debug("Doing a forecast" + str(today) + " " + str(when))
+                self.log.debug("Doing a forecast {} {}".format(today, when))
                 return self.report_forecast(report, when,
                                             dialog=response_type)
             report = self.__populate_report(message)
@@ -1212,8 +1212,8 @@ class WeatherSkill(MycroftSkill):
             self.log.debug('extracted when: {}'.format(when))
             # extract_datetime cannot handle "tonight" without a time.
             # TODO remove workaround when updated in Lingua Franca
-            if when.time() == today.time() and \
-                "tonight" in message.data.get('utterance'):
+            if (when.time() == today.time() and
+                    "tonight" in message.data.get('utterance')):
                 when = when.replace(hour=22)
 
             report = self.__initialize_report(message)
@@ -1305,8 +1305,8 @@ class WeatherSkill(MycroftSkill):
                                                     unit)
         report['temp_max'] = self.__get_temperature(forecastWeather, 'max',
                                                     unit)
-        report['humidity'] = self.translate('percentage.number',
-                                    {'num': forecastWeather.get_humidity()})
+        report['humidity'] = self.translate(
+            'percentage.number', {'num': forecastWeather.get_humidity()})
 
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
@@ -1347,15 +1347,17 @@ class WeatherSkill(MycroftSkill):
                                                     unit)
         report['temp_max'] = self.__get_temperature(forecast_weather, 'max',
                                                     unit)
-        report['humidity'] = self.translate('percentage.number',
-                                    {'num': forecast_weather.get_humidity()})
+        report['humidity'] = self.translate(
+            'percentage.number', {'num': forecast_weather.get_humidity()})
         report['wind'] = self.get_wind_speed(forecast_weather)[0]
         report['day'] = self.__to_day(when, preface_day)
 
         return report
 
     def __select_condition_dialog(self, message, report, noun, exp=None):
-        """ Select the relevant dialog file for condition based reports eg snow.
+        """ Select the relevant dialog file for condition based reports.
+
+        A condition can for example be "snow" or "rain".
 
         Arguments:
             message (obj): message from user
@@ -1390,9 +1392,9 @@ class WeatherSkill(MycroftSkill):
             dialog = 'local.' + dialog
         if report.get('day'):
             dialog = 'forecast.' + dialog
-        if report.get('time') and \
-            ('at.time.' + dialog) in self.dialog_renderer.templates:
-                dialog = 'at.time.' + dialog
+        if (report.get('time') and
+                ('at.time.' + dialog) in self.dialog_renderer.templates):
+            dialog = 'at.time.' + dialog
         return dialog
 
     def report_forecast(self, report, when, dialog='weather', unit=None,
@@ -1712,8 +1714,8 @@ class WeatherSkill(MycroftSkill):
         # behaviour of method dialog_renderer.render(...) has changed - instead
         # of exception when given template is not found now simply the
         # templatename is returned!?!
-        if future and (
-            condition + ".future") in self.dialog_renderer.templates:
+        if (future and
+                (condition + ".future") in self.dialog_renderer.templates):
             return self.translate(condition + ".future", data)
         if condition in self.dialog_renderer.templates:
             return self.translate(condition, data)
