@@ -171,6 +171,10 @@ class OWMApi(Api):
                 "path": "/weather",
                 "query": q
             })
+            # 404 returned as JSON-like string not HTTPError in some instances
+            if type(data) is str and'{"cod":"404"' in data:
+                name = ' '.join(name.split()[:-1])
+                return self.weather_at_location(name)
             return self.observation.parse_JSON(data), name
         except HTTPError as e:
             if e.response.status_code == 404:
@@ -1139,7 +1143,7 @@ class WeatherSkill(MycroftSkill):
 
         Arguments:
             message (Message): messagebus message
-        Returns: tuple (lat, long, location string)
+        Returns: tuple (lat, long, location string, pretty location)
         """
         try:
             location = message.data.get("Location", None) if message else None
