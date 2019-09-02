@@ -32,7 +32,7 @@ from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
-from requests import HTTPError
+from requests import HTTPError, Response
 
 try:
     from mycroft.util.time import to_utc, to_local
@@ -152,6 +152,11 @@ class OWMApi(Api):
         now = time.monotonic()
         if now > (cache[0] + 15 * MINUTES) or cache[1] is None:
             resp = super().request(data)
+            # 404 returned as JSON-like string in some instances
+            if isinstance(resp, str) and '{"cod":"404"' in resp:
+                r = Response()
+                r.status_code = 404
+                raise HTTPError(resp, response=r)
             self.query_cache[req_hash] = (now, resp)
         else:
             LOG.debug('Using cached OWM Response from {}'.format(cache[0]))
@@ -171,10 +176,6 @@ class OWMApi(Api):
                 "path": "/weather",
                 "query": q
             })
-            # 404 returned as JSON-like string not HTTPError in some instances
-            if type(data) is str and'{"cod":"404"' in data:
-                name = ' '.join(name.split()[:-1])
-                return self.weather_at_location(name)
             return self.observation.parse_JSON(data), name
         except HTTPError as e:
             if e.response.status_code == 404:
