@@ -426,7 +426,7 @@ class WeatherSkill(MycroftSkill):
         try:
             self.log.debug("Handler: handle_current_weather")
             # Get a date from requests like "weather for next Tuesday"
-            today = extract_datetime(" ")[0]
+            today = extract_datetime("today")[0]
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
             if today != when:
@@ -543,7 +543,7 @@ class WeatherSkill(MycroftSkill):
             # Get a date from spoken request
             when = extract_datetime(message.data.get('utterance'),
                                     lang=self.lang)[0]
-            today = extract_datetime(" ")[0]
+            today = extract_datetime("today")[0]
             if today == when:
                 self.handle_current_weather(message)
                 return
@@ -912,7 +912,7 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         # Get a date from spoken request
-        today = extract_datetime(" ")[0]
+        today = extract_datetime("today")[0]
         when = extract_datetime(message.data.get('utterance'),
                                 lang=self.lang)[0]
 
@@ -970,7 +970,7 @@ class WeatherSkill(MycroftSkill):
 
         when = extract_datetime(message.data.get('utterance'),
                                 lang=self.lang)[0]
-        if when == extract_datetime(" ")[0]:
+        if when == extract_datetime("today")[0]:
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -996,7 +996,7 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         when = extract_datetime(message.data.get('utterance'))[0]
-        if when == extract_datetime(" ")[0]:
+        if when == extract_datetime("today")[0]:
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1080,7 +1080,7 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         when = extract_datetime(message.data.get('utterance'))[0]
-        if when == extract_datetime(" ")[0]:
+        if when == extract_datetime("today")[0]:
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1112,7 +1112,7 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         when = extract_datetime(message.data.get('utterance'))[0]
-        if when == extract_datetime(" ")[0]:
+        if when == extract_datetime("today")[0]:
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1181,7 +1181,7 @@ class WeatherSkill(MycroftSkill):
     def __handle_typed(self, message, response_type):
         try:
             # Get a date from requests like "weather for next Tuesday"
-            today = extract_datetime(" ")[0]
+            today = extract_datetime("today")[0]
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
 
@@ -1206,7 +1206,7 @@ class WeatherSkill(MycroftSkill):
         try:
             unit = self.__get_requested_unit(message)
             # Get a date from requests like "weather for next Tuesday"
-            today = extract_datetime(" ")[0]
+            today = extract_datetime("today")[0]
             when, _ = extract_datetime(
                         message.data.get('utterance'), lang=self.lang)
             self.log.debug('extracted when: {}'.format(when))
@@ -1277,7 +1277,7 @@ class WeatherSkill(MycroftSkill):
     def __populate_current(self, report, when, unit=None):
         self.log.debug("Populating report for now: {}".format(when))
         # Get current conditions
-        today = extract_datetime(" ")[0]
+        today = extract_datetime("today")[0]
         currentWeather = self.owm.weather_at_place(
             report['full_location'], report['lat'],
             report['lon']).get_weather()
@@ -1521,7 +1521,7 @@ class WeatherSkill(MycroftSkill):
             "value": value,
         }
         report_type = "report.condition"
-        if when != extract_datetime(" ")[0]:
+        if when != extract_datetime("today")[0]:
             data["day"] = self.__to_day(when, preface=True)
             report_type += ".future"
         if location:
