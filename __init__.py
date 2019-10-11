@@ -1290,6 +1290,8 @@ class WeatherSkill(MycroftSkill):
             report['full_location'],
             report['lat'],
             report['lon'])
+        if not currentWeather or not forecastWeather:
+            return None # No forecast available.
 
         # Change encoding of the localized report to utf8 if needed
         condition = currentWeather.get_detailed_status()
