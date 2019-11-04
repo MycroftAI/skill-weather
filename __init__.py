@@ -537,16 +537,11 @@ class WeatherSkill(MycroftSkill):
         when = self.__extract_datetime("tomorrow")[0]
         num_days = int(extract_number(message.data['num']))
         
-        try:
-            if self.voc_match(message.data['num'], 'Couple'):
-                self.report_multiday_forecast(report, num_days=2)
-                
-            self.report_multiday_forecast(report, when,
-                                          num_days=num_days)
-        except APIErrors as e:
-            self.__api_error(e)
-        except Exception as e:
-            self.log.exception("Error: {0}".format(e))
+        if self.voc_match(message.data['num'], 'Couple'):
+            self.report_multiday_forecast(report, num_days=2)
+            
+        self.report_multiday_forecast(report, when,
+                                        num_days=num_days)
 
     # Handle: What is the weather forecast?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
@@ -1273,7 +1268,7 @@ class WeatherSkill(MycroftSkill):
             when = when.replace(hour=22)
 
         report = self.__initialize_report(message)
-
+        
         if when.time() != today.time():
             self.log.debug("Forecast for time: " + str(when))
             return self.__populate_for_time(report, when, unit)
@@ -1289,6 +1284,9 @@ class WeatherSkill(MycroftSkill):
 
     def __populate_for_time(self, report, when, unit=None):
         # TODO localize time to report location
+        if report is None:
+            return None
+        
         three_hr_fcs = self.owm.three_hours_forecast(
             report['full_location'],
             report['lat'],
@@ -1337,6 +1335,9 @@ class WeatherSkill(MycroftSkill):
         # Get forecast for the day
         # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
         # Set time to 12 instead of 00 to accomodate for timezones
+        if report is None:
+            return None
+        
         forecastWeather = self.__get_forecast(
             today.replace(
                 hour=12),
@@ -1381,9 +1382,13 @@ class WeatherSkill(MycroftSkill):
         Returns: None if no report available otherwise dict with weather info
         """
         self.log.debug("Populating forecast report for: {}".format(when))
-
+        
+        if report is None:
+            return None
+        
         forecast_weather = self.__get_forecast(
             when, report['full_location'], report['lat'], report['lon'])
+            
         if forecast_weather is None:
             return None  # No forecast available
 
@@ -1515,19 +1520,26 @@ class WeatherSkill(MycroftSkill):
             days = [when + timedelta(days=i) for i in range(num_days)]
 
         today = self.__extract_datetime(' ')[0]
+        no_report = list()
         for day in days:
             if day == today:
                 self.__populate_current(report, day)
                 report['day'] = self.__to_day(day, preface_day)
                 self.__report_weather('forecast', report, rtype=dialog)
             else:
+                self.log.info('Finding the report')
                 report = self.__populate_forecast(report, day, unit,
                                                   preface_day)
                 if report is None:
-                    self.speak_dialog("no forecast",
-                                      {'day': self.__to_day(day, preface_day)})
+                    no_report.append(self.__to_day(day, False))
                     continue
                 self.__report_weather('forecast', report, rtype=dialog)
+        self.log.info(no_report)
+        if no_report:
+            dates = join_list(no_report, 'and')
+            dates = self.translate('on') + ' ' + dates
+            data = {'day': dates}
+            self.__report_no_data('weather', data)
 
     def __report_weather(self, timeframe, report, rtype='weather',
                          separate_min_max=False):
