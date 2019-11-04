@@ -1619,7 +1619,7 @@ class WeatherSkill(MycroftSkill):
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
         forecasts = forecasts.get_forecast()
         for weather in forecasts.get_weathers():
-            forecastDate = datetime.fromtimestamp(weather.get_reference_time())
+            forecastDate = weather.get_reference_time("date")
             if forecastDate.date() == when.date():
                 # found the right day, now format up the results
                 return weather
