@@ -1527,14 +1527,13 @@ class WeatherSkill(MycroftSkill):
                 report['day'] = self.__to_day(day, preface_day)
                 self.__report_weather('forecast', report, rtype=dialog)
             else:
-                self.log.info('Finding the report')
                 report = self.__populate_forecast(report, day, unit,
                                                   preface_day)
                 if report is None:
                     no_report.append(self.__to_day(day, False))
                     continue
                 self.__report_weather('forecast', report, rtype=dialog)
-        self.log.info(no_report)
+                
         if no_report:
             dates = join_list(no_report, 'and')
             dates = self.translate('on') + ' ' + dates
