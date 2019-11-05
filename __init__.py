@@ -1512,14 +1512,14 @@ class WeatherSkill(MycroftSkill):
         """
         
         if when is None:
-            when = self.__extract_datetime(' ')[0]
+            when = self.__extract_datetime('today')[0]
 
         if set_days:
             days = set_days
         else:
             days = [when + timedelta(days=i) for i in range(num_days)]
 
-        today = self.__extract_datetime(' ')[0]
+        today = self.__extract_datetime('today')[0]
         no_report = list()
         for day in days:
             if day == today:
