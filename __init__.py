@@ -1277,7 +1277,7 @@ class WeatherSkill(MycroftSkill):
     def __populate_current(self, report, when, unit=None):
         self.log.debug("Populating report for now: {}".format(when))
         # Get current conditions
-        today = extract_datetime("today")[0]
+        today = datetime.today()
         currentWeather = self.owm.weather_at_place(
             report['full_location'], report['lat'],
             report['lon']).get_weather()
@@ -1491,6 +1491,9 @@ class WeatherSkill(MycroftSkill):
         self.gui["wind"] = report.get("wind", "--")
         self.gui.show_pages(["weather.qml", "highlow.qml",
                              "forecast1.qml", "forecast2.qml"])
+        screen_data = dict(weather_code=img_code, temperature=report["temp"])
+        self.gui.display_screen(name='weather', data=screen_data)
+
         # Mark-1
         self.enclosure.deactivate_mouth_events()
         self.enclosure.weather_display(img_code, report['temp'])
@@ -1539,13 +1542,19 @@ class WeatherSkill(MycroftSkill):
             lon: Longitude for report
         """
         # convert time to UTC/GMT (forecast is in GMT)
+        print('when: ',  str(when))
+
         whenGMT = self.__to_UTC(when)
 
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
         forecasts = forecasts.get_forecast()
+        print('forecast: ', forecasts)
+        print('gmt date: ', whenGMT.date())
+
         for weather in forecasts.get_weathers():
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
+            print('forecast date: ', forecastDate)
             if forecastDate.date() == whenGMT.date():
                 # found the right day, now format up the results
                 return weather
@@ -1630,6 +1639,7 @@ class WeatherSkill(MycroftSkill):
     def __get_temperature(self, weather, key, unit=None):
         # Extract one of the temperatures from the weather data.
         # Typically it has: 'temp', 'min', 'max', 'morn', 'day', 'night'
+        print('weather', weather)
         try:
             unit = unit or self.__get_temperature_unit()
             # fallback to general temperature if missing
