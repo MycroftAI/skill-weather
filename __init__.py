@@ -1207,7 +1207,7 @@ class WeatherSkill(MycroftSkill):
                 return None, None, location, location
 
             location = self.location
-
+            
             if isinstance(location, dict):
                 lat = location["coordinate"]["latitude"]
                 lon = location["coordinate"]["longitude"]
@@ -1277,13 +1277,14 @@ class WeatherSkill(MycroftSkill):
             return self.__populate_forecast(report, when, unit,
                                             preface_day=True)
         else:
-            self.log.debug("Forecast for now: " + str(when))
-            return self.__populate_current(report, when, unit)
+            self.log.debug("Forecast for now")
+            return self.__populate_current(report, unit)
 
         return None
 
     def __populate_for_time(self, report, when, unit=None):
         # TODO localize time to report location
+        # Return None if report is None
         if report is None:
             return None
         
@@ -1325,22 +1326,28 @@ class WeatherSkill(MycroftSkill):
 
         return report
 
-    def __populate_current(self, report, when, unit=None):
-        self.log.debug("Populating report for now: {}".format(when))
-        # Get current conditions
-        today = self.__extract_datetime("today")[0]
-        currentWeather = self.owm.weather_at_place(
-            report['full_location'], report['lat'],
-            report['lon']).get_weather()
-        # Get forecast for the day
-        # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
-        # Set time to 12 instead of 00 to accomodate for timezones
+    def __populate_current(self, report, unit=None):
+        
+        # Return None if report is None
         if report is None:
             return None
         
+        # Get current conditions
+        currentWeather = self.owm.weather_at_place(
+            report['full_location'], report['lat'],
+            report['lon']).get_weather()
+        
+        if currentWeather is None:
+            return None
+        
+        today = currentWeather.get_reference_time(timeformat='date')
+        self.log.debug("Populating report for now: {}".format(today))
+        
+        # Get forecast for the day
+        # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
+        # Set time to 12 instead of 00 to accomodate for timezones
         forecastWeather = self.__get_forecast(
-            today.replace(
-                hour=12),
+            today,
             report['full_location'],
             report['lat'],
             report['lon'])
@@ -1383,12 +1390,13 @@ class WeatherSkill(MycroftSkill):
         """
         self.log.debug("Populating forecast report for: {}".format(when))
         
+        # Return None if report is None
         if report is None:
             return None
         
         forecast_weather = self.__get_forecast(
             when, report['full_location'], report['lat'], report['lon'])
-            
+        
         if forecast_weather is None:
             return None  # No forecast available
 
@@ -1625,7 +1633,7 @@ class WeatherSkill(MycroftSkill):
             lat: Latitude for report
             lon: Longitude for report
         """
-
+        
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
         forecasts = forecasts.get_forecast()
