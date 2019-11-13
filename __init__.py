@@ -600,16 +600,26 @@ class WeatherSkill(MycroftSkill):
                     .optionally("RelativeDay").optionally("Location").build())
     def handle_weather_at_time(self, message):
         self.log.debug("Handler: handle_weather_at_time")
-        when, _ = self.__extract_datetime(
-                    message.data.get('utterance'), lang=self.lang)
-        now = self.__to_UTC(datetime.utcnow())
+
+        now = datetime.now(pytz.utc)
+        when = extract_datetime(message.data.get('utterance'),
+                                              lang=self.lang)[0]
+        blank_dt =  datetime.strptime('1 Jan 1970', '%d %b %Y')
+
+        # extract_datetime cannot handle "tonight" without a time.
+        # TODO remove workaround when updated in Lingua Franca
+        if (when.time() == blank_dt.time() and
+                "tonight" in message.data.get('utterance')):
+            when = when.replace(hour=22)
+        
+        when = self.__to_UTC(when)
         time_diff = (when - now)
         mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
         
-        if mins_diff < 120:
+        if mins_diff >= 0 and mins_diff <= 120:
             self.handle_current_weather(message)
         else:
-            report = self.__populate_report(message)
+            report = self.__populate_report(message, "Hourly")
             
             if report is None:
                 self.__report_no_data('weather')
@@ -1157,7 +1167,6 @@ class WeatherSkill(MycroftSkill):
         # uses device tz so if not set (eg Mark 1) this is UTC.
         dtSunrise = self.__to_Local(
             datetime.utcfromtimestamp(weather.get_sunrise_time()))
-        self.log.info(f'handle_sunrise: Sunrise: {self.__to_Local(dtSunrise)}')
         spoken_time = self.__nice_time(dtSunrise, use_ampm=True)
         self.speak_dialog('sunrise', {'time': spoken_time})
 
@@ -1195,7 +1204,6 @@ class WeatherSkill(MycroftSkill):
         # uses device tz so if not set (eg Mark 1) this is UTC.
         dtSunset = self.__to_Local(
             datetime.utcfromtimestamp(weather.get_sunset_time()))
-        self.log.info(f'handle_sunset: Sunset: {self.__to_Local(dtSunset)}')
         spoken_time = self.__nice_time(dtSunset, use_ampm=True)
         self.speak_dialog('sunset', {'time': spoken_time})
 
@@ -1261,23 +1269,26 @@ class WeatherSkill(MycroftSkill):
             self.__report_weather('current', report, response_type)
         self.mark2_forecast(report)
 
-    def __populate_report(self, message):
+    def __populate_report(self, message, report_type=None):
         unit = self.__get_requested_unit(message)
         # Get a date from requests like "weather for next Tuesday"
-        today = self.__get_today_UTC()
-        when = self.__extract_datetime(message.data.get('utterance'),
-                                lang=self.lang, anchorDate=today)[0]
+        today = self.__to_UTC(extract_datetime('today',
+                                               lang=self.lang)[0])
+        when = extract_datetime(message.data.get('utterance'),
+                                              lang=self.lang)[0]
         blank_dt =  datetime.strptime('1 Jan 1970', '%d %b %Y')
         self.log.debug('extracted when: {}'.format(when))
+        
         # extract_datetime cannot handle "tonight" without a time.
         # TODO remove workaround when updated in Lingua Franca
         if (when.time() == blank_dt.time() and
                 "tonight" in message.data.get('utterance')):
             when = when.replace(hour=22)
-
+        
+        when = self.__to_UTC(when)
         report = self.__initialize_report(message)
         
-        if when.time() != today.time():
+        if when.time() != today.time() or report_type == 'Hourly':
             self.log.debug("Forecast for time: " + str(when))
             return self.__populate_for_time(report, when)
         elif today != when:
