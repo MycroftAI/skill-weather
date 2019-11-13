@@ -1,2 +1,2 @@
-the sun rose at {time} today
-sunrise was at {time} today
+the sun rose at {time} today in (local time|our time zone)
+sunrise was at {time} today in (local time|our time zone)
