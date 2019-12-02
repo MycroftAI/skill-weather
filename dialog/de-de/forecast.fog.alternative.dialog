@@ -1,4 +1,4 @@
-Es sieht so aus, als wäre {condition} in {location}
-Wahrscheinlich wird es {condition} in {location} sein
 # Informieren, dass eine Alternative zu Nebel auftritt
-Nein, die Prognose für {location} ruft {condition} auf.
+Nein, die Prognose für {day} in {location} ruft {condition} auf.
+Es sieht so aus, als wäre {day} {condition} in {location}
+Wahrscheinlich wird es {day} {condition} in {location} sein

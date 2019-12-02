@@ -1,2 +1,2 @@
-Es wird {wind} {wind_unit}
-Der Wind wird so stark sein wie {wind} {wind_unit}
+Es wird {wind} {wind_unit} {day}
+Der Wind wird so stark sein wie {wind} {wind_unit} {day}

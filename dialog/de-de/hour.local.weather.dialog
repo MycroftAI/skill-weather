@@ -1,4 +1,4 @@
-Es wird {{condition}}, mit Temperaturen nahe {{temp}} Grad
-Später wird es {{condition}} und wir haben um die {{temp}} Grad
-Später wird es {{condition}} und wir haben {{temp}} Grad
-Um die {{temp}} Grad bei {{condition}} Bedingungen
+Es wird {condition}, mit Temperaturen nahe {temp}
+Später wird es {condition} und wir haben um die {temp} Grad
+Später wird es {condition} und wir haben {temp} Grad
+Um die {temp} Grad bei {condition}
