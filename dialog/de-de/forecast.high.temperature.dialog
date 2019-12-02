@@ -1,2 +1,2 @@
-{{day}} wird eine Höchsttemperatur von {{temp_max}} Grad in {{location}} erreicht
-{{day}}, {{location}} wird eine Höchsttemperatur von {{temp_max}} Grad erreichen
+Es wird so warm wie {temp_max} Grad in {location} {day} sein
+{location} hat ein Höchsttemperatur von {temp_max} Grad {day}
