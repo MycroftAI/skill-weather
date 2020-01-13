@@ -1,4 +1,4 @@
 # Informing that an alternative to clear skies will occur
-Nej, prognosen hävdar {condition}
-Det verkar som det kommer vara {condition}
-Det ser ut att bli {condition}
+Nej, idag hävdar prognosen för {condition}
+Det verkar som det kommer vara {condition} idag
+Chansen är stor att det kommer att bli{condition} idag
