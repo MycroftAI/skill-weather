@@ -1812,7 +1812,11 @@ class WeatherSkill(MycroftSkill):
     # Suggestion TODO: Add a parameter to extract_datetime to add a default Timezone
     def __extract_datetime(self, text, anchorDate=None, lang=None, default_time=None):
         # Change timezone returned by extract_datetime from Local to UTC
-        when, text = extract_datetime(text, anchorDate, lang, default_time) or (None, None)
+        extracted_dt = extract_datetime(text, anchorDate, lang, default_time)
+        if extracted_dt is None:
+            # allow calls to unpack values even if None returned.
+            return (None, None)
+        when, text =  extracted_dt
         return self.__to_UTC(when), text
 
     def __translate(self, condition, future=False, data=None):
