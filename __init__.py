@@ -769,6 +769,10 @@ class WeatherSkill(MycroftSkill):
     def handle_current_temperature(self, message):
         return self.__handle_typed(message, 'temperature')
 
+    @intent_handler('simple.temperature.intent')
+    def handle_simple_temperature(self, message):
+        return self.__handle_typed(message, 'temperature')
+
     @intent_handler(IntentBuilder("").require("Query").require("High")
                     .optionally("Temperature").optionally("Location")
                     .optionally("Unit").optionally("RelativeDay")
