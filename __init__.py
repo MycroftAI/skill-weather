@@ -424,7 +424,7 @@ class WeatherSkill(MycroftSkill):
     # DATETIME BASED QUERIES
     # Handle: what is the weather like?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
-                    .optionally("Query").optionally("Location")
+                    .require("Query").optionally("Location")
                     .optionally("Today").build())
     def handle_current_weather(self, message):
         try:
@@ -544,9 +544,9 @@ class WeatherSkill(MycroftSkill):
         self.report_multiday_forecast(report, when,
                                         num_days=num_days)
 
-    # Handle: What is the weather forecast?
+    # Handle: What is the weather forecast tomorrow?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
-                    .optionally("Query").optionally("RelativeDay")
+                    .optionally("Query").require("RelativeDay")
                     .optionally("Location").build())
     def handle_forecast(self, message):
         report = self.__initialize_report(message)
@@ -764,10 +764,14 @@ class WeatherSkill(MycroftSkill):
 
     # CONDITION BASED QUERY HANDLERS ####
     @intent_handler(IntentBuilder("").require("Temperature")
-                    .optionally("Query").optionally("Location")
+                    .require("Query").optionally("Location")
                     .optionally("Unit").optionally("Today")
                     .optionally("Now").build())
     def handle_current_temperature(self, message):
+        return self.__handle_typed(message, 'temperature')
+
+    @intent_handler('simple.temperature.intent')
+    def handle_simple_temperature(self, message):
         return self.__handle_typed(message, 'temperature')
 
     @intent_handler(IntentBuilder("").require("Query").require("High")
@@ -843,7 +847,7 @@ class WeatherSkill(MycroftSkill):
         self.handle_how_hot_or_cold(message)
 
     @intent_handler(IntentBuilder("").require("ConfirmQuery")
-                    .one_of("Snowing").optionally("Location").build())
+                    .require("Snowing").optionally("Location").build())
     def handle_isit_snowing(self, message):
         """ Handler for utterances similar to "is it snowing today?"
         """
@@ -857,7 +861,7 @@ class WeatherSkill(MycroftSkill):
                                                 "snow", "snowing")
         self.speak_dialog(dialog, report)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").require(
         "Clear").optionally("Location").build())
     def handle_isit_clear(self, message):
         """ Handler for utterances similar to "is it clear skies today?"
@@ -871,7 +875,7 @@ class WeatherSkill(MycroftSkill):
         dialog = self.__select_condition_dialog(message, report, "clear")
         self.speak_dialog(dialog, report)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").require(
         "Cloudy").optionally("Location").optionally("RelativeTime").build())
     def handle_isit_cloudy(self, message):
         """ Handler for utterances similar to "is it cloudy skies today?"
@@ -885,7 +889,7 @@ class WeatherSkill(MycroftSkill):
         dialog = self.__select_condition_dialog(message, report, "cloudy")
         self.speak_dialog(dialog, report)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").require(
         "Foggy").optionally("Location").build())
     def handle_isit_foggy(self, message):
         """ Handler for utterances similar to "is it foggy today?"
@@ -900,7 +904,7 @@ class WeatherSkill(MycroftSkill):
                                                 "foggy")
         self.speak_dialog(dialog, report)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").require(
         "Raining").optionally("Location").build())
     def handle_isit_raining(self, message):
         """ Handler for utterances similar to "is it raining today?"
@@ -919,7 +923,7 @@ class WeatherSkill(MycroftSkill):
     def handle_need_umbrella(self, message):
         self.handle_isit_raining(message)
 
-    @intent_handler(IntentBuilder("").require("ConfirmQuery").one_of(
+    @intent_handler(IntentBuilder("").require("ConfirmQuery").require(
         "Storm").optionally("Location").build())
     def handle_isit_storming(self, message):
         """ Handler for utterances similar to "is it storming today?"
@@ -997,7 +1001,7 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog("no precipitation expected", report)
 
     # Handle: How humid is it?
-    @intent_handler(IntentBuilder("").optionally("Query").require("Humidity")
+    @intent_handler(IntentBuilder("").require("Query").require("Humidity")
                     .optionally("RelativeDay").optionally("Location").build())
     def handle_humidity(self, message):
         report = self.__initialize_report(message)
