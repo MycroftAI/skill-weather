@@ -1245,7 +1245,7 @@ class WeatherSkill(MycroftSkill):
                     message.data.get('utterance'), lang=self.lang)
 
         report = self.__initialize_report(message)
-        if today != when:
+        if today.date() != when.date():
             self.log.debug("Doing a forecast {} {}".format(today, when))
             return self.report_forecast(report, when,
                                         dialog=response_type)
