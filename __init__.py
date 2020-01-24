@@ -1266,11 +1266,6 @@ class WeatherSkill(MycroftSkill):
         when, _ = self.__extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
         self.log.debug('extracted when: {}'.format(when))
-        # extract_datetime cannot handle "tonight" without a time.
-        # TODO remove workaround when updated in Lingua Franca
-        if (when.time() == today.time() and
-                "tonight" in message.data.get('utterance')):
-            when = when.replace(hour=22)
 
         report = self.__initialize_report(message)
 
