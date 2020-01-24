@@ -1245,7 +1245,7 @@ class WeatherSkill(MycroftSkill):
                     message.data.get('utterance'), lang=self.lang)
 
         report = self.__initialize_report(message)
-        if today != when:
+        if today.date() != when.date():
             self.log.debug("Doing a forecast {} {}".format(today, when))
             return self.report_forecast(report, when,
                                         dialog=response_type)
@@ -1266,23 +1266,22 @@ class WeatherSkill(MycroftSkill):
         when, _ = self.__extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
         self.log.debug('extracted when: {}'.format(when))
-        # extract_datetime cannot handle "tonight" without a time.
-        # TODO remove workaround when updated in Lingua Franca
-        if (when.time() == today.time() and
-                "tonight" in message.data.get('utterance')):
-            when = when.replace(hour=22)
 
         report = self.__initialize_report(message)
 
-        if when.time() != today.time():
-            self.log.debug("Forecast for time: " + str(when))
+        # Check if user is asking for a specific time today
+        if when.date() == today.date() and when.time() != today.time():
+            self.log.info("Forecast for time: {}".format(when))
             return self.__populate_for_time(report, when, unit)
-        elif today != when:
-            self.log.debug("Forecast for: " + str(today) + " " + str(when))
+        # Check if user is asking for a specific day
+        elif today.date() != when.date():
+            # Doesn't seem to be hitable, safety?
+            self.log.info("Forecast for: {} {}".format(today, when))
             return self.__populate_forecast(report, when, unit,
                                             preface_day=True)
+        # Otherwise user is asking for weather right now
         else:
-            self.log.debug("Forecast for now")
+            self.log.info("Forecast for now")
             return self.__populate_current(report, unit)
 
         return None
