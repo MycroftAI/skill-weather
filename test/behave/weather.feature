@@ -88,7 +88,7 @@ Feature: mycroft-weather
   Scenario Outline: current local weather question
     Given an english speaking user
      When the user says "<current local weather>"
-     Then "mycroft-weather" should reply with "Right nowasdffh, it's overcast clouds and 32 degrees"
+     Then "mycroft-weather" should reply with "Right now, it's overcast clouds and 32 degrees"
 
    Examples: local weather questions
      | current local weather |
