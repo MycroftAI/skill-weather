@@ -1,5 +1,97 @@
 Feature: mycroft-weather
 
+  Scenario Outline: What's the current local weather
+    Given an english speaking user
+     When the user says "<current local weather>"
+     Then "mycroft-weather" should reply with dialog from "Right now, it's overcast clouds and 32 degrees."
+
+   | current local weather |
+   | tell me the current weather |
+   | how is the weather now |
+   | what's the current weather like |
+   | what is the current weather like |
+   | current weather |
+   | what is it like outside |
+   | what is it like outside right now |
+   | what's the current weather conditions |
+   | give me the current weather |
+   | tell me the current weather |
+   | how's the weather |
+   | tell me the weather |
+   | what's the weather like |
+   | weather |
+   | what's the weather conditions |
+   | give me the weather |
+   | tell me the weather |
+   | what's the forecast |
+   | weather forecast |
+   | what's the weather forecast |
+
+  Scenario Outline: What's the temperature today
+    Given an english speaking user
+     When the user says "<what's the temperature today>"
+     Then "mycroft-weather" should reply with dialog from "current.local.weather.dialog"
+
+    | What's the temperature today |
+    | temperature |
+    | what's the temperature |
+    | what will be the temperature today |
+    | temperature today |
+    | temperature outside |
+    | what's the temp |
+
+  Scenario Outline: What's the high temperature today
+    Given an english speaking user
+     When the user says "<what's the high temperature today>"
+     Then "mycroft-weather" should reply with dialog from "current.local.high.temperature.dialog"
+
+    | what's the high temperature today |
+    | high temperature |
+    | what's the high temp today |
+    | what's the high temperature |
+    | how hot will it be today |
+    | how hot is it today |
+    | what's the current high temperature |
+
+  Scenario Outline: What's the low temperature today
+    Given an english speaking user
+     When the user says "<what's the temperature today>"
+     Then "mycroft-weather" should reply with dialog from "current.local.low.weather.dialog"
+
+    | What's the temperature today |
+    | temperature |
+    | what's the temperature |
+    | what will be the temperature today |
+    | temperature today |
+    | temperature outside |
+    | what's the temp |
+
+Scenario: today local rain
+  Given an english speaking user
+    And there is rain predicted for today
+    When the user says "<today local rain>"
+    Then "rain is expected today."
+
+   | today local rain |
+   | will it rain today |
+   | will it be rainy today |
+   | should I bring an umbrella |
+   | do I need an umbrella |
+   | should I bring a rain coat |
+   | do I need a rain jacket |
+   | does it look like rain today |
+
+Scenario: today local rain
+  Given an english speaking user
+    And there is no rain predicted for today
+    When the user says <today local rain>
+    Then "no rain is expected today."
+
+
+
+
+################################################
+
   Scenario: Forcast for today
     Given an english speaking user
      When the user says "what is the forecast"
