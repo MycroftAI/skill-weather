@@ -5,19 +5,19 @@ Feature: mycroft-weather
      When the user says "<current weather in location>"
      Then "mycroft-weather" should reply with dialog from "Right now, it's overcast clouds and 32 degrees."
 
-   | current weather in location |
-   | tell me the current weather in sydney |
-   | how is the weather in new york city |
-   | what's the current weather like in berlin |
-   | what is the current weather in san francisco, california |
-   | current weather in kansas city |
-   | In tokyo what is it like outside |
-   | what is it like outside in italy |
-   | what's the current weather conditions in Washington DC |
-   | give me the current weather in Kansas |
-   | tell me the current weather Missouri |
-   | how's the weather in Paris |
-   | tell me the weather in Paris, Texas |
+    | current weather in location |
+    | tell me the current weather in sydney |
+    | how is the weather in new york city |
+    | what's the current weather like in berlin |
+    | what is the current weather in san francisco, california |
+    | current weather in kansas city |
+    | In tokyo what is it like outside |
+    | what is it like outside in italy |
+    | what's the current weather conditions in Washington DC |
+    | give me the current weather in Kansas |
+    | tell me the current weather Missouri |
+    | how's the weather in Paris |
+    | tell me the weather in Paris, Texas |
 
   Scenario Outline: What's the temperature today in Location
     Given an english speaking user
