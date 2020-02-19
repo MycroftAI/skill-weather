@@ -431,9 +431,9 @@ class WeatherSkill(MycroftSkill):
             self.log.debug("Handler: handle_current_weather")
             # Get a date from requests like "weather for next Tuesday"
             today, _ = self.__extract_datetime("today")
-            when, _ = self.__extract_datetime(
-                        message.data.get('utterance'), lang=self.lang)
-            if today != when:
+            when, _ = self.__extract_datetime(message.data.get('utterance'),
+                                              lang=self.lang)
+            if when and when != today:
                 self.log.debug("Doing a forecast {} {}".format(today, when))
                 return self.handle_forecast(message)
 
@@ -963,7 +963,7 @@ class WeatherSkill(MycroftSkill):
 
             forecastDate = datetime.fromtimestamp(weather.get_reference_time())
 
-            if when != today:
+            if when and when != today:
                 # User asked about a specific date, is this it?
                 if forecastDate.date() != when.date():
                     continue
@@ -1009,7 +1009,7 @@ class WeatherSkill(MycroftSkill):
         when, _ = self.__extract_datetime(message.data.get('utterance'),
                                 lang=self.lang)
         today, _ = self.__extract_datetime("today")
-        if when == today:
+        if when is None or when == today:
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1041,7 +1041,7 @@ class WeatherSkill(MycroftSkill):
 
         when, _ = self.__extract_datetime(message.data.get('utterance'))
         today, _ = self.__extract_datetime("today")
-        if when == today:
+        if when is None or when == today:
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1131,7 +1131,7 @@ class WeatherSkill(MycroftSkill):
 
         when, _ = self.__extract_datetime(message.data.get('utterance'))
         today, _ = self.__extract_datetime("today")
-        if when == today:
+        if when is None or when.date() == today.date():
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1168,7 +1168,7 @@ class WeatherSkill(MycroftSkill):
 
         when, _ = self.__extract_datetime(message.data.get('utterance'))
         today, _ = self.__extract_datetime("today")
-        if when == today:
+        if when is None or when.date() == today.date():
             weather = self.owm.weather_at_place(
                 report['full_location'],
                 report['lat'],
@@ -1245,7 +1245,7 @@ class WeatherSkill(MycroftSkill):
                     message.data.get('utterance'), lang=self.lang)
 
         report = self.__initialize_report(message)
-        if today.date() != when.date():
+        if when and when.date() != today.date():
             self.log.debug("Doing a forecast {} {}".format(today, when))
             return self.report_forecast(report, when,
                                         dialog=response_type)
@@ -1265,12 +1265,8 @@ class WeatherSkill(MycroftSkill):
         today, _ = self.__extract_datetime("today")
         when, _ = self.__extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
+        when = when or today # Get todays date if None was found
         self.log.debug('extracted when: {}'.format(when))
-        # extract_datetime cannot handle "tonight" without a time.
-        # TODO remove workaround in 20.02
-        if (when.time() == today.time() and
-                "tonight" in message.data.get('utterance')):
-            when = when.replace(hour=22)
 
         report = self.__initialize_report(message)
 
@@ -1626,7 +1622,7 @@ class WeatherSkill(MycroftSkill):
         }
         report_type = "report.condition"
         today, _ = self.__extract_datetime("today")
-        if when != today:
+        if when and when.date() != today.date():
             data["day"] = self.__to_day(when, preface=True)
             report_type += ".future"
         if location:
