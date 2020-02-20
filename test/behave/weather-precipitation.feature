@@ -1,4 +1,4 @@
-Feature: mycroft-weather
+ Feature: mycroft-weather
 
   Scenario Outline: will it rain locally today, when it is expected
     Given an english speaking user

@@ -41,22 +41,22 @@ Feature: mycroft-weather
     | high temperature in new york city |
     | what's the high temp today in berlin |
     | what's the high temperature in san francisco california |
-    | how hot will it be today |
-    | how hot is it today |
-    | what's the current high temperature |
+    | how hot will it be today in kansas city |
+    | how hot is it today in tokyo |
+    | what's the current high temperature in kansas |
 
   Scenario Outline: What's the low temperature today in location
     Given an english speaking user
      When the user says "<what's the temperature today>"
      Then "mycroft-weather" should reply with dialog from "current.low.temperature.dialog"
 
-    | What's the temperature today |
-    | temperature |
-    | what's the temperature |
-    | what will be the temperature today |
-    | temperature today |
-    | temperature outside |
-    | what's the temp |
+    | what's the low temperature today in sydney |
+    | low temperature in new york city |
+    | what's the low temp today in berlin |
+    | what's the low temperature in san francisco california |
+    | how cold will it be today in kansas city |
+    | how cold is it today in tokyo |
+    | what's the current low temperature in kansas |
 
   Scenario Outline: What's the Forecast for a future date in location
     Given an english speaking user
