@@ -1,2 +1,2 @@
-mit {{speed}} {{unit}} aus Richtung {{dir}}
-aus Richtung {{dir}} mit {{speed}} {{unit}}
+mit {speed} {unit} aus Richtung {dir}
+aus Richtung {dir} mit {speed} {unit}

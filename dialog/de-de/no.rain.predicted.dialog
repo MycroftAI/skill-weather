@@ -1,4 +1,4 @@
-In {location} brauchst du keinen Regenschirm.
-# Wenn der Benutzer fragt, ob es regnet, aber kein Schnee oder keine Alternative angezeigt wird
+# Wenn der Benutzer fragt, ob es regnet, aber kein Regen oder eine Alternative angezeigt wird
 Es wird kein Regen für {location} vorhergesagt
-In {location} wird es höchstwahrscheinlich nicht regnen
+Es sollte nicht regnen in {location}
+In {location} brauchst du keinen Regenschirm.

@@ -1,4 +1,4 @@
 # Wenn der Benutzer fragt, ob es regnet, aber kein Regen oder eine Alternative angezeigt wird
 Für {location} wird am {day} kein Regen vorhergesagt
-Am {day} wird es in {location} höchstwahrscheinlich nicht regnen
-In {location} brauchst du keinen Regenschirm.
+Es wird {day} nicht regnen in {location}
+In {location} brauchst du {day} keinen Regenschirm.

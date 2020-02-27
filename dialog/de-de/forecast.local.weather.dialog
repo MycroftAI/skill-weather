@@ -1,3 +1,5 @@
-{{day}} wird es {{condition}}, mit maximal {{temp_max}} und minimal {{temp_min}}
-{{day}} werden wir maximal {{temp_max}} und minimal {{temp_min}} Grad haben, bei {{condition}} Bedingungen
-Die Vorhersage für {{day}} ist {{temp_max}} als höchster und {{temp_min}} als niedrigster Wert
+{day} wird es {condition}, mit maximal {temp_max} und minimal {temp_min}
+{day} wird es {condition}, mit maximal {temp_max} und minimal {temp_min}
+{day} werden wir maximal {temp_max} und minimal {temp_min} Grad haben, bei {condition}
+{day} wird es {condition}, mit maximal {temp_max} und minimal {temp_min} Grad
+Die Prognose {day} hat ein Hochpunkt von {temp_max} und ein Tiefpunkt von {temp_min}
