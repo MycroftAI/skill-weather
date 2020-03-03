@@ -1,3 +1,4 @@
+ @xfail
  Feature: Mycroft Weather Skill precipitation forecasts
 
   Scenario Outline: will it rain locally today, when it is expected
