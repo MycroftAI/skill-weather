@@ -56,6 +56,7 @@ Feature: Mycroft Weather Skill location forecasts and temperature
     Given an english speaking user
      When the user says "<what is the high temperature today in location>"
      Then "mycroft-weather" should reply with dialog from "current.high.temperature.dialog"
+
     Examples: what is the high temperature today in location
     | what is the high temperature today in location |
     | what is the high temperature today in sydney |
@@ -69,6 +70,7 @@ Feature: Mycroft Weather Skill location forecasts and temperature
     Given an english speaking user
      When the user says "<what is the high temperature today in location>"
      Then "mycroft-weather" should reply with dialog from "current.high.temperature.dialog"
+
     Examples: what is the high temperature today in location
     | what is the high temperature today in location |
     | high temperature in new york city |
@@ -107,7 +109,7 @@ Feature: Mycroft Weather Skill location forecasts and temperature
     | what is the forecast on a future date in a location |
     | what is the weather tomorrow in sydney |
     | what is the weather like in new york city next tuesday |
-    | what is the weather like in san francisco california on saturday |
+    | what is the weather like in san francisco california next saturday |
     | what is the weather like in kansas city next friday |
 
   @xfail

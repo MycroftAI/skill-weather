@@ -62,14 +62,13 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | what is the temperature today |
     | what's the temp |
 
-
   Scenario Outline: What is the high temperature today
     Given an english speaking user
      When the user says "<what is the high temperature today>"
      Then "mycroft-weather" should reply with dialog from "current.local.high.temperature.dialog"
 
   Examples: What is the high temperature today
-
+    | what is the high temperature today |
     | what is the high temperature today |
     | what's the high temp today |
     | what's the high temperature |
@@ -84,7 +83,6 @@ Feature: Mycroft Weather Skill local forecasts and temperature
      Then "mycroft-weather" should reply with dialog from "current.local.high.temperature.dialog"
 
   Examples: What is the high temperature today
-
     | what is the high temperature today |
     | high temperature |
 
@@ -105,6 +103,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: What is the forecast for tomorrow
     | what is the forecast for tomorrow |
+    | what is the forecast for tomorrow |
     | what is the weather tomorrow |
     | what is the weather like tomorrow |
     | tomorrow what will the weather be like |
@@ -117,7 +116,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
   Examples: what is the forecast for a future date
     | what is the forecast for a future date |
     | what is the weather like next tuesday |
-    | what is the weather like on saturday |
+    | what is the weather like on next saturday |
     | what is the weather like next monday |
 
   @xfail
@@ -138,7 +137,6 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: what is the temperature for tomorrow
     | what is the temperature tomorrow |
-    | what is the temperature tomorrow |
     | what will be the temperature for tomorrow |
     | what's the temperature tomorrow |
 
@@ -148,6 +146,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
      Then "mycroft-weather" should reply with dialog from "forecast.local.high.temperature.dialog"
 
   Examples: what is the high temperature for tomorrow
+    | what is the high temperature tomorrow |
     | what is the high temperature tomorrow |
     | tomorrow what is the high temperature |
     | tomorrow how hot will it get |
@@ -172,6 +171,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
   Examples: what is the low temperature for tomorrow
     | what is the low temperature tomorrow |
     | what is the low temperature tomorrow |
+    | tomorrow what is the low temperature |
     | how cold will it be tomorrow |
 
   @xfail
@@ -182,7 +182,6 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: what is the low temperature for tomorrow
     | what is the low temperature tomorrow |
-    | tomorrow what the low temperature |
     | what should I expect for a low temperature tomorrow |
     | what is the expected low temperature for tomorrow |
 
@@ -193,8 +192,8 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: what is the temperature for a future date
     | what is the temperature for a future date |
-    | what is the temperature for wednesday |
-    | what is the temperature for saturday |
+    | what is the temperature for next wednesday |
+    | what is the temperature for next saturday |
     | what is the temperature 5 days from now |
 
   Scenario Outline: what is the high temperature for a future date
@@ -204,8 +203,8 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: what is the high temperature for a future date
     | what is the high temperature for a future date |
-    | what is the high temperature for wednesday |
-    | what is the high temperature for saturday |
+    | what is the high temperature for next wednesday |
+    | what is the high temperature for next saturday |
     | what is the high temperature 5 days from now |
 
   Scenario Outline: what is the low temperature for a future date
@@ -215,6 +214,6 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: what is the low temperature for a future date
     | what is the low temperature for a future date |
-    | what is the low temperature for wednesday |
-    | what is the low temperature for saturday |
+    | what is the low temperature for next wednesday |
+    | what is the low temperature for next saturday |
     | what is the low temperature 5 days from now |
