@@ -27,6 +27,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | what's the weather forecast |
 
   @xfail
+  # JIra MS-54 https://mycroft.atlassian.net/browse/MS-54
   Scenario Outline: Failing what is the current local weather
     Given an english speaking user
      When the user says "<current local weather>"
@@ -53,6 +54,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
 
   @xfail
+  # JIra MS-55 https://mycroft.atlassian.net/browse/MS-55
   Scenario Outline: Failing What is the temperature today
     Given an english speaking user
      When the user says "<what is the temperature today>"
@@ -77,6 +79,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | what's the current high temperature |
 
   @xfail
+    # JIra MS-97 https://mycroft.atlassian.net/browse/MS-97
   Scenario Outline: Failing what is the high temperature today
     Given an english speaking user
      When the user says "<what is the high temperature today>"
@@ -120,6 +123,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | what is the weather like next monday |
 
   @xfail
+  # Jira MS-57 https://mycroft.atlassian.net/browse/MS-57
   Scenario Outline: failing what is the forecast for a future date
     Given an english speaking user
      When the user says "<what is the forecast for a future date>"
@@ -130,6 +134,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | what is the weather like in 9 days from now |
 
   @xfail
+  # Jira MS-98 https://mycroft.atlassian.net/browse/MS-98
   Scenario Outline: What is the temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the temperature tomorrow>"
@@ -153,6 +158,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | how hot will it be tomorrow |
 
   @xfail
+  # Jira Ms-98 https://mycroft.atlassian.net/browse/MS-98
   Scenario Outline: failing what is the high temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the high temperature tomorrow>"
@@ -175,6 +181,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | how cold will it be tomorrow |
 
   @xfail
+  # Jira Ms-99 https://mycroft.atlassian.net/browse/MS-99
   Scenario Outline: failing what is the low temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the low temperature tomorrow>"
