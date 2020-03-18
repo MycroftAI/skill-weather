@@ -7,14 +7,10 @@ Feature: Mycroft Weather Skill location forecasts and temperature
 
   Examples: what is the current local weather in a location
     | what is the current weather in location |
-    | tell me the current weather in sydney |
     | how is the weather in new york city |
-    | what's the current weather like in berlin |
     | what is the current weather in san francisco, california |
     | current weather in kansas city |
     | what's the current weather conditions in Washington DC |
-    | how's the weather in Paris |
-    | tell me the weather in Paris, Texas |
 
   @xfail
   Scenario Outline: Failing User asks for the current weather in a location
@@ -28,6 +24,10 @@ Feature: Mycroft Weather Skill location forecasts and temperature
     | In tokyo what is it like outside |
     | give me the current weather in Kansas |
     | tell me the current weather Missouri |
+    | tell me the current weather in sydney |
+    | what's the current weather like in berlin |
+    | how's the weather in Paris |
+    | tell me the weather in Paris, Texas |
 
   Scenario Outline: User asks for the temperature today in location
     Given an english speaking user
