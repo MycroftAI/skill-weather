@@ -45,7 +45,6 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: What is the temperature today
     | what is the temperature today |
-    | what is the temperature today |
     | temperature |
     | what's the temperature |
     | what will be the temperature today |
@@ -61,6 +60,7 @@ Feature: Mycroft Weather Skill local forecasts and temperature
      Then "mycroft-weather" should reply with dialog from "current.local.temperature.dialog"
 
   Examples: Failing temperature examples
+    | what is the temperature today |
     | what is the temperature today |
     | what's the temp |
 
