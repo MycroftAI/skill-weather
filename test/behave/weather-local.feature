@@ -45,11 +45,11 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: What is the temperature today
     | what is the temperature today |
+    | what is the temperature today |
     | temperature |
     | what's the temperature |
     | what will be the temperature today |
     | temperature today |
-    | temperature outside |
 
 
   @xfail
@@ -61,8 +61,8 @@ Feature: Mycroft Weather Skill local forecasts and temperature
 
   Examples: Failing temperature examples
     | what is the temperature today |
-    | what is the temperature today |
     | what's the temp |
+    | temperature outside |
 
   Scenario Outline: What is the high temperature today
     Given an english speaking user
