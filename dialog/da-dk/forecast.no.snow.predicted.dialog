@@ -1,0 +1,5 @@
+# When user asks if it's snowing but no snow or alternative is forcasted 
+# No snow is predicted in {location} {day}
+Der forudsiges ingen sne i {location} {day}  
+# It should not snow in {location} {day}
+Det skal ikke sne ind {location} {day}  

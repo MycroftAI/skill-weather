@@ -119,7 +119,7 @@ class OWMApi(Api):
         if lang[0] in lookup:
             return lookup[lang[0]]
 
-        owmsupported = ['ar', 'bg', 'ca', 'cz', 'de', 'el', 'en', 'fa', 'fi',
+        owmsupported = ['ar', 'bg', 'ca', 'cz', 'da', 'de', 'el', 'en', 'fa', 'fi',
                         'fr', 'gl', 'hr', 'hu', 'it', 'ja', 'kr', 'la', 'lt',
                         'mk', 'nl', 'pl', 'pt', 'ro', 'ru', 'se', 'sk', 'sl',
                         'es', 'tr', 'ua', 'vi']

@@ -1,0 +1,7 @@
+# Informing that an alternative to cloudy skies will occur 
+# No, the forecast calls for {condition} today
+Ingen, prognosen kræver {condition} i dag  
+# It should not be cloudy, it looks like there'll be {condition} today
+Det skal ikke være overskyet, det ser ud som der vil være {condition} i dag  
+# Doesn't seem so, chances are it's going to be {condition} today
+Ser ikke ud til, chancerne er, at det bliver {condition} i dag  
