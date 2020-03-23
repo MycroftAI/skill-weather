@@ -1,2 +1,2 @@
-{day} wird eine Mindesttemperatur von {temp_min} Grad in {location} erreicht
+{day} wird eine Tiefsttemperatur von {temp_min} Grad in {location} erreicht
 {day}, {location} beträgt nur {temp} Grad
