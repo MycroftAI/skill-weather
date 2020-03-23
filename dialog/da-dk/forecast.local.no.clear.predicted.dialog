@@ -1,0 +1,5 @@
+# When user asks if it's clear but an alternative is forcasted 
+# Sorry, the forecast doesn't predict clear conditions {day}
+Undskyld, prognosen forudsiger ikke klare forhold {day}  
+# {day}, it is not likely to be clear
+{day}, det er sandsynligvis ikke klart  

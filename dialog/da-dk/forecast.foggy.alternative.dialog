@@ -1,0 +1,7 @@
+# Informing that an alternative to fog will occur 
+# No, the forecast {day} for {location} calls for {condition}
+Ingen, prognosen {day} til {location} kræver {condition}  
+# It looks like there'll be {condition} in {location} {day}
+Det ser ud som der vil være {condition} i {location} {day}  
+# Chances are it's going to be {condition} in {location} {day}
+Det er chancerne for, at det bliver {condition} i {location} {day}  

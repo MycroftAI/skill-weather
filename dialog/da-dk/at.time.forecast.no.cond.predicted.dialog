@@ -1,0 +1,5 @@
+# When user asks if it's a condition but it's not 
+# No, the {time} forecast in {location} suggests it will be {condition}
+Ingen, det {time} prognose i {location} antyder, at det bliver {condition}  
+# It doesn't seem so, the {time} forecast in {location} suggests it will be {condition}
+Det ser ikke ud til, det {time} prognose i {location} antyder, at det bliver {condition}  

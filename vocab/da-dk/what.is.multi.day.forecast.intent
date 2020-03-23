@@ -1,0 +1,8 @@
+# weather (in|over|for) the next {num} days
+vejr (i|over|til) den næste {num} dage  
+# what is the weather (like|) (in|over|for) the next {num} days
+hvordan er vejret (synes godt om|) (i|over|til) den næste {num} dage  
+# what will the weather be (like|) (in|over|for) the next {num} days
+hvad bliver vejret (synes godt om|) (i|over|til) den næste {num} dage  
+# what is the weather (going to |gonna |)be (like |)(in|over|for) the next {num} days
+hvordan er vejret (går til |skal nok |)være (synes godt om |)(i|over|til) den næste {num} dage  

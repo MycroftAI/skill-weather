@@ -1,0 +1,7 @@
+# When user asks if it's storming but no storm or alternative is forcasted 
+# No storm is predicted for {location}
+Ingen storm forudsiges for {location}  
+# There should not be a storm in {location}
+Der skulle ikke være en storm ind {location}  
+# It should not storm in {location}
+Det bør ikke storme ind {location}  

@@ -1,0 +1,5 @@
+# When user asks if it's foggy but no snow or alternative is forcasted 
+# Seems like the visibility will be good in {location}
+Synes, at synligheden vil være god i {location}  
+# No fog is predicted for {location} today
+Ingen tåge er forudsagt for {location} i dag  

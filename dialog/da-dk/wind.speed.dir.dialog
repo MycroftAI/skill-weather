@@ -1,0 +1,4 @@
+# at {speed} {unit} from the {dir}
+på {speed} {unit} fra {dir}  
+# from the {dir} at {speed} {unit}
+fra {dir} på {speed} {unit}  
