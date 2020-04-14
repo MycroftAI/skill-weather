@@ -32,6 +32,7 @@ from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
+from pyowm import OWM
 from requests import HTTPError, Response
 
 try:
@@ -288,20 +289,19 @@ class WeatherSkill(MycroftSkill):
         self.CODES['50d', '50n'] = 7                # windy/misty
 
         # Use Mycroft proxy if no private key provided
-        self.settings["api_key"] = None
-        self.settings["use_proxy"] = True
+        self.settings.setdefault("api_key", None)
+        self.settings.setdefault("use_proxy", True)
 
     def initialize(self):
         # TODO: Remove lat,lon parameters from the OWMApi()
         #       methods and implement _at_coords() versions
         #       instead to make the interfaces compatible
         #       again.
-        #
-        # if self.settings["api_key"] and not self.settings['use_proxy']):
-        #     self.owm = OWM(self.settings["api_key"])
-        # else:
-        #     self.owm = OWMApi()
-        self.owm = OWMApi()
+
+        if self.settings["api_key"] and not self.settings['use_proxy']:
+            self.owm = OWM(self.settings["api_key"])
+        else:
+            self.owm = OWMApi()
         if self.owm:
             self.owm.set_OWM_language(lang=OWMApi.get_language(self.lang))
 
