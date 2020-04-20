@@ -195,6 +195,16 @@ class OWMApi(Api):
                 return self.weather_at_location(name)
             raise
 
+    def check_for_city_state(self, name):
+        # someone might ask for denver colorado (which would need to be written denver,colorado)
+        reg = self.owm.city_id_registry()
+        if len(reg.ids_for(name)) == 0:
+            # Try to rewrite name -> replace last blank with comma # TODO: careful this might be language specific -> check
+            p = name.rfind(" ")
+            if p>0:
+                name = name[:p] + "," + name[p+1:]
+        return name
+
     def weather_at_place(self, name, lat, lon):
         if lat and lon:
             if self.owm is not None:
@@ -203,7 +213,9 @@ class OWMApi(Api):
         else:
             if name in self.location_translations:
                 name = self.location_translations[name]
+            LOG.info("searching weather for {}".format(name)) # TODO: remove debug
             if self.owm is not None:
+                name = self.check_for_city_state(name)
                 return self.owm.weather_at_place(name)
             response, trans_name = self.weather_at_location(name)
             self.location_translations[name] = trans_name
@@ -236,6 +248,9 @@ class OWMApi(Api):
     def _daily_forecast_at_location(self, name, limit):
         if name in self.location_translations:
             name = self.location_translations[name]
+        if self.owm is not None:
+            name = self.check_for_city_state(name)
+            return self.owm.daily_forecast(name, limit)
         orig_name = name
         while name != '':
             try:
@@ -262,8 +277,6 @@ class OWMApi(Api):
             if self.owm is not None:
                 return self.owm.daily_forecast_at_coords(lat, lon)
         else:
-            if self.owm is not None:
-                return self.owm.daily_forecast(name, limit)
             return self._daily_forecast_at_location(name, limit)
 
         if limit is not None:
