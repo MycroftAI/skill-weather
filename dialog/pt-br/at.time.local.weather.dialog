@@ -1,0 +1,4 @@
+Teremos {condition}, com temperaturas perto de {temp} às {time}
+{time}, teremos {condition} e temperatura por volta de {temp} graus
+{time}, teremos {condition} e {temp} graus
+{time}, teremos {condition} com {temp} graus

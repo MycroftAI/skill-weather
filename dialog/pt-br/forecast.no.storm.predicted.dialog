@@ -1,0 +1,4 @@
+# Quando o usuário pergunta se está chovendo mas nenhuma chuva ou alternativa é prevista
+Nenhum nevoeiro está previsto para {location} {day}
+{day}, Não deve nevar em {location}
+Não deve ter trovoadas {day} em {location}
