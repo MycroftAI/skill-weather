@@ -1,0 +1,5 @@
+# Informing that an alternative to clear skies will occur 
+# No, the forecast {day} calls for {condition}
+Ingen, prognosen {day} kræver {condition}  
+# {day}, it looks like there'll be {condition}
+{day}, det ser ud som der vil være {condition}  

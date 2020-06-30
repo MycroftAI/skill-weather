@@ -1,0 +1,6 @@
+# weather (for|on|) (next|) {day_one} and {day_two}
+vejr (til|på|) (Næste|) {day_one} og {day_two}  
+# what('s| is) the weather (going to |gonna |)be (like |)(for|on|) (next|) {day_one} and {day_two}
+hvad('s| er) vejret (går til |skal nok |)være (synes godt om |)(til|på|) (Næste|) {day_one} og {day_two}  
+# what will the weather be (like |)(for|on|) (next|) {day_one} and {day_two}
+hvad bliver vejret (synes godt om |)(til|på|) (Næste|) {day_one} og {day_two}  

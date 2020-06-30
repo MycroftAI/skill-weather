@@ -1,0 +1,7 @@
+# When user asks if it's raining but no rain or alternative is forcasted 
+# No storm is predicted for {location} {day}
+Ingen storm forudsiges for {location} {day}  
+# {day}, it should not storm in {location}
+{day}, det skal ikke storme ind {location}  
+# It is unlikely to storm {day} in {location}
+Det er usandsynligt at storme {day} i {location}  

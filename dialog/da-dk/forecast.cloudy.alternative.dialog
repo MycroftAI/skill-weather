@@ -1,0 +1,5 @@
+# Informing that an alternative to clear skies will occur 
+# No, the forecast {day} calls for {condition} in {location} 
+# It should not be cloudy in {location} {day}, it looks like there'll be {condition} 
+# Doesn't seem so, chances are {location} will have {condition} {day}
+Ser ikke ud til, chancerne er {location} vil have {condition} {day}  

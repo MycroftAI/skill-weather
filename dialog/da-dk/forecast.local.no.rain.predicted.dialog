@@ -1,0 +1,7 @@
+# When user asks if it's raining but no rain or alternative is forcasted 
+# No rain is predicted {day}
+Der forventes ingen regn {day}  
+# It should not rain {day}
+Det bør ikke regne {day}  
+# You won't need an umbrella {day}
+Du behøver ikke en paraply {day}  

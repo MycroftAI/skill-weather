@@ -1,0 +1,5 @@
+# Informing that an alternative to clear skies will occur at specified time 
+# No, the {time} forecast {day} calls for {condition} in {location}
+Ingen, det {time} Vejrudsigt {day} kræver {condition} i {location}  
+# Doesn't seem so, the {time} forecast {day} suggests {location} will have {condition}
+Ser ikke ud til, det {time} Vejrudsigt {day} foreslår {location} vil have {condition}  

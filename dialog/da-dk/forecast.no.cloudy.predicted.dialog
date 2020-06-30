@@ -1,0 +1,9 @@
+# When user asks if it's cloudy but it's not 
+# It doesn't seem like it's going to be cloudy in {location} {day}
+Det ser ikke ud til, at det bliver overskyet i {location} {day}  
+# Clear skies are forecast in {location} {day}
+Klar himmel er forventet i {location} {day}  
+# Expect clear skies in {location} {day}
+Forvent klare himmel ind {location} {day}  
+# It should not be cloudy in {location} {day}
+Det skal ikke være overskyet i {location} {day}  

@@ -1,0 +1,5 @@
+# Informing that an alternative to rain will occur 
+# No, but the forecast {day} calls for {condition}
+Ingen, men prognosen {day} kræver {condition}  
+# {day}, there is no rain predicted but it looks like there'll be {condition}
+{day}, der er ikke forudsagt regn, men det ser ud til, at der vil være {condition}  

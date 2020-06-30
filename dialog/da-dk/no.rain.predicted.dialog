@@ -1,0 +1,7 @@
+# When user asks if it's raining but no rain or alternative is forcasted 
+# No rain is predicted for {location}
+Der regnes ikke med regn {location}  
+# It should not be raining in {location}
+Det bør ikke regne ind {location}  
+# There's no need for an umbrella in {location}
+Der er ikke behov for en paraply ind {location}  

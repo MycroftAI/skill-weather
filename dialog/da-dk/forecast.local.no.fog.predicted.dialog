@@ -1,0 +1,5 @@
+# When user asks if it's foggy but no snow or alternative is forcasted 
+# {day} the visibility should be good
+{day} synligheden skal være god  
+# No fog is predicted {day}
+Ingen tåge er forudsagt {day}  
