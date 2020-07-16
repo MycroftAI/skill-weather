@@ -224,3 +224,16 @@ Feature: Mycroft Weather Skill local forecasts and temperature
     | what is the low temperature for next wednesday |
     | what is the low temperature for next saturday |
     | what is the low temperature 5 days from now |
+
+  @xfail
+  Scenario Outline: what is the temperature at a certain time
+    Given an english speaking user
+     When the user says "<what is the temperature at a certain time>"
+     Then "mycroft-weather" should reply with dialog from "at.time.local.temperature.dialog"
+
+  Examples: what is the temperature at a certain time
+    | what is the temperature at a certain time |
+    | what will the temperature be tonight |
+    | what will the temperature be this evening |
+    | what is the temperature this morning |
+    | temperature in the afternoon |
