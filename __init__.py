@@ -1379,7 +1379,8 @@ class WeatherSkill(MycroftSkill):
 
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-        report['day'] = "today"
+        report['day'] = self.__to_day(extract_datetime('today')[0],
+                                      preface=True)
 
         return report
 
