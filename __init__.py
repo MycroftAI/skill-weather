@@ -32,6 +32,7 @@ from mycroft.util.parse import extract_datetime, extract_number
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
+from pyowm import OWM
 from requests import HTTPError, Response
 
 try:
@@ -80,9 +81,10 @@ WINDSTRENGTH_MPS = {
 
 class OWMApi(Api):
     ''' Wrapper that defaults to the Mycroft cloud proxy so user's don't need
-        to get their own OWM API keys '''
+        to get their own OWM API keys.
+        However it also handles a local OWM api_key.'''
 
-    def __init__(self):
+    def __init__(self, api_key, use_proxy):
         super(OWMApi, self).__init__("owm")
         self.owmlang = "en"
         self.encoding = "utf8"
@@ -90,6 +92,12 @@ class OWMApi(Api):
         self.forecast = ForecastParser()
         self.query_cache = {}
         self.location_translations = {}
+
+        if api_key and not use_proxy:
+            self.owm = OWM(api_key)
+        else:
+            self.owm = None
+
 
     @staticmethod
     def get_language(lang):
@@ -137,6 +145,7 @@ class OWMApi(Api):
 
     def request(self, data):
         """ Caching the responses """
+        # request is not used for local_api key
         req_hash = hash(json.dumps(data, sort_keys=True))
         cache = self.query_cache.get(req_hash, (0, None))
         # check for caches with more days data than requested
@@ -170,6 +179,9 @@ class OWMApi(Api):
         if name == '':
             raise LocationNotFoundError('The location couldn\'t be found')
 
+        if self.owm is not None:
+            return self.owm.weather_at_location(name)
+
         q = {"q": name}
         try:
             data = self.request({
@@ -183,12 +195,28 @@ class OWMApi(Api):
                 return self.weather_at_location(name)
             raise
 
+    def check_for_city_state(self, name):
+        # someone might ask for denver colorado (which would need to be written denver,colorado)
+        reg = self.owm.city_id_registry()
+        if len(reg.ids_for(name)) == 0:
+            # Try to rewrite name -> replace last blank with comma # TODO: careful this might be language specific -> check
+            p = name.rfind(" ")
+            if p>0:
+                name = name[:p] + "," + name[p+1:]
+        return name
+
     def weather_at_place(self, name, lat, lon):
         if lat and lon:
+            if self.owm is not None:
+                return self.owm.weather_at_coords(lat, lon)
             q = {"lat": lat, "lon": lon}
         else:
             if name in self.location_translations:
                 name = self.location_translations[name]
+            LOG.info("searching weather for {}".format(name)) # TODO: remove debug
+            if self.owm is not None:
+                name = self.check_for_city_state(name)
+                return self.owm.weather_at_place(name)
             response, trans_name = self.weather_at_location(name)
             self.location_translations[name] = trans_name
             return response
@@ -201,10 +229,14 @@ class OWMApi(Api):
 
     def three_hours_forecast(self, name, lat, lon):
         if lat and lon:
+            if self.owm is not None:
+                return self.owm.three_hours_forecast_at_coords(lat, lon)
             q = {"lat": lat, "lon": lon}
         else:
             if name in self.location_translations:
                 name = self.location_translations[name]
+            if self.owm is not None:
+                return self.owm.three_hours_forecast(name)
             q = {"q": name}
 
         data = self.request({
@@ -216,6 +248,9 @@ class OWMApi(Api):
     def _daily_forecast_at_location(self, name, limit):
         if name in self.location_translations:
             name = self.location_translations[name]
+        if self.owm is not None:
+            name = self.check_for_city_state(name)
+            return self.owm.daily_forecast(name, limit)
         orig_name = name
         while name != '':
             try:
@@ -239,6 +274,8 @@ class OWMApi(Api):
     def daily_forecast(self, name, lat, lon, limit=None):
         if lat and lon:
             q = {"lat": lat, "lon": lon}
+            if self.owm is not None:
+                return self.owm.daily_forecast_at_coords(lat, lon)
         else:
             return self._daily_forecast_at_location(name, limit)
 
@@ -268,6 +305,8 @@ class OWMApi(Api):
             'se': 'latin1'
         }
         self.encoding = encodings.get(lang, 'utf8')
+        if self.owm is not None:
+            self.owm.set_language(lang)
 
 
 class WeatherSkill(MycroftSkill):
@@ -288,22 +327,18 @@ class WeatherSkill(MycroftSkill):
         self.CODES['50d', '50n'] = 7                # windy/misty
 
         # Use Mycroft proxy if no private key provided
-        self.settings["api_key"] = None
-        self.settings["use_proxy"] = True
+        self.settings.setdefault("api_key", None)
+        self.settings.setdefault("use_proxy", True)
 
     def initialize(self):
-        # TODO: Remove lat,lon parameters from the OWMApi()
-        #       methods and implement _at_coords() versions
-        #       instead to make the interfaces compatible
-        #       again.
-        #
-        # if self.settings["api_key"] and not self.settings['use_proxy']):
-        #     self.owm = OWM(self.settings["api_key"])
-        # else:
-        #     self.owm = OWMApi()
-        self.owm = OWMApi()
+        # lat,lon parameters are handled by OWMApi() both for
+        # local api key and mycrodt's api
+
+        self.owm = OWMApi( self.settings["api_key"], self.settings['use_proxy'] )
+
         if self.owm:
             self.owm.set_OWM_language(lang=OWMApi.get_language(self.lang))
+
 
         self.schedule_for_daily_use()
         try:
