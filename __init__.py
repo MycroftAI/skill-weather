@@ -1379,7 +1379,7 @@ class WeatherSkill(MycroftSkill):
 
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-        report['day'] = self.__to_day(extract_datetime('today')[0],
+        report['day'] = self.__to_day(extract_datetime('today', lang='en-us')[0],
                                       preface=True)
 
         return report
@@ -1525,7 +1525,7 @@ class WeatherSkill(MycroftSkill):
                                 eg "on Tuesday" but NOT "on tomorrow"
         """
 
-        today, _ = self.__extract_datetime('today')
+        today, _ = self.__extract_datetime('today', lang='en-us')
         if when is None:
             when = today
 
