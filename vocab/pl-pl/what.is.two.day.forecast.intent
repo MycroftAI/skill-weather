@@ -1,2 +1,2 @@
-(jaka |jaką |)(pogoda|pogodę) (jest|będzie|jest zapowiadana|jest zapowiedziana|zapowiadają) (dla|na) (następne|następny|najbliższe|najbliższy|kolejne|kolejny) {day_one} {i|oraz} {day_two}
-(jaka jest|co mówi) prognoza (pogody |) (dla|na) (następne|następny|najbliższe|najbliższy|kolejne|kolejny) {day_one} {i|oraz} {day_two}
+(jaka |jaką |)(pogoda|pogodę) (jest|będzie|jest zapowiadana|jest zapowiedziana|zapowiadają) (dla|na|od|między) (następne|następny|najbliższe|najbliższy|kolejne|kolejny|) {day_one} {i|oraz|do} {day_two}
+(jaka jest|co mówi) prognoza (pogody |) (dla|na|od|między) (następne|następny|najbliższe|najbliższy|kolejne|kolejny|) {day_one} {i|oraz|do} {day_two}
