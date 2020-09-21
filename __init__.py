@@ -1640,12 +1640,16 @@ class WeatherSkill(MycroftSkill):
             lat: Latitude for report
             lon: Longitude for report
         """
+        
+        when = when or datetime.now()
 
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
         forecasts = forecasts.get_forecast()
         for weather in forecasts.get_weathers():
             forecastDate = weather.get_reference_time("date")
+            if forecastDate is None:
+                continue
             if forecastDate.date() == when.date():
                 # found the right day, now format up the results
                 return weather
@@ -1762,6 +1766,7 @@ class WeatherSkill(MycroftSkill):
                 string: the speakable date text
         """
         now = datetime.now()
+        when = when or now
         speakable_date = nice_date(when, lang=self.lang, now=now)
         # Test if speakable_date is a relative reference eg "tomorrow"
         days_diff = (when.date() - now.date()).days
