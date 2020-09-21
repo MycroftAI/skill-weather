@@ -1262,7 +1262,7 @@ class WeatherSkill(MycroftSkill):
     def __populate_report(self, message):
         unit = self.__get_requested_unit(message)
         # Get a date from requests like "weather for next Tuesday"
-        today, _ = self.__extract_datetime("today")
+        today, _ = self.__extract_datetime("today", lang='en-us')
         when, _ = self.__extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
         when = when or today # Get todays date if None was found
