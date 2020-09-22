@@ -1,2 +1,2 @@
-It will be {wind} {wind_unit} in {location} {day}
-The wind will be as strong as {wind} {wind_unit} in {location} {day}
+{day} będzie {wind} {wind_unit} w {location}
+Wiatr będzie {day} silny w {location}, osiągnie {wind} {wind_unit}
