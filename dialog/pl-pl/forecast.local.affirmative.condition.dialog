@@ -1,3 +1,4 @@
 # Affirmative response to questions like "is it going to snow tomorrow"
-Yes, expect {condition}
-Yes, the forecast calls for {condition}
+Tak, oczekuj, że będzie {condition}
+Tak, według prognozy będzie {condition}
+Będzie {condition}

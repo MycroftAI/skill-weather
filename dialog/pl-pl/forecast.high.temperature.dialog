@@ -1,2 +1,2 @@
-It will be as high as {temp_max} degrees in {location} {day}
-{location} will have a high of {temp_max} degrees {day}
+{day} będzie wysoka temperatura, osiągnie {temp_max} stopni w {location}
+Maksymalna temperatura w {location} {day} wyniesie {temp_max} stopni
