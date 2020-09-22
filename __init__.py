@@ -1641,7 +1641,8 @@ class WeatherSkill(MycroftSkill):
             lon: Longitude for report
         """
         
-        when = when or datetime.now()
+        if when is None: # Handle lingua-franca errors
+            when = datetime.now()
 
         # search for the requested date in the returned forecast data
         forecasts = self.owm.daily_forecast(location, lat, lon, limit=14)
