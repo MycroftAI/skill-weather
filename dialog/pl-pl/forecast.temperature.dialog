@@ -1,2 +1,2 @@
-W {day} będzie {temp} stopni w {location}
-W {day} w {location} temperatura wyniesie {temp} stopni
+{day} będzie {temp} stopni w {location}
+{day} w {location} temperatura wyniesie {temp} stopni

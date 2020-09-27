@@ -1,2 +1,2 @@
 # When user asks if it's one condition but it's not
-Nie, prognoza na {time} w {day} wskazuje {condition}
+Nie, prognoza na {time} {day} wskazuje {condition}

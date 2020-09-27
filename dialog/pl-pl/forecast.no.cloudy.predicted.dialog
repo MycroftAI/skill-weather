@@ -1,5 +1,5 @@
 # When user asks if it's cloudy but it's not
-Nie wygląda na to, że w {day} będzie pochmurno w {location}
+Nie wygląda na to, że {day} będzie pochmurno w {location}
 Bezchmurne niebo jest zapowiadane na {day} w {location}
-Spodziewaj się czystego nieba w {day} w {location}
-Nie powinno być chmur w {location} w {day}
+Spodziewaj się czystego nieba {day} w {location}
+Nie powinno być chmur w {location} {day}

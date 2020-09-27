@@ -1,5 +1,5 @@
-W {day} będzie {condition}, z maksymalną temperaturą wynoszącą {temp_max} stopni i minimalną {temp_min} stopni
-Będzie {condition} w {day}, z temperaturą pomiędzy {temp_min} i {temp_max} stopni
-W {day} maksymalna temperatura wyniesie {temp_max}, a minimalna {temp_min} stopni. Będzie {condition}
-W {day} będzie {condition}, z temperaturą od {temp_min} do {temp_max} stopni
+{day} będzie {condition}, z maksymalną temperaturą wynoszącą {temp_max} stopni i minimalną {temp_min} stopni
+Będzie {condition} {day}, z temperaturą pomiędzy {temp_min} i {temp_max} stopni
+{day} maksymalna temperatura wyniesie {temp_max}, a minimalna {temp_min} stopni. Będzie {condition}
+{day} będzie {condition}, z temperaturą od {temp_min} do {temp_max} stopni
 Prognoza na {day} przewiduje temperaturę między {temp_min} i {temp_max} stopni. Będzie {condition}

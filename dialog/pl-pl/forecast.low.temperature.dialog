@@ -1,2 +1,2 @@
-W {day} będzie zimno, nawet {temp_min} stopni w {location}
-W {day} w {location} będzie chłodno, {temp} stopni
+{day} będzie zimno, nawet {temp_min} stopni w {location}
+{day} w {location} będzie chłodno, {temp} stopni

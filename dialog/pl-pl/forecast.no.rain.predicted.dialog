@@ -1,4 +1,4 @@
 # When user asks if it's raining but no rain or alternative is forcasted
-Nie będzie deszczu w {day} w {location}
-W {day} w {location} nie będzie padało
-W {location} w {day} nie będzie Ci potrzebny parasol
+Nie będzie deszczu {day} w {location}
+{day} w {location} nie będzie padało
+W {location} {day} nie będzie Ci potrzebny parasol

@@ -1,4 +1,4 @@
 # When user asks if it's raining but no rain or alternative is forcasted
-W {day} prognoza nie przewiduje burzy
-Nie będzie burzy w {day}
-Nie powinno grzmieć w {day}
+{day} prognoza nie przewiduje burzy
+Nie będzie burzy {day}
+Nie powinno grzmieć {day}
