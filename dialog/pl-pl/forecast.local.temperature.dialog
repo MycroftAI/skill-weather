@@ -1,2 +1,3 @@
-{day} it will be {temp}
-{day} the temperature will be {temp} degrees.
+W {day} będzie {temp} stopni
+W {day} temperatura wyniesie {temp} stopni
+Temperatura wyniesie {temp} stopni w {day}

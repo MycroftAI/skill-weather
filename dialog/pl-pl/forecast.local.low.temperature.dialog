@@ -1,2 +1,2 @@
-{day} it will be as low as {temp_min}
-{day} the temperature will be as low as {temp_min} degrees.
+W {day} będzie zimno, temperatura spadnie do {temp_min} stopni.
+W {day} temperatura spadnie nawet do {temp_min}.

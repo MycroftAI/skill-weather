@@ -1,4 +1,4 @@
-It will be {condition}, with temperatures near {temp}
-Later it will be {condition} and around {temp} degrees
-Later it will be {condition} and {temp} degrees
-Around {temp} degrees with {condition}
+Będzie {condition}, z temperaturą około {temp} stopni}
+Później będzie {condition} i około {temp} stopni
+Później będzie {condition} i {temp} stopni
+Około {temp} stopni i {condition}

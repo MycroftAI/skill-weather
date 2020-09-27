@@ -1,2 +1,2 @@
-{condition} in {location} {day} will be {value}
-{day} the forecast in {location} calls for {condition} of {value}
+W {day} {condition} wyniesie {value} w {location}
+W {day} prognoza dla {location} przewiduje, że będzie {condition} wynoszący {value}

@@ -1,4 +1,4 @@
 # Informing that an alternative to cloudy skies will occur
-No, the forecast calls for {condition} today
-It should not be cloudy, it looks like there'll be {condition} today
-Doesn't seem so, chances are it's going to be {condition} today
+Nie, prognoza mówi, że będzie dzisiaj {condition}
+Nie powinno być dziś pochmurno. Raczej będzie {condition}.
+Nie wygląda na to. Spodziewaj się, że będzie dziś {condition}

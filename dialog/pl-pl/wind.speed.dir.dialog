@@ -1,2 +1,2 @@
-at {speed} {unit} from the {dir}
-from the {dir} at {speed} {unit}
+o sile {speed} {unit} wiejący od {dir}
+z {dir} o sile {speed} {unit}

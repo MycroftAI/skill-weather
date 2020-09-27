@@ -1,1 +1,3 @@
-from {from} to {to}
+od {from} do {to}
+pomiędzy {from} i {to}
+między {from} i {to}
