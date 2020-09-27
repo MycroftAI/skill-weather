@@ -2,5 +2,5 @@ Obecnie jest {condition}, a temperatura wynosi {temp} stopni {scale}.
 Obecnie jest {condition}, a temperatura wynosi {temp} stopni.
 Teraz jest {condition} i {temp} stopni {scale}.
 Teraz jest {condition} i {temp} stopni.
-Jest taraz {condition} i {temp} stopni {scale}.
-Jest taraz {condition} i {temp} stopni.
+Jest teraz {condition} i {temp} stopni {scale}.
+Jest teraz {condition} i {temp} stopni.
