@@ -11,28 +11,28 @@ Mycroft.ProportionalDelegate {
     function getWeatherImagery(weathercode) {
         switch(weathercode) {
         case 0:
-            return "animations/sunny.json";
+            return "images/sunny.png";
             break
         case 1:
-            return "animations/partlycloudy.json";
+            return "images/partly_cloudy.png";
             break
         case 2:
-            return "animations/cloudy.json";
+            return "images/cloudy.png";
             break
         case 3:
-            return "animations/rain.json";
+            return "images/raining.png";
             break
         case 4:
-            return "animations/rain.json";
+            return "images/raining.png";
             break
         case 5:
-            return "animations/storm.json";
+            return "images/stormy.png";
             break
         case 6:
-            return "animations/snow.json";
+            return "images/snowing.png";
             break
         case 7:
-            return "animations/fog.json";
+            return "images/windy.png";
             break
         }
     }

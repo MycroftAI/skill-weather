@@ -19,25 +19,14 @@ WeatherDelegate {
         Layout.preferredHeight: proportionalGridUnit * 15
         Layout.preferredWidth : 300
     }
-    LottieAnimation {
+    Image {
         id: weatherAnimation
         Layout.alignment: Qt.AlignHCenter
         Layout.preferredWidth: Math.min(root.contentWidth, proportionalGridUnit * 40)
         Layout.preferredHeight: Layout.preferredWidth
 
         source: Qt.resolvedUrl(getWeatherImagery(sessionData.weathercode))
-
-        loops: Animation.Infinite
         fillMode: Image.PreserveAspectFit
-        running: true
-
-        // Debug:
-        onSourceChanged: {
-            console.log(getWeatherImagery(sessionData.weathercode));
-        }
-        onStatusChanged: {
-            console.log(weatherAnimation.status, errorString);
-        }
     }
 
     GridLayout {

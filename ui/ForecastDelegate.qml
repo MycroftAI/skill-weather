@@ -20,15 +20,13 @@ WeatherDelegate {
             rowSpacing: proportionalGridUnit * 5
             columnSpacing: proportionalGridUnit * 5
             Layout.fillWidth: true
-            LottieAnimation {
+            Image {
                 Layout.alignment: Qt.AlignCenter
                 Layout.preferredHeight: proportionalGridUnit * 20
                 Layout.preferredWidth: Layout.preferredHeight
 
                 source: Qt.resolvedUrl(getWeatherImagery(modelData.weathercode))
-                loops: Animation.Infinite
                 fillMode: Image.PreserveAspectFit
-                running: true
             }
             Mycroft.AutoFitLabel {
                 font.weight: Font.Bold

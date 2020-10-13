@@ -11,7 +11,7 @@ WeatherDelegate {
 
     spacing: proportionalGridUnit * 5
 
-    LottieAnimation {
+    Image {
         id: weatherAnimation
         Layout.alignment: Qt.AlignHCenter
         Layout.preferredWidth: Math.min(root.contentWidth, proportionalGridUnit * 50)
@@ -19,17 +19,7 @@ WeatherDelegate {
 
         source: Qt.resolvedUrl(getWeatherImagery(sessionData.weathercode))
 
-        loops: Animation.Infinite
         fillMode: Image.PreserveAspectFit
-        running: true
-
-        // Debug:
-        onSourceChanged: {
-            console.log(getWeatherImagery(sessionData.weathercode));
-        }
-        onStatusChanged: {
-            console.log(weatherAnimation.status, errorString);
-        }
     }
 
     Mycroft.AutoFitLabel {
