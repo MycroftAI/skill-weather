@@ -555,7 +555,7 @@ class WeatherSkill(MycroftSkill):
         # Get a date from spoken request
         when = self.__extract_datetime(message.data.get('utterance'),
                                 lang=self.lang)[0]
-        today = now_local()
+        today = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
 
         if today == when:
             self.handle_current_weather(message)
@@ -1263,7 +1263,6 @@ class WeatherSkill(MycroftSkill):
     def __populate_report(self, message):
         unit = self.__get_requested_unit(message)
         # Get a date from requests like "weather for next Tuesday"
-        # today, _ = self.__extract_datetime("today", lang=self.lang)
         today = now_local()
         when, _ = self.__extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
