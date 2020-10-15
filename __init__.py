@@ -29,6 +29,7 @@ from mycroft.util.format import nice_date, nice_time
 from mycroft.util.log import LOG
 from mycroft.util.format import nice_number, pronounce_number, join_list
 from mycroft.util.parse import extract_datetime, extract_number
+from mycroft.util.time import now_local
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
@@ -554,7 +555,7 @@ class WeatherSkill(MycroftSkill):
         # Get a date from spoken request
         when = self.__extract_datetime(message.data.get('utterance'),
                                 lang=self.lang)[0]
-        today = self.__extract_datetime("today")[0]
+        today = now_local()
 
         if today == when:
             self.handle_current_weather(message)
@@ -621,9 +622,9 @@ class WeatherSkill(MycroftSkill):
         """ Handle next weekends weather """
 
         report = self.__initialize_report(message)
-        when, _ = self.__extract_datetime('next saturday', lang='en-us')
+        when, _ = self.__extract_datetime('next saturday', lang=self.lang)
         self.report_forecast(report, when)
-        when, _ = self.__extract_datetime('next sunday', lang='en-us')
+        when, _ = self.__extract_datetime('next sunday', lang=self.lang)
         self.report_forecast(report, when)
 
     @intent_handler(IntentBuilder("").require("Query")
@@ -634,9 +635,9 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         # Get a date from spoken request
-        when, _ = self.__extract_datetime('this saturday', lang='en-us')
+        when, _ = self.__extract_datetime('this saturday', lang=self.lang)
         self.report_forecast(report, when)
-        when, _ = self.__extract_datetime('this sunday', lang='en-us')
+        when, _ = self.__extract_datetime('this sunday', lang=self.lang)
         self.report_forecast(report, when)
 
     @intent_handler(IntentBuilder("").optionally("Query")
@@ -1262,7 +1263,8 @@ class WeatherSkill(MycroftSkill):
     def __populate_report(self, message):
         unit = self.__get_requested_unit(message)
         # Get a date from requests like "weather for next Tuesday"
-        today, _ = self.__extract_datetime("today", lang='en')
+        # today, _ = self.__extract_datetime("today", lang=self.lang)
+        today = now_local()
         when, _ = self.__extract_datetime(
                     message.data.get('utterance'), lang=self.lang)
         when = when or today # Get todays date if None was found
@@ -1379,7 +1381,7 @@ class WeatherSkill(MycroftSkill):
 
         wind = self.get_wind_speed(forecastWeather)
         report['wind'] = "{} {}".format(wind[0], wind[1] or "")
-        report['day'] = self.__to_day(self.__extract_datetime("today", lang='en')[0],
+        report['day'] = self.__to_day(now_local(),
                                       preface=True)
 
         return report
