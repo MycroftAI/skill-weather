@@ -622,9 +622,9 @@ class WeatherSkill(MycroftSkill):
         """ Handle next weekends weather """
 
         report = self.__initialize_report(message)
-        when, _ = self.__extract_datetime('next saturday', lang=self.lang)
+        when, _ = self.__extract_datetime('next saturday', lang='en-us')
         self.report_forecast(report, when)
-        when, _ = self.__extract_datetime('next sunday', lang=self.lang)
+        when, _ = self.__extract_datetime('next sunday', lang='en-us')
         self.report_forecast(report, when)
 
     @intent_handler(IntentBuilder("").require("Query")
@@ -635,9 +635,9 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         # Get a date from spoken request
-        when, _ = self.__extract_datetime('this saturday', lang=self.lang)
+        when, _ = self.__extract_datetime('this saturday', lang='en-us')
         self.report_forecast(report, when)
-        when, _ = self.__extract_datetime('this sunday', lang=self.lang)
+        when, _ = self.__extract_datetime('this sunday', lang='en-us')
         self.report_forecast(report, when)
 
     @intent_handler(IntentBuilder("").optionally("Query")
