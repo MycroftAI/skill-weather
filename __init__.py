@@ -542,7 +542,7 @@ class WeatherSkill(MycroftSkill):
             self.report_multiday_forecast(report, num_days=2)
 
         self.report_multiday_forecast(report, when,
-                                        num_days=num_days)
+                                      num_days=num_days)
 
     # Handle: What is the weather forecast tomorrow?
     @intent_handler(IntentBuilder("").one_of("Weather", "Forecast")
@@ -553,7 +553,7 @@ class WeatherSkill(MycroftSkill):
 
         # Get a date from spoken request
         when = self.__extract_datetime(message.data.get('utterance'),
-                                lang=self.lang)[0]
+                                       lang=self.lang)[0]
         today = self.__extract_datetime("today")[0]
 
         if today == when:
@@ -599,7 +599,7 @@ class WeatherSkill(MycroftSkill):
     def handle_weather_at_time(self, message):
         self.log.debug("Handler: handle_weather_at_time")
         when, _ = self.__extract_datetime(
-                    message.data.get('utterance'), lang=self.lang)
+            message.data.get('utterance'), lang=self.lang)
         now = self.__to_UTC(datetime.utcnow())
         time_diff = (when - now)
         mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
@@ -653,10 +653,10 @@ class WeatherSkill(MycroftSkill):
         days = [when + timedelta(days=i) for i in range(7)]
         # Fetch forecasts/reports for week
         forecasts = [dict(self.__populate_forecast(report, day,
-                                                    preface_day=False))
-                        if day != today
-                        else dict(self.__populate_current(report, day))
-                        for day in days]
+                                                   preface_day=False))
+                     if day != today
+                     else dict(self.__populate_current(report, day))
+                     for day in days]
 
         if forecasts is None:
             self.__report_no_data('weather')
@@ -671,7 +671,7 @@ class WeatherSkill(MycroftSkill):
 
         # analyse for commonality/difference
         primary_category = max(collated['condition_cat'],
-                                key=collated['condition_cat'].count)
+                               key=collated['condition_cat'].count)
         days_with_primary_cat, conditions_in_primary_cat = [], []
         days_with_other_cat = {}
         for i, item in enumerate(collated['condition_cat']):
@@ -740,7 +740,7 @@ class WeatherSkill(MycroftSkill):
                 seq_dialog = self.concat_dialog(
                     seq_dialog,
                     self.translate('weekly.conditions.seq.period',
-                                    {'from': day_from,
+                                   {'from': day_from,
                                     'to': day_to}))
                 dialog_list.append(seq_dialog)
             if not seq_days:
@@ -946,13 +946,13 @@ class WeatherSkill(MycroftSkill):
         # Get a date from spoken request
         today, _ = self.__extract_datetime("today")
         when, _ = self.__extract_datetime(message.data.get('utterance'),
-                                lang=self.lang)
+                                          lang=self.lang)
 
         # search the forecast for precipitation
         weathers = self.owm.daily_forecast(
-                            report['full_location'],
-                            report['lat'],
-                            report['lon'], 10).get_forecast()
+            report['full_location'],
+            report['lat'],
+            report['lon'], 10).get_forecast()
 
         if weathers is None:
             self.__report_no_data('weather')
@@ -1007,7 +1007,7 @@ class WeatherSkill(MycroftSkill):
         report = self.__initialize_report(message)
 
         when, _ = self.__extract_datetime(message.data.get('utterance'),
-                                lang=self.lang)
+                                          lang=self.lang)
         today, _ = self.__extract_datetime("today")
         if when is None or when == today:
             weather = self.owm.weather_at_place(
@@ -1242,7 +1242,7 @@ class WeatherSkill(MycroftSkill):
         # Get a date from requests like "weather for next Tuesday"
         today, _ = self.__extract_datetime("today")
         when, _ = self.__extract_datetime(
-                    message.data.get('utterance'), lang=self.lang)
+            message.data.get('utterance'), lang=self.lang)
 
         report = self.__initialize_report(message)
         if when and when.date() != today.date():
@@ -1264,8 +1264,8 @@ class WeatherSkill(MycroftSkill):
         # Get a date from requests like "weather for next Tuesday"
         today, _ = self.__extract_datetime("today", lang='en')
         when, _ = self.__extract_datetime(
-                    message.data.get('utterance'), lang=self.lang)
-        when = when or today # Get todays date if None was found
+            message.data.get('utterance'), lang=self.lang)
+        when = when or today  # Get todays date if None was found
         self.log.debug('extracted when: {}'.format(when))
 
         report = self.__initialize_report(message)
@@ -1821,7 +1821,7 @@ class WeatherSkill(MycroftSkill):
         if extracted_dt is None:
             # allow calls to unpack values even if None returned.
             return (None, None)
-        when, text =  extracted_dt
+        when, text = extracted_dt
         return self.__to_UTC(when), text
 
     def __translate(self, condition, future=False, data=None):
