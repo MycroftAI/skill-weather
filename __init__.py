@@ -22,8 +22,7 @@ import mycroft.audio
 from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
 from mycroft.api import Api
-from mycroft.skills.core import (MycroftSkill, intent_handler,
-                                 intent_file_handler)
+from mycroft import MycroftSkill, intent_handler
 from mycroft.messagebus.message import Message
 from mycroft.util.format import nice_date, nice_time
 from mycroft.util.log import LOG
@@ -457,7 +456,7 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.exception("Error: {0}".format(e))
 
-    @intent_file_handler("whats.weather.like.intent")
+    @intent_handler("whats.weather.like.intent")
     def handle_current_weather_alt(self, message):
         self.handle_current_weather(message)
 
@@ -466,7 +465,7 @@ class WeatherSkill(MycroftSkill):
     def handle_current_weather_simple(self, message):
         self.handle_current_weather(message)
 
-    @intent_file_handler("what.is.three.day.forecast.intent")
+    @intent_handler("what.is.three.day.forecast.intent")
     def handle_three_day_forecast(self, message):
         """ Handler for three day forecast without specified location
 
@@ -482,7 +481,7 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.exception("Error: {0}".format(e))
 
-    @intent_file_handler("what.is.three.day.forecast.location.intent")
+    @intent_handler("what.is.three.day.forecast.location.intent")
     def handle_three_day_forecast_location(self, message):
         """ Handler for three day forecast for a specific location
 
@@ -492,7 +491,7 @@ class WeatherSkill(MycroftSkill):
         message.data['Location'] = message.data.pop('location')
         return self.handle_three_day_forecast(message)
 
-    @intent_file_handler("what.is.two.day.forecast.intent")
+    @intent_handler("what.is.two.day.forecast.intent")
     def handle_two_day_forecast(self, message):
         """ Handler for two day forecast with no specified location
 
@@ -527,7 +526,7 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.exception("Error: {0}".format(e))
 
-    @intent_file_handler("what.is.multi.day.forecast.intent")
+    @intent_handler("what.is.multi.day.forecast.intent")
     def handle_multi_day_forecast(self, message):
         """ Handler for multiple day forecast with no specified location
 
@@ -920,7 +919,7 @@ class WeatherSkill(MycroftSkill):
                                                 "raining")
         self.speak_dialog(dialog, report)
 
-    @intent_file_handler("do.i.need.an.umbrella.intent")
+    @intent_handler("do.i.need.an.umbrella.intent")
     def handle_need_umbrella(self, message):
         self.handle_isit_raining(message)
 
