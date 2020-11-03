@@ -1347,7 +1347,7 @@ class WeatherSkill(MycroftSkill):
         # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
         # Set time to 12 instead of 00 to accomodate for timezones
         forecastWeather = self.__get_forecast(
-            today,
+            self.__to_Local(today),
             report['full_location'],
             report['lat'],
             report['lon'])
