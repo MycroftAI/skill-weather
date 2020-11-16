@@ -17,27 +17,23 @@ import pytz
 import time
 from copy import deepcopy
 from datetime import datetime, timedelta
-
-import mycroft.audio
-from adapt.intent import IntentBuilder
 from multi_key_dict import multi_key_dict
-from mycroft.api import Api
-from mycroft import MycroftSkill, intent_handler
-from mycroft.messagebus.message import Message
-from mycroft.util.format import nice_date, nice_time
-from mycroft.util.log import LOG
-from mycroft.util.format import nice_number, pronounce_number, join_list
-from mycroft.util.parse import extract_datetime, extract_number
-from mycroft.util.time import now_local
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
 from requests import HTTPError, Response
 
-try:
-    from mycroft.util.time import to_utc, to_local
-except Exception:
-    pass
+import mycroft.audio
+from adapt.intent import IntentBuilder
+from mycroft.api import Api
+from mycroft import MycroftSkill, intent_handler
+from mycroft.messagebus.message import Message
+from mycroft.util.log import LOG
+from mycroft.util.format import (nice_date, nice_time, nice_number,
+                                 pronounce_number, join_list)
+from mycroft.util.parse import extract_datetime, extract_number
+from mycroft.util.time import now_local, to_utc, to_local
+
 
 MINUTES = 60  # Minutes to seconds multiplier
 
@@ -600,7 +596,7 @@ class WeatherSkill(MycroftSkill):
         self.log.debug("Handler: handle_weather_at_time")
         when, _ = self.__extract_datetime(
             message.data.get('utterance'), lang=self.lang)
-        now = self.__to_UTC(datetime.utcnow())
+        now = datetime.utcnow()
         time_diff = (when - now)
         mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
 
@@ -1332,7 +1328,6 @@ class WeatherSkill(MycroftSkill):
         return report
 
     def __populate_current(self, report, unit=None):
-
         # Return None if report is None
         if report is None:
             return None
@@ -1352,7 +1347,7 @@ class WeatherSkill(MycroftSkill):
         # can get 'min', 'max', 'eve', 'morn', 'night', 'day'
         # Set time to 12 instead of 00 to accomodate for timezones
         forecastWeather = self.__get_forecast(
-            today,
+            self.__to_Local(today),
             report['full_location'],
             report['lat'],
             report['lon'])
@@ -1773,18 +1768,6 @@ class WeatherSkill(MycroftSkill):
             speakable_date = speakable_date.split(',')[0]
         return speakable_date
 
-    def __to_UTC(self, when):
-        """
-            Convert the Timezone of the Datetime from any Timezone to
-            UTC Timezone while retaining the time.
-
-            Arguments:
-                when (datetime)
-            Returns:
-                (datetime): when but with Timezone replaced to UTC
-        """
-        return when.replace(tzinfo=pytz.utc)
-
     def __to_Local(self, when):
         try:
             # First try with modern mycroft.util.time functions
@@ -1822,7 +1805,7 @@ class WeatherSkill(MycroftSkill):
             # allow calls to unpack values even if None returned.
             return (None, None)
         when, text = extracted_dt
-        return self.__to_UTC(when), text
+        return to_utc(when), text
 
     def __translate(self, condition, future=False, data=None):
         # behaviour of method dialog_renderer.render(...) has changed - instead
