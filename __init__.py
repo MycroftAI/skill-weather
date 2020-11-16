@@ -596,7 +596,7 @@ class WeatherSkill(MycroftSkill):
         self.log.debug("Handler: handle_weather_at_time")
         when, _ = self.__extract_datetime(
             message.data.get('utterance'), lang=self.lang)
-        now = to_utc(datetime.utcnow())
+        now = datetime.utcnow()
         time_diff = (when - now)
         mins_diff = (time_diff.days * 1440) + (time_diff.seconds / 60)
 
