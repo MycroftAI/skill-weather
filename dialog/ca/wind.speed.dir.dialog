@@ -1,0 +1,2 @@
+a {speed} {unit} des del {dir}
+des del {dir} a {speed} {unit}
