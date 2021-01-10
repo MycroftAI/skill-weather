@@ -1729,7 +1729,7 @@ class WeatherSkill(MycroftSkill):
             unit = unit or self.__get_temperature_unit()
             # fallback to general temperature if missing
             temp = weather.get_temperature(unit)[key]
-            if temp:
+            if temp is not None:
                 return str(int(round(temp)))
             else:
                 return ''
