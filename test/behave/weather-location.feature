@@ -29,16 +29,6 @@ Feature: Mycroft Weather Skill location forecasts and temperature
     | how's the weather in Paris |
     | tell me the weather in Paris, Texas |
 
-  Scenario Outline: User asks for the temperature today in location
-    Given an english speaking user
-     When the user says "<what is the temperature today in location>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.dialog"
-
-  Examples: what is the temperature today in location
-    | what is the temperature today in location |
-    | what's the temperature in new york city |
-    | what will be the temperature today in berlin |
-
   @xfail
   Scenario Outline: Failing user asks for the temperature today in location
     Given an english speaking user
@@ -51,6 +41,8 @@ Feature: Mycroft Weather Skill location forecasts and temperature
     | temperature today in san francisco, california |
     | temperature outside in kansas city |
     | In tokyo what's the temp |
+    | what's the temperature in new york city |
+    | what will be the temperature today in berlin |
 
   Scenario Outline: User asks for the high temperature today in a location
     Given an english speaking user
