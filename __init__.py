@@ -121,10 +121,11 @@ class OWMApi(Api):
                         'es', 'tr', 'ua', 'vi']
 
         if lang[0] in owmsupported:
-            owmlang = lang[0]
+            return lang[0]
+
         if (len(lang) == 2):
             if lang[1] in owmsupported:
-                owmlang = lang[1]
+                return lang[1]
         return owmlang
 
     def build_query(self, params):
