@@ -11,26 +11,42 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Mycroft skill for communicating weather information
+
+This skill uses the Open Weather Map API (https://openweathermap.org) and
+the PyOWM wrapper for it.  For more info, see:
+
+General info on PyOWM:
+    https://www.slideshare.net/csparpa/pyowm-my-first-open-source-project
+OWM doc for APIs used:
+    https://openweathermap.org/current - current
+    https://openweathermap.org/forecast5 - three hour forecast
+    https://openweathermap.org/forecast16 - daily forecasts
+PyOWM docs:
+    https://media.readthedocs.org/pdf/pyowm/latest/pyowm.pdf
+"""
 
 import json
-import pytz
 import time
 from copy import deepcopy
 from datetime import datetime, timedelta
 from multi_key_dict import multi_key_dict
+
+from adapt.intent import IntentBuilder
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
 from pyowm.webapi25.observationparser import ObservationParser
+import pytz
 from requests import HTTPError, Response
 
 import mycroft.audio
-from adapt.intent import IntentBuilder
-from mycroft.api import Api
 from mycroft import MycroftSkill, intent_handler
+from mycroft.api import Api
 from mycroft.messagebus.message import Message
+from mycroft.util.format import (
+    nice_date, nice_time, nice_number, pronounce_number, join_list
+)
 from mycroft.util.log import LOG
-from mycroft.util.format import (nice_date, nice_time, nice_number,
-                                 pronounce_number, join_list)
 from mycroft.util.parse import extract_datetime, extract_number
 from mycroft.util.time import now_local, to_utc, to_local
 
@@ -45,19 +61,6 @@ class LocationNotFoundError(ValueError):
 APIErrors = (LocationNotFoundError, HTTPError)
 
 
-"""
-    This skill uses the Open Weather Map API (https://openweathermap.org) and
-    the PyOWM wrapper for it.  For more info, see:
-
-    General info on PyOWM
-    https://www.slideshare.net/csparpa/pyowm-my-first-open-source-project
-    OWM doc for APIs used
-        https://openweathermap.org/current - current
-        https://openweathermap.org/forecast5 - three hour forecast
-        https://openweathermap.org/forecast16 - daily forecasts
-    PyOWM docs
-        https://media.readthedocs.org/pdf/pyowm/latest/pyowm.pdf
-"""
 
 
 # Windstrength limits in miles per hour
