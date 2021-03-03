@@ -309,12 +309,6 @@ class WeatherSkill(MycroftSkill):
             self.log.warning('Could not prepare forecasts. '
                              '({})'.format(repr(e)))
 
-        # Register for handling idle/resting screen
-        msg_type = '{}.{}'.format(self.skill_id, 'idle')
-        self.add_event(msg_type, self.handle_idle)
-        self.add_event('mycroft.mark2.collect_idle',
-                       self.handle_collect_request)
-
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
     def test_screen(self):
@@ -361,14 +355,6 @@ class WeatherSkill(MycroftSkill):
         self.schedule_repeating_event(self.prime_weather_cache, None,
                                       60*60*24+60*15,   # One day + 15 minutes
                                       name="precache3")
-
-    def handle_collect_request(self, message):
-        self.bus.emit(Message('mycroft.mark2.register_idle',
-                              data={'name': 'Weather',
-                                    'id': self.skill_id}))
-
-    def handle_idle(self, message):
-        self.gui.show_page('idle.qml')
 
     def get_coming_days_forecast(self, forecast, unit, days=None):
         """
