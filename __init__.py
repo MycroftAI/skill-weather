@@ -112,7 +112,8 @@ class OWMApi(Api):
             'cs': 'cz',
             'ko': 'kr',
             'lv': 'la',
-            'uk': 'ua'
+            'uk': 'ua',
+            'sp': 'es'
         }
         if lang[0] in lookup:
             return lookup[lang[0]]
