@@ -90,7 +90,7 @@ class OWMApi(Api):
     @staticmethod
     def get_language(lang):
         """
-        OWM supports 31 languages, see https://openweathermap.org/current#multi
+        OWM supports 46 languages, see https://openweathermap.org/current#multi
 
         Convert language code to owm language, if missing use 'en'
         """
@@ -102,6 +102,8 @@ class OWMApi(Api):
             return 'zh_zn'
         elif lang == 'zh-tw' or lang == 'zh_tw':
             return 'zh_tw'
+        elif lang == 'pt-br' or lang == 'pt_br':
+            return 'pt_br'
 
         # special cases cont'd
         lang = lang.lower().split("-")
@@ -115,10 +117,11 @@ class OWMApi(Api):
         if lang[0] in lookup:
             return lookup[lang[0]]
 
-        owmsupported = ['ar', 'bg', 'ca', 'cz', 'da', 'de', 'el', 'en', 'fa', 'fi',
-                        'fr', 'gl', 'hr', 'hu', 'it', 'ja', 'kr', 'la', 'lt',
-                        'mk', 'nl', 'pl', 'pt', 'ro', 'ru', 'se', 'sk', 'sl',
-                        'es', 'tr', 'ua', 'vi']
+        owmsupported = ['af', 'al', 'ar', 'az', 'bg', 'ca', 'cz', 'da', 'de', 
+                        'el', 'en', 'eu', 'fa', 'fi', 'fr', 'gl', 'he', 'hi',
+                        'hr', 'hu', 'id', 'it', 'ja', 'kr', 'la', 'lt', 'mk',
+                        'no', 'nl', 'pl', 'pt'  'ro', 'ru', 'se', 'sk', 'sl', 
+                        'es', 'sr', 'th', 'tr', 'ua', 'vi', 'zu']
 
         if lang[0] in owmsupported:
             return lang[0]
