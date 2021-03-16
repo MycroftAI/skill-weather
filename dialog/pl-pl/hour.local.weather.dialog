@@ -1,0 +1,4 @@
+Będzie {condition}, z temperaturą około {temp} stopni}
+Później będzie {condition} i około {temp} stopni
+Później będzie {condition} i {temp} stopni
+Około {temp} stopni i {condition}

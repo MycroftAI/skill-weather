@@ -1,0 +1,3 @@
+Aktualnie jest {condition}, {temp} stopni {scale} w {location}. Prognoza na dziś przewiduje temperaturę pomiędzy {temp_min} i {temp_max} stopni.
+W {location} jest teraz {condition}, a temperatura wynosi {temp} stopni {scale}. Według prognozy będzie między {temp_min} i {temp_max} stopni.
+Temperatura w {location} będzie między {temp_min} i {temp_max} stopni {scale}. Obecnie jest {condition}, {temp} stopni.

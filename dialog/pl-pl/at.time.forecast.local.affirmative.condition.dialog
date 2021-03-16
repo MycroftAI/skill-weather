@@ -1,0 +1,3 @@
+# Affirmative response to questions like "is it going to snow tomorrow"
+Tak, oczekuj {condition} zgodnie z prognozą, około {time} {day}
+Tak, prognoza na {time} wskazuje {condition} {day}

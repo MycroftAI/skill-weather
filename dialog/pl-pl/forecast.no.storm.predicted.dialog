@@ -1,0 +1,4 @@
+# When user asks if it's raining but no rain or alternative is forcasted
+Nie będzie burzy w {location} {day}
+{day} nie będzie burzy w {location}
+Raczej nie będzie grzmiało {day} w {location}

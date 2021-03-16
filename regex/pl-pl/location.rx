@@ -1,0 +1,1 @@
+.*\b(w|we|nad|przy|blisko|obok|w pobliżu) (?P<Location>(?!\bcelsjusz\b|\bfahrenheit\b|\bfarenhajt\b) *.+)

@@ -1,0 +1,4 @@
+# Affirmative response to questions like "is it going to snow in Paris tomorrow"
+Tak, oczekuj, że {day} będzie {condition} w {location}
+Tak, {day} będzie {condition} w {location} według prognozy.
+Tak, {day} będzie {condition} w {location}.

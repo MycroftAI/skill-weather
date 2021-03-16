@@ -1,0 +1,4 @@
+W {location} dziś będzie chłodno, temperatura zejdzie do {temp_min} stopni {scale}.
+W {location} dziś będzie chłodno, temperatura zejdzie do {temp_min} stopni.
+Temperatura w {location} będzie niska, {temp_min} stopni {scale}.
+Temperatura w {location} będzie niska, {temp_min} stopni.

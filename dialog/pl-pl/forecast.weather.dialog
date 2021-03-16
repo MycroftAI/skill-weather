@@ -1,0 +1,3 @@
+{day} będzie {condition} z maksymalną temperaturą wynoszącą {temp_max} stopni, a minimalną {temp_min} stopni.
+W {location} będzie {condition} {day}, temperatura pomiędzy {temp_max} i {temp_min} stopni
+Prognoza na {day} w {location} zapowiada, że będzie {condition} i {temp_min} do {temp_max} stopni

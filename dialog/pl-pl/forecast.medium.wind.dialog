@@ -1,0 +1,3 @@
+Wiatr nie będzie taki zły w {location}, około {wind} {wind_unit} {day}
+Prognoza na {day} mówi, że w {location} będzie wiało z prędkością {wind} {wind_unit}. Nie tak źle.
+{day} spodziewaj się w {location} wiatru o prędkości {wind} {wind_unit}

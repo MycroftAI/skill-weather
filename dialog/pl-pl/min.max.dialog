@@ -1,0 +1,4 @@
+Dzisiejsza prognoza przewiduje temperaturę między {temp_min} i {temp_max} stopni {scale}.
+Dzisiejsza prognoza przewiduje temperaturę między {temp_min} i {temp_max} stopni.
+Dzisiejsza prognoza przewiduje temperaturę od {temp_min} do {temp_max} stopni {scale}.
+Dzisiejsza prognoza przewiduje temperaturę od {temp_min} do {temp_max} stopni.
