@@ -1,4 +1,4 @@
-weather (in|over|for) the next {num} days
-what is the weather (like|) (in|over|for) the next {num} days
+(weather|forecast) (in|over|for) the next {num} days
+what is the (weather|forecast) (like|) (in|over|for) the next {num} days
 what will the weather be (like|) (in|over|for) the next {num} days
-what is the weather (going to |gonna |)be (like |)(in|over|for) the next {num} days
+what is the weather (going to|gonna|) be (like|) (in|over|for) the next {num} days

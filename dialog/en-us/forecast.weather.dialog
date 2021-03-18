@@ -1,3 +1,0 @@
-{day} it will be {condition}, with a high of {temp_max} and a low of {temp_min} in {location}
-{day}, {location} will have a high of {temp_max} and a low of {temp_min}, with {condition}
-The forecast {day} is {temp_max} for a high and {temp_min} for a low in {location}
