@@ -17,6 +17,7 @@ import pytz
 import time
 from copy import deepcopy
 from datetime import datetime, timedelta
+from lingua_franca.format import date_time_format
 from multi_key_dict import multi_key_dict
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
@@ -369,14 +370,18 @@ class WeatherSkill(MycroftSkill):
             Returns: List of dicts containg weather info
         """
         days = days or 4
-        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        result_temp_day = nice_date(datetime.now())  # forces lingua_franca to initialize
+        if self.lang in date_time_format.lang_config.keys():
+            weekdays = list(date_time_format.lang_config[self.lang]['weekday'].values())
+        else:
+            weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         forecast_list = []
         # Get tomorrow and 4 days forward
         for weather in list(forecast.get_weathers())[1:5]:
             result_temp = weather.get_temperature(unit)
             day_num = datetime.weekday(
                 datetime.fromtimestamp(weather.get_reference_time()))
-            result_temp_day = weekdays[day_num]
+            result_temp_day = weekdays[day_num][:3]
             forecast_list.append({
                 "weathercode": self.CODES[weather.get_weather_icon_name()],
                 "max": round(result_temp['max']),
