@@ -17,7 +17,6 @@ import pytz
 import time
 from copy import deepcopy
 from datetime import datetime, timedelta
-from lingua_franca.format import date_time_format
 from multi_key_dict import multi_key_dict
 from pyowm.webapi25.forecaster import Forecaster
 from pyowm.webapi25.forecastparser import ForecastParser
@@ -31,7 +30,7 @@ from mycroft import MycroftSkill, intent_handler
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 from mycroft.util.format import (nice_date, nice_time, nice_number,
-                                 pronounce_number, join_list)
+                                 pronounce_number, join_list, date_time_format)
 from mycroft.util.parse import extract_datetime, extract_number
 from mycroft.util.time import now_local, to_utc, to_local
 
@@ -370,7 +369,7 @@ class WeatherSkill(MycroftSkill):
             Returns: List of dicts containg weather info
         """
         days = days or 4
-        result_temp_day = nice_date(datetime.now())  # forces lingua_franca to initialize
+        result_temp_day = nice_date(datetime.now())  # forces date_time_format to initialize
         if self.lang in date_time_format.lang_config.keys():
             weekdays = list(date_time_format.lang_config[self.lang]['weekday'].values())
         else:
