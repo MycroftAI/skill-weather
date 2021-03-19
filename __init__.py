@@ -308,7 +308,7 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.warning('Could not prepare forecasts. '
                              '({})'.format(repr(e)))
-
+        _ = nice_date(datetime.now())  # init date_time_format/lingua_franca
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
     def test_screen(self):
@@ -369,7 +369,6 @@ class WeatherSkill(MycroftSkill):
             Returns: List of dicts containg weather info
         """
         days = days or 4
-        result_temp_day = nice_date(datetime.now())  # forces date_time_format to initialize
         if self.lang in date_time_format.lang_config.keys():
             weekdays = list(date_time_format.lang_config[self.lang]['weekday'].values())
         else:
