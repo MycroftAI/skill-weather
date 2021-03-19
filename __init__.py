@@ -308,7 +308,9 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.warning('Could not prepare forecasts. '
                              '({})'.format(repr(e)))
-        _ = nice_date(datetime.now())  # init date_time_format/lingua_franca
+        
+        date_time_format.cache(self.lang)
+        
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
     def test_screen(self):
