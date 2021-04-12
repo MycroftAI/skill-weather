@@ -1,12 +1,22 @@
+# Copyright 2021, Mycroft AI Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from datetime import datetime
-from typing import Optional
 
 import pytz
 
 from mycroft.api import GeolocationApi
-from mycroft.util.format import nice_time
 from mycroft.util.parse import extract_datetime
-from mycroft.util.time import now_local, to_utc
 
 
 class LocationNotFoundError(ValueError):
@@ -39,14 +49,6 @@ def get_utterance_datetime(utterance, timezone=None, language=None):
 
 def get_tz_info(timezone):
     return pytz.timezone(timezone)
-# def get_spoken_time(date):
-#     # compatibility wrapper for nice_time
-#     nt_supported_languages = ['en', 'es', 'it', 'fr', 'de',
-#                               'hu', 'nl', 'da']
-#     if not (lang[0:2] in nt_supported_languages):
-#         lang = "en-us"
-#     return nice_time(dt, lang, speech, use_24hour, use_ampm)
-
 
 def get_geolocation(location: str):
     geolocation_api = GeolocationApi()
