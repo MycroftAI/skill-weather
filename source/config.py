@@ -27,7 +27,7 @@ class WeatherConfig:
 
         Returns: (str) 'meters_sec' or 'mph'
         """
-        system_unit = self.core_config.get('system_unit')
+        system_unit = self.core_config['system_unit']
         if system_unit == METRIC:
             speed_unit = METERS_PER_SECOND
         else:
