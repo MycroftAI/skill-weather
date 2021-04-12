@@ -29,14 +29,18 @@ specifically for a unit that differs from your configuration.
 * "What is the weather for the next three days?"
 * "What is the weather this weekend?"
   
+### Temperatures
+* "What's the temperature?"
+* "What's the temperature in Paris tomorrow in Celsius?"
+* "What's the high temperature tomorrow"
+* "Will it be cold on Tuesday"
+
 ### Specific Weather Conditions
 * "When will it rain next?"
 * "How windy is it?"
 * "What's the humidity?"
 * "Is it going to snow?"
 * "Is it going to snow in Baltimore?"
-* "What's the temperature?"
-* "What's the temperature in Paris tomorrow in Celsius?"
 * "When is the sunset?"
 
 ## Credits 
