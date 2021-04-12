@@ -29,6 +29,7 @@ PyOWM docs:
 from collections import defaultdict
 from datetime import datetime, timedelta
 from multi_key_dict import multi_key_dict
+from time import sleep
 from typing import List, Optional
 
 from adapt.intent import IntentBuilder
@@ -59,7 +60,16 @@ from .source import (
 #   Later weather: only the word "later" in the vocab file works all others
 #       invoke datetime skill
 
+MARK_II = "mycroft_mark_2"
 MINUTES = 60  # Minutes to seconds multiplier
+CLEAR = 0
+PARTLY_CLOUDY = 1
+CLOUDY = 2
+LIGHT_RAIN = 3
+RAIN = 4
+THUNDERSTORM = 5
+SNOW = 6
+WINDY = 7
 
 
 class WeatherSkill(MycroftSkill):
@@ -68,19 +78,19 @@ class WeatherSkill(MycroftSkill):
         self.weather_api = OWMApi()
         self.weather_api_new = OpenWeatherMapApi()
         self.weather_config = WeatherConfig(self.config_core, self.settings)
-
+        self.platform = self.config_core['enclosure']['platform']
         # Build a dictionary to translate OWM weather-conditions
         # codes into the Mycroft weather icon codes
         # (see https://openweathermap.org/weather-conditions)
-        self.CODES = multi_key_dict()
-        self.CODES['01d', '01n'] = 0                # clear
-        self.CODES['02d', '02n', '03d', '03n'] = 1  # partly cloudy
-        self.CODES['04d', '04n'] = 2                # cloudy
-        self.CODES['09d', '09n'] = 3                # light rain
-        self.CODES['10d', '10n'] = 4                # raining
-        self.CODES['11d', '11n'] = 5                # stormy
-        self.CODES['13d', '13n'] = 6                # snowing
-        self.CODES['50d', '50n'] = 7                # windy/misty
+        self.image_codes = multi_key_dict()
+        self.image_codes['01d', '01n'] = CLEAR
+        self.image_codes['02d', '02n', '03d', '03n'] = PARTLY_CLOUDY
+        self.image_codes['04d', '04n'] = CLOUDY
+        self.image_codes['09d', '09n'] = LIGHT_RAIN
+        self.image_codes['10d', '10n'] = RAIN
+        self.image_codes['11d', '11n'] = THUNDERSTORM
+        self.image_codes['13d', '13n'] = SNOW
+        self.image_codes['50d', '50n'] = WINDY
 
         # Use Mycroft proxy if no private key provided
         self.settings["api_key"] = None
@@ -378,30 +388,75 @@ class WeatherSkill(MycroftSkill):
         intent_data = self._get_intent_data(message)
         weather = self._get_weather(intent_data)
         if weather is not None:
+            self._display_current_conditions(weather)
             dialog = WeatherDialog(
                 weather.current, self.weather_config, intent_data
             )
             dialog.build_current_weather_dialog()
-            self._display_current_weather(weather)
             self._speak_weather(dialog)
+            if self.gui.connected and self.platform != MARK_II:
+                self._display_more_current_conditions(weather)
             dialog.build_high_low_temperature_dialog()
             self._speak_weather(dialog)
+            if self.gui.connected:
+                if self.platform == MARK_II:
+                    self._display_more_current_conditions(weather)
+                    sleep(5)
+                    self._display_hourly_forecast(weather)
+                else:
+                    four_day_forecast = weather.daily[1:5]
+                    self._display_forecast(four_day_forecast)
 
-    def _display_current_weather(self, report):
-        image_code = self.CODES[report.current.condition.icon]
+    def _display_current_conditions(self, weather):
+        image_code = self.image_codes[weather.current.condition.icon]
         if self.gui.connected:
-            self.gui["current"] = report.current.temperature
-            self.gui["min"] = report.current.low_temperature
-            self.gui["max"] = report.current.high_temperature
-            self.gui["condition"] = report.current.condition.description
-            self.gui["icon"] = report.current.condition.icon
-            self.gui["weathercode"] = image_code
-            self.gui.show_pages(["weather.qml", "highlow.qml"])
+            page_name = "current_1_generic.qml"
+            self.gui.clear()
+            self.gui["currentTemperature"] = weather.current.temperature
+            self.gui["weatherCode"] = image_code
+            if self.platform == MARK_II:
+                self.gui["highTemperature"] = weather.current.high_temperature
+                self.gui["lowTemperature"] = weather.current.low_temperature
+                page_name = page_name.replace("generic", "mark_ii")
+            self.gui.show_page(page_name)
         else:
             self.enclosure.deactivate_mouth_events()
             self.enclosure.weather_display(
-                image_code, report.current.temperature
+                image_code, weather.current.temperature
             )
+
+    def _display_more_current_conditions(self, weather):
+        page_name = "current_2_generic.qml"
+        self.gui.clear()
+        if self.platform == MARK_II:
+            self.gui["windSpeed"] = weather.current.wind_speed
+            self.gui["humidity"] = weather.current.humidity
+            page_name = page_name.replace("generic", "mark_ii")
+        else:
+            self.gui["highTemperature"] = weather.current.high_temperature
+            self.gui["lowTemperature"] = weather.current.low_temperature
+        self.gui.show_page(page_name)
+
+    def _display_hourly_forecast(self, weather):
+        hourly_forecast = defaultdict(list)
+        for hour_count, hourly in enumerate(weather.hourly):
+            if not hour_count:
+                continue
+            if hour_count > 4:
+                break
+            # TODO: make the timeframe aware of language/location settings
+            hourly_forecast['times'].append(hourly.date_time.strftime('%H:00'))
+            hourly_forecast['temperatures'].append(hourly.temperature)
+            hourly_forecast['weather_codes'].append(
+                self.image_codes.get(hourly.condition.icon)
+            )
+            hourly_forecast['precipitation'].append(hourly.chance_of_precipitation)
+        self.gui.clear()
+        self.gui['times'] = hourly_forecast['times']
+        self.gui['temperatures'] = hourly_forecast['temperatures']
+        self.gui['weatherCodes'] = hourly_forecast['weather_codes']
+        self.gui['chancesOfPrecipitation'] = hourly_forecast['precipitation']
+        self.gui.show_page('hourly_mark_ii.qml')
 
     def _report_one_hour_weather(self, message):
         intent_data = self._get_intent_data(message)
@@ -418,7 +473,7 @@ class WeatherSkill(MycroftSkill):
         intent_data = WeatherIntent(message, self.lang)
         weather = self._get_weather(intent_data)
         if weather is not None:
-            forecast = weather.daily[:days]
+            forecast = weather.daily[1:days + 1]
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_forecast(forecast)
             for dialog in dialogs:
@@ -457,19 +512,60 @@ class WeatherSkill(MycroftSkill):
 
     def _display_forecast(self, forecast: List):
         """Builds forecast for the upcoming days for the Mark-2 display."""
+        if self.platform == MARK_II:
+            self._display_forecast_mark_ii(forecast)
+        else:
+            self._display_forecast_generic(forecast)
+
+    def _display_forecast_mark_ii(self, forecast):
+        page_one_name = "daily_mark_ii.qml"
+        display_data = defaultdict(list)
+        for day in forecast:
+            display_data['weatherCodes'].append(
+                self.image_codes[day.condition.icon]
+            )
+            display_data['days'].append(day.date_time.strftime("%a"))
+            display_data['highTemperatures'].append(day.temperature.high)
+            display_data['lowTemperatures'].append(day.temperature.low)
+        self.gui.clear()
+        self.gui["numberOfDays"] = min([4, len(forecast)])
+        self.gui['weatherCodes'] = display_data['weatherCodes'][:4]
+        self.gui['days'] = display_data["days"][:4]
+        self.gui["lowTemperatures"] = display_data["lowTemperatures"][:4]
+        self.gui["highTemperatures"] = display_data["highTemperatures"][:4]
+        self.gui.show_page(page_one_name)
+        if len(forecast) > 4:
+            sleep(20)
+            self.gui.clear()
+            self.gui["numberOfDays"] = min([4, len(forecast) - 4])
+            self.gui['weatherCodes'] = display_data['weatherCodes'][4:]
+            self.gui['days'] = display_data["days"][4:]
+            self.gui["lowTemperatures"] = display_data["lowTemperatures"][4:]
+            self.gui["highTemperatures"] = display_data["highTemperatures"][4:]
+            self.gui.clear()
+            self.gui.show_page(page_one_name)
+
+    def _display_forecast_generic(self, forecast):
+        page_one_name = "daily_1_generic.qml"
+        page_two_name = page_one_name.replace("1", "2")
         display_data = []
-        for forecast_day in forecast:
+        for day_number, day in enumerate(forecast):
+            if day_number == 4:
+                break
             display_data.append(
                 dict(
-                    weathercode=self.CODES[forecast_day.condition.icon],
-                    max=forecast_day.temperature.high,
-                    min=forecast_day.temperature.low,
-                    date=forecast_day.date_time.strftime('%a')
+                    weatherCode=self.image_codes[day.condition.icon],
+                    highTemperature=day.temperature.high,
+                    lowTemperature=day.temperature.low,
+                    date=day.date_time.strftime('%a')
                 )
             )
         self.gui['forecast'] = dict(
             first=display_data[:2], second=display_data[2:]
         )
+        self.gui.show_page(page_one_name)
+        sleep(5)
+        self.gui.show_page(page_two_name)
 
     def _report_temperature(self, message, temperature_type=None):
         intent_data = self._get_intent_data(message)
@@ -527,7 +623,6 @@ class WeatherSkill(MycroftSkill):
         except ValueError:
             self.speak_dialog("cant.get.forecast")
         else:
-            print(self.voc_match(intent_data.utterance, "RelativeDay"))
             if self.voc_match(intent_data.utterance, "RelativeTime"):
                 intent_data.timeframe = "hourly"
             elif self.voc_match(intent_data.utterance, "Later"):
