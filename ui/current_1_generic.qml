@@ -6,7 +6,7 @@ import org.kde.kirigami 2.4 as Kirigami
 import Mycroft 1.0 as Mycroft
 import org.kde.lottie 1.0
 
-WeatherDelegate {
+WeatherGenericDelegate {
     id: root
 
     spacing: proportionalGridUnit * 5
@@ -17,7 +17,7 @@ WeatherDelegate {
         Layout.preferredWidth: Math.min(root.contentWidth, proportionalGridUnit * 50)
         Layout.preferredHeight: Layout.preferredWidth
 
-        source: Qt.resolvedUrl(getWeatherImagery(sessionData.weathercode))
+        source: Qt.resolvedUrl(getWeatherImagery(sessionData.weatherCode))
 
         loops: Animation.Infinite
         fillMode: Image.PreserveAspectFit
@@ -25,7 +25,7 @@ WeatherDelegate {
 
         // Debug:
         onSourceChanged: {
-            console.log(getWeatherImagery(sessionData.weathercode));
+            console.log(getWeatherImagery(sessionData.weatherCode));
         }
         onStatusChanged: {
             console.log(weatherAnimation.status, errorString);
@@ -38,6 +38,6 @@ WeatherDelegate {
         Layout.fillWidth: true
         Layout.preferredHeight: proportionalGridUnit * 40
         rightPadding: -font.pixelSize * 0.1
-        text: sessionData.current + "°"
+        text: sessionData.currentTemperature + "°"
     }
 }

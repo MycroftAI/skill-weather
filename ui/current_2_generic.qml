@@ -10,22 +10,22 @@ WeatherDelegate {
     id: root
 
     Mycroft.AutoFitLabel {
-        id: maxTemp
+        id: highTemperature
         font.weight: Font.Bold
         Layout.fillWidth: true
         Layout.preferredHeight: proportionalGridUnit * 40
         //The off-centering to balance the ° should be proportional as well, so we use the computed pixel size
         rightPadding: -font.pixelSize * 0.1
-        text: sessionData.max + "°"
+        text: sessionData.highTemperature + "°"
     }
 
     Mycroft.AutoFitLabel {
-        id: minTemp
+        id: lowTemperature
         Layout.fillWidth: true
         Layout.preferredHeight: proportionalGridUnit * 40
         rightPadding: -font.pixelSize * 0.1
         font.weight: Font.Thin
         font.styleName: "Thin"
-        text: sessionData.min + "°"
+        text: sessionData.lowTemperature + "°"
     }
 }

@@ -6,7 +6,7 @@ import org.kde.kirigami 2.4 as Kirigami
 import Mycroft 1.0 as Mycroft
 import org.kde.lottie 1.0
 
-WeatherDelegate {
+WeatherGenericDelegate {
     id: root
 
     property alias model: forecastRepeater.model
@@ -25,7 +25,7 @@ WeatherDelegate {
                 Layout.preferredHeight: proportionalGridUnit * 20
                 Layout.preferredWidth: Layout.preferredHeight
 
-                source: Qt.resolvedUrl(getWeatherImagery(modelData.weathercode))
+                source: Qt.resolvedUrl(getWeatherImagery(modelData.weatherCode))
                 loops: Animation.Infinite
                 fillMode: Image.PreserveAspectFit
                 running: true
@@ -43,7 +43,7 @@ WeatherDelegate {
                 Layout.fillWidth: true
                 Layout.preferredHeight: proportionalGridUnit * 20
                 rightPadding: -font.pixelSize * 0.1
-                text: modelData.max + "°"
+                text: modelData.highTemperature + "°"
             }
 
             Mycroft.AutoFitLabel {
@@ -51,7 +51,7 @@ WeatherDelegate {
                 Layout.fillWidth: true
                 Layout.preferredHeight: proportionalGridUnit * 20
                 rightPadding: -font.pixelSize * 0.1
-                text: modelData.min + "°"
+                text: modelData.lowTemperature + "°"
             }
         }
     }
