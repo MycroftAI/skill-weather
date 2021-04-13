@@ -19,7 +19,7 @@ import org.kde.kirigami 2.4 as Kirigami
 import Mycroft 1.0 as Mycroft
 import org.kde.lottie 1.0
 
-DailyGenericDelegate {
+DailyScalableDelegate {
     id: root
-    model: sessionData.forecast.first
+    model: sessionData.forecast.second
 }
