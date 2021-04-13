@@ -19,7 +19,26 @@ import org.kde.kirigami 2.4 as Kirigami
 import Mycroft 1.0 as Mycroft
 import org.kde.lottie 1.0
 
-DailyGenericDelegate {
+WeatherScalableDelegate {
     id: root
-    model: sessionData.forecast.second
+
+    Mycroft.AutoFitLabel {
+        id: highTemperature
+        font.weight: Font.Bold
+        Layout.fillWidth: true
+        Layout.preferredHeight: proportionalGridUnit * 40
+        //The off-centering to balance the ° should be proportional as well, so we use the computed pixel size
+        rightPadding: -font.pixelSize * 0.1
+        text: sessionData.highTemperature + "°"
+    }
+
+    Mycroft.AutoFitLabel {
+        id: lowTemperature
+        Layout.fillWidth: true
+        Layout.preferredHeight: proportionalGridUnit * 40
+        rightPadding: -font.pixelSize * 0.1
+        font.weight: Font.Thin
+        font.styleName: "Thin"
+        text: sessionData.lowTemperature + "°"
+    }
 }
