@@ -11,6 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+/*
+One of many screns that show when the user asks for the current weather.
+
+Shows the current wind speed and percentage humidity.
+
+This code is specific to the Mark II device.  It uses a grid of 32x32 pixel
+squares for alignment of items.
+*/
 import QtQuick.Layouts 1.4
 import QtQuick 2.4
 import QtQuick.Controls 2.0
@@ -29,6 +38,7 @@ WeatherMarkIIDelegate {
         width: parent.width
 
         GridLayout {
+            // Two column grid containg wind and humidity data
             id: weather
             anchors.left: parent.left
             anchors.leftMargin: 32
@@ -39,6 +49,7 @@ WeatherMarkIIDelegate {
             rowSpacing: 0
 
             Column {
+                // First column of the grid, displaying a wind icon and speed.
                 id: wind
                 height: 352
                 width: 320
@@ -78,6 +89,7 @@ WeatherMarkIIDelegate {
             }
 
             Column {
+                // Second column of the grid, displaying a humidity icon and speed.
                 id: humidity
                 height: 352
                 width: 320

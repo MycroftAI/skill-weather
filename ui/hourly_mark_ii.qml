@@ -11,6 +11,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+/*
+Shows up to four hours of forecasted weather.
+
+Will be displayed when:
+    * the user asks for a hourly weather forecast.
+    * as the last screen when a user asks for current weather.
+
+This code is specific to the Mark II device.  It uses a grid of 32x32 pixel
+squares for alignment of items.
+*/
 import QtQuick.Layouts 1.4
 import QtQuick 2.4
 import QtQuick.Controls 2.0
@@ -21,11 +32,13 @@ import org.kde.lottie 1.0
 
 WeatherMarkIIDelegate {
     Item {
+        // Bounding box for the content of the screen.
         id: hourlyCard
         height: parent.height
         width: parent.width
 
         GridLayout {
+            // Four column grid, one for each hour of the forecast.
             id: currentWeather
             anchors.left: parent.left
             anchors.leftMargin: 32
@@ -37,6 +50,7 @@ WeatherMarkIIDelegate {
             Layout.fillWidth: true
 
             Repeater {
+                // Displays one to four hours of images representing weather conditions
                 id: conditionRepeater
                 model: sessionData.weatherCodes
                 anchors.top: parent.top
@@ -56,6 +70,7 @@ WeatherMarkIIDelegate {
             }
 
             Repeater {
+                // Displays one to four hours of the time.
                 id: timeRepeater
                 model: sessionData.times
 
@@ -74,6 +89,7 @@ WeatherMarkIIDelegate {
             }
 
             Repeater {
+                // Displays one to four hours of the forecasted temperature
                 id: temperatureRepeater
                 model: sessionData.temperatures
 
@@ -93,6 +109,7 @@ WeatherMarkIIDelegate {
             }
 
             Repeater {
+                // Displays one to four hours of the forecasted chance of precipitation
                 id: precipitationRepeater
                 model: sessionData.chancesOfPrecipitation
 

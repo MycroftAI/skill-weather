@@ -19,6 +19,13 @@ import org.kde.lottie 1.0
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+/*
+Re-usable code to display two days forecast.
+
+This code written to be scalable for different screen sizes.  It can be used on any
+device not conforming to the Mark II screen's form factor.
+*/
 WeatherScalableDelegate {
     id: root
 
