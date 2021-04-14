@@ -11,6 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.import QtQuick.Layouts 1.4
+
+/*
+One of many screns that show when the user asks for the current weather.
+
+Shows an image representing current conditions and the current temperature.
+
+This code written to be scalable for different screen sizes.  It can be used on any
+device not conforming to the Mark II screen's form factor.
+*/
 import QtQuick 2.4
 import QtQuick.Controls 2.0
 import org.kde.kirigami 2.4 as Kirigami
@@ -24,6 +33,7 @@ WeatherScalableDelegate {
     spacing: proportionalGridUnit * 5
 
     LottieAnimation {
+        // Animation depicting the current weather conditions (e.g. sunny, cloudy, etc.)
         id: weatherAnimation
         Layout.alignment: Qt.AlignHCenter
         Layout.preferredWidth: Math.min(root.contentWidth, proportionalGridUnit * 50)
@@ -45,6 +55,7 @@ WeatherScalableDelegate {
     }
 
     Mycroft.AutoFitLabel {
+        //  Current temperature in the configured temperature unit
         id: temperature
         font.weight: Font.Bold
         Layout.fillWidth: true

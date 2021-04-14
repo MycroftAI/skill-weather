@@ -11,10 +11,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 /*
 One of many screns that show when the user asks for the current weather.
 
-Shows an animation with current conditions, the current temperature, and
+Shows an image representing current conditions, the current temperature, and
 the high/low temperature for today.
 
 This code is specific to the Mark II device.  It uses a grid of 32x32 pixel

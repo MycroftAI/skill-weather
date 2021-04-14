@@ -11,6 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+/*
+Re-usable code that defines a map of Open Weather Map icon codes to SVGs.
+
+This code is specific to the Mark II device.  It uses images instead of animations to
+address performance concerns.  Could change to use animations if the performance improves
+*/
 import QtQuick.Layouts 1.4
 import QtQuick 2.4
 import QtQuick.Controls 2.0

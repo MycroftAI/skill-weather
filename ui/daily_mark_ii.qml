@@ -11,6 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.import QtQuick.Layouts 1.4
+
+/*
+Shows up to four days of forecasted weather.
+
+Will be displayed when the user asks for a daily weather forecast.
+
+This code is specific to the Mark II device.  It uses a grid of 32x32 pixel
+squares for alignment of items.
+*/
 import QtQuick 2.4
 import QtQuick.Controls 2.0
 import org.kde.kirigami 2.4 as Kirigami
@@ -20,12 +29,15 @@ import org.kde.lottie 1.0
 
 WeatherMarkIIDelegate {
     Item {
+        // Bounding box for the content of the screen.
         id: hourlyCard
         height: parent.height
         width: parent.width
 
         GridLayout {
-            id: currentWeather
+            // Four column grid, one for each day of the forecast.  Can be less than
+            // four days depending on the user's request.
+            id: dailyWeather
             anchors.left: parent.left
             anchors.leftMargin: 32
             anchors.top: parent.top
@@ -36,6 +48,7 @@ WeatherMarkIIDelegate {
             Layout.fillWidth: true
 
             Repeater {
+                // Displays one to four days of images representing weather conditions
                 id: conditionRepeater
                 model: sessionData.weatherCodes
                 anchors.top: parent.top
@@ -55,6 +68,7 @@ WeatherMarkIIDelegate {
             }
 
             Repeater {
+                // Displays one to four days of the abbreviated day of week.
                 id: timeRepeater
                 model: sessionData.days
 
@@ -73,6 +87,7 @@ WeatherMarkIIDelegate {
             }
 
             Repeater {
+                // Displays one to four days of the forecasted high temperature
                 id: highTemperatureRepeater
                 model: sessionData.highTemperatures
 
@@ -92,6 +107,7 @@ WeatherMarkIIDelegate {
             }
 
             Repeater {
+                // Displays one to four days of the forecasted low temperature
                 id: lowTemperatureRepeater
                 model: sessionData.lowTemperatures
 

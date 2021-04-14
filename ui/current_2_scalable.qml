@@ -11,6 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+/*
+One of many screns that show when the user asks for the current weather.
+
+Shows the high/low temperature for today.
+
+This code written to be scalable for different screen sizes.  It can be used on any
+device not conforming to the Mark II screen's form factor.
+*/
 import QtQuick.Layouts 1.4
 import QtQuick 2.4
 import QtQuick.Controls 2.0
