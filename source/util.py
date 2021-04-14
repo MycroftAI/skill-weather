@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from datetime import datetime
+"""Utility functions for the weather skill."""
+from datetime import datetime, tzinfo
+from time import time
 
 import pytz
 
@@ -20,10 +22,20 @@ from mycroft.util.parse import extract_datetime
 
 
 class LocationNotFoundError(ValueError):
+    """Raise when the API cannot find the requested location."""
+
     pass
 
 
-def convert_to_local_datetime(timestamp, timezone):
+def convert_to_local_datetime(timestamp: time, timezone: str) -> datetime:
+    """Convert a timestamp to a datetime object in the requested timezone.
+
+    This function assumes it is passed a timestamp in the UTC timezone.  It
+    then adjusts the datetime to match the specified timezone.
+
+    :param timestamp: seconds since epoch
+    :param timezone: the timezone requested by the user
+    """
     naive_datetime = datetime.fromtimestamp(timestamp)
     utc_datetime = pytz.utc.localize(naive_datetime)
     local_timezone = pytz.timezone(timezone)
@@ -32,8 +44,15 @@ def convert_to_local_datetime(timestamp, timezone):
     return local_datetime
 
 
-def get_utterance_datetime(utterance, timezone=None, language=None):
-    # Change timezone returned by extract_datetime from Local to UTC
+def get_utterance_datetime(
+    utterance: str, timezone: str = None, language: str = None
+) -> datetime:
+    """Get a datetime representation of a date or time concept in an utterance.
+
+    :param utterance: the words spoken by the user
+    :param timezone: the timezone requested by the user
+    :param language: the language configured on the device
+    """
     utterance_datetime = None
     if timezone is None:
         anchor_date = None
@@ -47,10 +66,19 @@ def get_utterance_datetime(utterance, timezone=None, language=None):
     return utterance_datetime
 
 
-def get_tz_info(timezone):
+def get_tz_info(timezone: str) -> tzinfo:
+    """Generate a tzinfo object from a timezone string.
+
+    :param timezone: a string representing a timezone
+    """
     return pytz.timezone(timezone)
 
+
 def get_geolocation(location: str):
+    """Retrieve the geolocation information about the requested location.
+
+    :param location: a location specified in the utterance
+    """
     geolocation_api = GeolocationApi()
     geolocation = geolocation_api.get_geolocation(location)
 
@@ -60,8 +88,11 @@ def get_geolocation(location: str):
     return geolocation
 
 
-def get_time_period(intent_datetime):
-    # Translate a specific time '9am' to period of the day 'morning'
+def get_time_period(intent_datetime: datetime) -> str:
+    """Translate a specific time '9am' to period of the day 'morning'
+
+    :param intent_datetime: the datetime extracted from an utterance
+    """
     hour = intent_datetime.time().hour
     if 1 <= hour < 5:
         period = "early morning"
@@ -75,21 +106,3 @@ def get_time_period(intent_datetime):
         period = "overnight"
 
     return period
-
-
-def get_sequence_of_days(weather, condition_category):
-    longest_sequence = []
-    this_sequence = []
-    last_in_sequence = 0
-    for day_count, daily in enumerate(weather.daily):
-        if daily.condition.catetory == condition_category:
-            if not last_in_sequence or day_count == last_in_sequence + 1:
-                this_sequence.append(daily)
-                last_in_sequence += 1
-            else:
-                if 1 > len(this_sequence) > len(longest_sequence):
-                    longest_sequence = this_sequence
-                this_sequence = []
-                last_in_sequence = day_count
-
-    return longest_sequence
