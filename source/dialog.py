@@ -45,8 +45,8 @@ class WeatherDialog:
         """Build the components necessary to speak current weather."""
         self.name = "current.weather"
         self.data = dict(
-            condition=self.weather.condition.description,
-            temperature=self.weather.temperature,
+            condition=self.weather.current.condition.description,
+            temperature=self.weather.current.temperature,
             temperature_unit=self.config.temperature_unit,
         )
         self._add_location()
@@ -55,8 +55,8 @@ class WeatherDialog:
         """Build the components necessary to speak high and low temperature."""
         self.name = "current.temperature.high.low"
         self.data = dict(
-            high_temperature=self.weather.high_temperature,
-            low_temperature=self.weather.low_temperature,
+            high_temperature=self.weather.current.high_temperature,
+            low_temperature=self.weather.current.low_temperature,
         )
 
     def build_hourly_weather_dialog(self):
