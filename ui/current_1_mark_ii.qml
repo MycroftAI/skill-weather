@@ -24,12 +24,8 @@ squares for alignment of items.
 import QtQuick.Layouts 1.4
 import QtQuick 2.4
 import QtQuick.Controls 2.0
-import org.kde.kirigami 2.4 as Kirigami
 
-import Mycroft 1.0 as Mycroft
-import org.kde.lottie 1.0
-
-WeatherMarkIIDelegate {
+WeatherDelegateMarkII {
     id: root
 
     Item {
@@ -38,44 +34,38 @@ WeatherMarkIIDelegate {
         height: parent.height
         width: parent.width
 
-        Item {
+        WeatherLabel {
             // City/state if in same country as device.  City/country if in a different country
             id: weatherLocation
-            height: 64
-            width: parent.width
-
-            Label {
-                id: weatherLocationText
-                anchors.baseline: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                font.family: "Noto Sans Display"
-                font.pixelSize: 48
-                text: "Kansas City, Missouri"
-            }
+            heightUnits: 4
+            fontSize: 48
+            fontStyle: "Medium"
+            text: sessionData.weatherLocation
         }
 
         GridLayout {
             id: weather
             anchors.left: parent.left
-            anchors.leftMargin: 32
+            anchors.leftMargin: gridUnit * 2
             anchors.top: weatherLocation.bottom
-            anchors.topMargin: 32
+            anchors.topMargin: gridUnit * 2
             columns: 2
-            columnSpacing: 32
+            columnSpacing: gridUnit * 2
+            width: gridUnit * 20
 
             Item {
-                // First row in grid
+                // First column in grid
                 id: currentConditions
-                height: 288
-                width: 320
+                height: gridUnit * 18
+                width: parent.width
 
                 Image {
                     // Image depicting the current weather conditions (e.g. sunny, cloudy, etc.)
                     id: conditionsImage
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.horizontalCenterOffset: -32
+                    anchors.horizontalCenterOffset: gridUnit * -2
                     fillMode: Image.PreserveAspectFit
-                    height: 112
+                    height: gridUnit * 7
                     source: Qt.resolvedUrl(getWeatherImagery(sessionData.weatherCode))
                 }
 
@@ -83,48 +73,48 @@ WeatherMarkIIDelegate {
                     //  Current temperature in the configured temperature unit.
                     id: currentTemperature
                     anchors.baseline: parent.bottom
-                    anchors.baselineOffset: -16
+                    anchors.baselineOffset: gridUnit * -1
                     anchors.horizontalCenter: parent.horizontalCenter
                     font.family: "Noto Sans Display"
                     font.pixelSize: 176
-                    font.weight: Font.Bold
+                    font.styleName: "Bold"
                     text: sessionData.currentTemperature + "°"
                 }
             }
 
             Column {
-                // Second column
+                // Second column in grid
                 id: highLowTemperature
-                height: 288
-                width: 320
-                spacing: 32
+                height: gridUnit * 18
+                width: parent.width
+                spacing: gridUnit * 2
 
                 Item {
                     // High temperature for today
                     id: highTemperature
-                    height: 128
+                    height: gridUnit * 8
                     width: parent.width
 
                     Image {
                         id: highTemperatureIcon
                         anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 32
+                        anchors.bottomMargin: gridUnit * 2
                         anchors.left: highTemperature.left
-                        anchors.leftMargin: 32
+                        anchors.leftMargin: gridUnit * 2
                         fillMode: Image.PreserveAspectFit
-                        height: 64
+                        height: gridUnit * 4
                         source: Qt.resolvedUrl("images/high_temperature.svg")
                     }
 
                     Label {
                         id: highTemperatureValue
                         anchors.baseline: parent.bottom
-                        anchors.baselineOffset: -32
+                        anchors.baselineOffset: gridUnit * -2
                         anchors.left: highTemperatureIcon.right
-                        anchors.leftMargin: 32
+                        anchors.leftMargin: gridUnit * 2
                         font.family: "Noto Sans Display"
                         font.pixelSize: 118
-                        font.weight: Font.Bold
+                        font.styleName: "SemiBold"
                         text: sessionData.highTemperature + "°"
                     }
                 }
@@ -132,29 +122,29 @@ WeatherMarkIIDelegate {
                 Item {
                     // Low temperature for today
                     id: lowTemperature
-                    height: 128
+                    height: gridUnit * 8
                     width: parent.width
 
                     Image {
                         id: lowTemperatureIcon
                         anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 32
+                        anchors.bottomMargin: gridUnit * 2
                         anchors.left: lowTemperature.left
-                        anchors.leftMargin: 32
+                        anchors.leftMargin: gridUnit * 2
                         fillMode: Image.PreserveAspectFit
-                        height: 64
+                        height: gridUnit * 4
                         source: Qt.resolvedUrl("images/low_temperature.svg")
                     }
 
                     Label {
                         id: lowTemperatureValue
                         anchors.baseline: parent.bottom
-                        anchors.baselineOffset: -32
+                        anchors.baselineOffset: gridUnit * -2
                         anchors.left: lowTemperatureIcon.right
-                        anchors.leftMargin: 32
+                        anchors.leftMargin: gridUnit * 2
                         font.family: "Noto Sans Display"
                         font.pixelSize: 118
-                        font.weight: Font.Light
+                        font.styleName: "Light"
                         text: sessionData.lowTemperature + "°"
                     }
                 }
