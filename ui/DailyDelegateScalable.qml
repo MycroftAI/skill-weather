@@ -26,7 +26,7 @@ Re-usable code to display two days forecast.
 This code written to be scalable for different screen sizes.  It can be used on any
 device not conforming to the Mark II screen's form factor.
 */
-WeatherScalableDelegate {
+WeatherDelegateScalable {
     id: root
 
     property alias model: forecastRepeater.model

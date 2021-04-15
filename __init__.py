@@ -49,6 +49,7 @@ from .source import (
 #       invoke datetime skill
 
 MARK_II = "mycroft_mark_2"
+TWELVE_HOUR = "half"
 CLEAR = 0
 PARTLY_CLOUDY = 1
 CLOUDY = 2
@@ -84,13 +85,6 @@ class WeatherSkill(MycroftSkill):
         # Use Mycroft proxy if no private key provided
         self.settings["api_key"] = None
         self.settings["use_proxy"] = True
-
-    def initialize(self):
-        """Initialization steps to perform after the skill loads."""
-        self.weather_config.speed_unit = self.translate(self.weather_config.speed_unit)
-        self.weather_config.temperature_unit = self.translate(
-            self.weather_config.temperature_unit
-        )
 
     @intent_handler(
         IntentBuilder("")
@@ -566,7 +560,7 @@ class WeatherSkill(MycroftSkill):
         intent_data = self._get_intent_data(message)
         weather = self._get_weather(intent_data)
         if weather is not None:
-            self._display_current_conditions(weather.current)
+            self._display_current_conditions(weather, intent_data)
             dialog = WeatherDialog(weather, self.weather_config, intent_data)
             dialog.build_current_weather_dialog()
             self._speak_weather(dialog)
@@ -583,7 +577,7 @@ class WeatherSkill(MycroftSkill):
                     four_day_forecast = weather.daily[1:5]
                     self._display_forecast(four_day_forecast)
 
-    def _display_current_conditions(self, weather: WeatherReport):
+    def _display_current_conditions(self, weather: WeatherReport, intent_data: WeatherIntent):
         """Display current weather conditions on a screen.
 
         This is the first screen that shows.  Others will follow.
@@ -597,13 +591,26 @@ class WeatherSkill(MycroftSkill):
             self.gui["currentTemperature"] = weather.current.temperature
             self.gui["weatherCode"] = image_code
             if self.platform == MARK_II:
+                self.gui["weatherLocation"] = self._build_display_location(intent_data)
                 self.gui["highTemperature"] = weather.current.high_temperature
                 self.gui["lowTemperature"] = weather.current.low_temperature
-                page_name = page_name.replace("generic", "mark_ii")
+                page_name = page_name.replace("scalable", "mark_ii")
             self.gui.show_page(page_name)
         else:
             self.enclosure.deactivate_mouth_events()
             self.enclosure.weather_display(image_code, weather.current.temperature)
+
+    def _build_display_location(self, intent_data: WeatherIntent) -> str:
+        if intent_data.geolocation:
+            location = [intent_data.geolocation["city"]]
+            if intent_data.geolocation["country"] == self.weather_config.country:
+                location.append(intent_data.geolocation["region"])
+            else:
+                location.append(intent_data.geolocation["country"])
+        else:
+            location = [self.weather_config.city, self.weather_config.state]
+
+        return ", ".join(location)
 
     def _display_more_current_conditions(self, weather: WeatherReport):
         """Display current weather conditions on a device that supports a GUI.
@@ -617,7 +624,7 @@ class WeatherSkill(MycroftSkill):
         if self.platform == MARK_II:
             self.gui["windSpeed"] = weather.current.wind_speed
             self.gui["humidity"] = weather.current.humidity
-            page_name = page_name.replace("generic", "mark_ii")
+            page_name = page_name.replace("scalable", "mark_ii")
         else:
             self.gui["highTemperature"] = weather.current.high_temperature
             self.gui["lowTemperature"] = weather.current.low_temperature
@@ -644,24 +651,31 @@ class WeatherSkill(MycroftSkill):
 
         :param weather: hourly weather conditions from Open Weather Maps
         """
-        hourly_forecast = defaultdict(list)
+        hourly_forecast = []
         for hour_count, hourly in enumerate(weather.hourly):
             if not hour_count:
                 continue
             if hour_count > 4:
                 break
             # TODO: make the timeframe aware of language/location settings
-            hourly_forecast["times"].append(hourly.date_time.strftime("%H:00"))
-            hourly_forecast["temperatures"].append(hourly.temperature)
-            hourly_forecast["weather_codes"].append(
-                self.image_codes.get(hourly.condition.icon)
+            if self.config_core['time_format'] == TWELVE_HOUR:
+                # The datetime builtin returns hour in two character format.  Convert
+                # to a integer and back again to remove the leading zero when present.
+                hour = int(hourly.date_time.strftime("%I"))
+                am_pm = hourly.date_time.strftime(" %p")
+                formatted_time = str(hour) + am_pm
+            else:
+                formatted_time = hourly.date_time.strftime("%H:00")
+            hourly_forecast.append(
+                dict(
+                    time=hourly.date_time.strftime(formatted_time),
+                    precipitation=hourly.chance_of_precipitation,
+                    temperature=hourly.temperature,
+                    weatherCode=self.image_codes.get(hourly.condition.icon),
+                )
             )
-            hourly_forecast["precipitation"].append(hourly.chance_of_precipitation)
         self.gui.clear()
-        self.gui["times"] = hourly_forecast["times"]
-        self.gui["temperatures"] = hourly_forecast["temperatures"]
-        self.gui["weatherCodes"] = hourly_forecast["weather_codes"]
-        self.gui["chancesOfPrecipitation"] = hourly_forecast["precipitation"]
+        self.gui["hourlyForecast"] = dict(hours=hourly_forecast)
         self.gui.show_page("hourly_mark_ii.qml")
 
     def _report_multi_day_forecast(self, message: Message, days: int):
@@ -732,7 +746,7 @@ class WeatherSkill(MycroftSkill):
         if self.platform == MARK_II:
             self._display_forecast_mark_ii(forecast)
         else:
-            self._display_forecast_generic(forecast)
+            self._display_forecast_scalable(forecast)
 
     def _display_forecast_mark_ii(self, forecast: List[DailyWeather]):
         """Display daily forecast data on a Mark II.
@@ -741,32 +755,27 @@ class WeatherSkill(MycroftSkill):
 
         :param forecast: daily forecasts to display
         """
-        page_one_name = "daily_mark_ii.qml"
-        display_data = defaultdict(list)
+        page_name = "daily_mark_ii.qml"
+        daily_forecast = []
         for day in forecast:
-            display_data["weatherCodes"].append(self.image_codes[day.condition.icon])
-            display_data["days"].append(day.date_time.strftime("%a"))
-            display_data["highTemperatures"].append(day.temperature.high)
-            display_data["lowTemperatures"].append(day.temperature.low)
+            daily_forecast.append(
+                dict(
+                    weatherCode=self.image_codes[day.condition.icon],
+                    day=day.date_time.strftime("%a"),
+                    highTemperature=day.temperature.high,
+                    lowTemperature=day.temperature.low
+                )
+            )
         self.gui.clear()
-        self.gui["numberOfDays"] = min([4, len(forecast)])
-        self.gui["weatherCodes"] = display_data["weatherCodes"][:4]
-        self.gui["days"] = display_data["days"][:4]
-        self.gui["lowTemperatures"] = display_data["lowTemperatures"][:4]
-        self.gui["highTemperatures"] = display_data["highTemperatures"][:4]
-        self.gui.show_page(page_one_name)
+        self.gui["dailyForecast"] = dict(days=daily_forecast[:4])
+        self.gui.show_page(page_name)
         if len(forecast) > 4:
             sleep(20)
             self.gui.clear()
-            self.gui["numberOfDays"] = min([4, len(forecast) - 4])
-            self.gui["weatherCodes"] = display_data["weatherCodes"][4:]
-            self.gui["days"] = display_data["days"][4:]
-            self.gui["lowTemperatures"] = display_data["lowTemperatures"][4:]
-            self.gui["highTemperatures"] = display_data["highTemperatures"][4:]
-            self.gui.clear()
-            self.gui.show_page(page_one_name)
+            self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
+            self.gui.show_page(page_name)
 
-    def _display_forecast_generic(self, forecast: List[DailyWeather]):
+    def _display_forecast_scalable(self, forecast: List[DailyWeather]):
         """Display daily forecast data on GUI devices other than the Mark II.
 
         The generic layout supports displaying two days of a forecast at a time.
