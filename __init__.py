@@ -127,11 +127,10 @@ class WeatherSkill(MycroftSkill):
         """
         if self.voc_match(message.data["num"], "Couple"):
             days = 2
+        elif self.voc_match(message.data["num"], "Few"):
+            days = 3
         else:
             days = int(extract_number(message.data["num"]))
-            if days > 7:
-                self.speak_dialog("seven.days.available")
-                days = 7
         self._report_multi_day_forecast(message, days)
 
     @intent_handler(
@@ -638,10 +637,14 @@ class WeatherSkill(MycroftSkill):
         intent_data = self._get_intent_data(message)
         weather = self._get_weather(intent_data)
         if weather is not None:
-            forecast = weather.get_forecast_for_hour(intent_data)
-            dialog = WeatherDialog(forecast, self.weather_config, intent_data)
-            dialog.build_hourly_weather_dialog()
-            self._speak_weather(dialog)
+            try:
+                forecast = weather.get_forecast_for_hour(intent_data)
+            except IndexError:
+                self.speak_dialog("forty-eight.hours.available")
+            else:
+                dialog = WeatherDialog(forecast, self.weather_config, intent_data)
+                dialog.build_hourly_weather_dialog()
+                self._speak_weather(dialog)
 
     def _display_hourly_forecast(self, weather: WeatherReport):
         """Display hourly forecast on a device that supports the GUI.
@@ -686,7 +689,11 @@ class WeatherSkill(MycroftSkill):
         intent_data = WeatherIntent(message, self.lang)
         weather = self._get_weather(intent_data)
         if weather is not None:
-            forecast = weather.daily[1 : days + 1]
+            try:
+                forecast = weather.get_forecast_for_multiple_days(days)
+            except IndexError:
+                self.speak_dialog("seven.days.available")
+                forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_forecast(forecast)
             for dialog in dialogs:

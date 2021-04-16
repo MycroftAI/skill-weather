@@ -210,6 +210,15 @@ class WeatherReport:
 
         return forecast
 
+    def get_forecast_for_multiple_days(self, days):
+        """Use the intent to determine which daily forecast(s) satisfies the request"""
+        if days > 7:
+            raise IndexError("Only seven days of forecasted weather available.")
+
+        forecast = self.daily[1 : days + 1]
+
+        return forecast
+
     def get_forecast_for_hour(self, intent_data):
         """Use the intent to determine which hourly forecast(s) satisfies the request"""
         delta = intent_data.intent_datetime - intent_data.location_datetime
