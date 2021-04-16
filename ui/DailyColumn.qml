@@ -41,7 +41,7 @@ Column {
     WeatherLabel {
         id: forecastDay
         heightUnits: 4
-        fontSize: 59
+        fontSize: 47
         fontStyle: "Regular"
         text: forecast.day
     }
