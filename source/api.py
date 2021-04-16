@@ -25,12 +25,64 @@ provided, precluding us from having to do the conversions.
 from mycroft.api import Api
 from .weather import WeatherReport
 
+OPEN_WEATHER_MAP_LANGUAGES = (
+    "af",
+    "al",
+    "ar",
+    "bg",
+    "ca",
+    "cz",
+    "da",
+    "de",
+    "el",
+    "en",
+    "es",
+    "eu",
+    "fa",
+    "fi",
+    "fr",
+    "gl",
+    "he",
+    "hi",
+    "hr",
+    "hu",
+    "id",
+    "it",
+    "ja",
+    "kr",
+    "la",
+    "lt",
+    "mk",
+    "nl",
+    "no",
+    "pl",
+    "pt",
+    "pt_br",
+    "ro",
+    "ru",
+    "se",
+    "sk",
+    "sl",
+    "sp",
+    "sr",
+    "sv",
+    "th",
+    "tr",
+    "ua",
+    "uk",
+    "vi",
+    "zh_cn",
+    "zh_tw",
+    "zu"
+)
+
 
 class OpenWeatherMapApi(Api):
     """Use Open Weather Map's One Call API to retrieve weather information"""
 
     def __init__(self):
         super().__init__(path="owm")
+        self.language = "en"
 
     def get_weather_for_coordinates(
         self, measurement_system: str, latitude: float, longitude: float
@@ -42,10 +94,30 @@ class OpenWeatherMapApi(Api):
         :param longitude: the geologic longitude of the weather location
         """
         query_parameters = dict(
-            exclude="minutely", lat=latitude, lon=longitude, units=measurement_system
+            exclude="minutely",
+            lang=self.language,
+            lat=latitude,
+            lon=longitude,
+            units=measurement_system
         )
         api_request = dict(path="/onecall", query=query_parameters)
         response = self.request(api_request)
         local_weather = WeatherReport(response)
 
         return local_weather
+
+    def set_language_parameter(self, language_config: str):
+        """
+        OWM supports 31 languages, see https://openweathermap.org/current#multi
+        Convert language code to owm language, if missing use 'en'
+        """
+        special_cases = {"cs": "cz", "ko": "kr", "lv": "la"}
+        language_part_one, language_part_two = language_config.split('-')
+        if language_config.replace('-', '_') in OPEN_WEATHER_MAP_LANGUAGES:
+            self.language = language_config.replace('-', '_')
+        elif language_part_one in OPEN_WEATHER_MAP_LANGUAGES:
+            self.language = language_part_one
+        elif language_part_two in OPEN_WEATHER_MAP_LANGUAGES:
+            self.language = language_part_two
+        elif language_part_one in special_cases:
+            self.language = special_cases[language_part_one]
