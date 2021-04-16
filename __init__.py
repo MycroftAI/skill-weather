@@ -106,7 +106,6 @@ class WeatherSkill(MycroftSkill):
         .require("Like")
         .require("Outside")
         .optionally("Location")
-        .optionally("Today")
     )
     def handle_like_outside(self, message: Message):
         """Handle current weather requests such as: what's it like outside?
@@ -230,14 +229,13 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
         .require("Temperature")
+        .optionally("Query")
         .optionally("Location")
         .optionally("Unit")
         .optionally("RelativeDay")
-        .optionally("Now")
     )
-    def handle_simple_temperature(self, message: Message):
+    def handle_daily_temperature(self, message: Message):
         """Handle simple requests for current temperature.
 
         Examples: "What is the temperature?"
@@ -248,13 +246,13 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("RelativeTime")
         .require("Temperature")
+        .require("RelativeTime")
         .optionally("Query")
         .optionally("RelativeDay")
         .optionally("Location")
     )
-    def handle_temperature_at_time(self, message: Message):
+    def handle_hourly_temperature(self, message: Message):
         """Handle requests for current temperature at a relative time.
 
         Examples:
