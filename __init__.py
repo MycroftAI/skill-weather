@@ -19,7 +19,6 @@ proxies its calls to the API through Mycroft's officially supported API,
 Selene.  The Selene API is also used to get geographical information about the
 city name provided in the request.
 """
-from collections import defaultdict
 from multi_key_dict import multi_key_dict
 from time import sleep
 from typing import List, Tuple
