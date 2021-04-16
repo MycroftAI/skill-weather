@@ -28,6 +28,7 @@ Feature: Mycroft Weather Skill current weather at a specified location
   Examples: what is the current local weather in a location
     | what is the current weather in location |
     | what's the current weather conditions in Washington, D.C. |
+    | what is it like outside in baltimore today |
 
 
   Scenario Outline: User asks for the current weather in an unknown location
