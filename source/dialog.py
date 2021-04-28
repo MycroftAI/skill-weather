@@ -12,15 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Abstraction of dialog building for the weather skill."""
+from typing import List, Tuple
+
 from mycroft.util.format import nice_number, nice_time
 from mycroft.util.time import now_local
-from .util import get_time_period
-from .weather import is_current_weather, is_hourly_forecast, is_daily_forecast
-
-CURRENT = "current"
-DAILY = "daily"
-HOURLY = "hourly"
-
+from .config import WeatherConfig
+from .intent import WeatherIntent
+from .util import get_speakable_day_of_week, get_time_period
+from .weather import (
+    CURRENT,
+    CurrentWeather,
+    DAILY,
+    DailyWeather,
+    HOURLY,
+    HourlyWeather,
+    is_current_weather,
+    is_hourly_forecast,
+    is_daily_forecast,
+)
 
 # TODO: MISSING DIALOGS
 #   - current.clear.alternative.local
@@ -28,114 +37,49 @@ HOURLY = "hourly"
 #   - daily.snow.alternative.local
 #   - all hourly.<condition>.alternative.local/location
 #   - all hourly.<condition>.not.expected.local/location
-class WeatherDialog:
+class Dialog:
+    """Abstract base class for the weather dialog builders."""
+
+    def __init__(self, intent_data: WeatherIntent, config: WeatherConfig):
+        self.intent_data = intent_data
+        self.config = config
+        self.name = None
+        self.data = None
+
+    def _add_location(self):
+        """Add location information to the dialog."""
+        if self.intent_data.location is None:
+            self.name += ".local"
+        else:
+            self.name += ".location"
+            if self.config.country == self.intent_data.geolocation["country"]:
+                spoken_location = ", ".join(
+                    [
+                        self.intent_data.geolocation["city"],
+                        self.intent_data.geolocation["region"],
+                    ]
+                )
+            else:
+                spoken_location = ", ".join(
+                    [
+                        self.intent_data.geolocation["city"],
+                        self.intent_data.geolocation["country"],
+                    ]
+                )
+            self.data.update(location=spoken_location)
+
+
+class WeatherDialog(Dialog):
     """Use intent and weather data to determine which dialog will be spoken."""
 
     def __init__(self, weather, config, intent_data):
+        super().__init__(intent_data, config)
         self.weather = weather
         self.config = config
         self.intent_data = intent_data
         self.current_weather = is_current_weather(weather)
         self.daily_forecast = is_daily_forecast(weather)
         self.hourly_forecast = is_hourly_forecast(weather)
-        self.name = None
-        self.data = None
-
-    def build_current_weather_dialog(self):
-        """Build the components necessary to speak current weather."""
-        self.name = "current.weather"
-        self.data = dict(
-            condition=self.weather.current.condition.description,
-            temperature=self.weather.current.temperature,
-            temperature_unit=self.config.temperature_unit,
-        )
-        self._add_location()
-
-    def build_high_low_temperature_dialog(self):
-        """Build the components necessary to speak high and low temperature."""
-        self.name = "current.temperature.high.low"
-        self.data = dict(
-            high_temperature=self.weather.current.high_temperature,
-            low_temperature=self.weather.current.low_temperature,
-        )
-
-    def build_hourly_weather_dialog(self):
-        """Build the components necessary to speak current weather."""
-        self.name = "hourly.weather"
-        self.data = dict(
-            condition=self.weather.condition.description,
-            time=self.weather.date_time.strftime("%H:00"),
-            temperature=self.weather.temperature,
-        )
-        self._add_location()
-
-    def build_daily_weather_dialog(self):
-        """Build the components necessary to speak the forecast for a day."""
-        self.name = "daily.weather"
-        self.data = dict(
-            condition=self.weather.condition.description,
-            day=self.weather.date_time.strftime("%A"),
-            high_temperature=self.weather.temperature.high,
-            low_temperature=self.weather.temperature.low,
-        )
-        if self.weather.date_time.date() == self.intent_data.location_datetime.date():
-            self.data.update(day="Today")
-        self._add_location()
-
-    def build_temperature_dialog(self, temperature_type: str):
-        """Build the components necessary to speak the temperature.
-
-        :param temperature_type: indicates if temperature is current, high or low
-        """
-        if self.daily_forecast:
-            self._build_daily_temperature_dialog(temperature_type)
-        elif self.hourly_forecast:
-            self._build_hourly_temperature_dialog()
-        else:
-            self._build_current_temperature_dialog(temperature_type)
-        self.data.update(
-            temperature_unit=self.intent_data.unit or self.config.temperature_unit
-        )
-        self._add_location()
-
-    def _build_current_temperature_dialog(self, temperature_type):
-        """Build the components necessary to speak the current temperature.
-
-        :param temperature_type: indicates if temperature is current, high or low
-        """
-        self.name = "current.temperature"
-        if temperature_type == "high":
-            self.name += ".high"
-            self.data = dict(temperature=self.weather.high_temperature)
-        elif temperature_type == "low":
-            self.name += ".low"
-            self.data = dict(temperature=self.weather.low_temperature)
-        else:
-            self.data = dict(temperature=self.weather.temperature)
-
-    def _build_daily_temperature_dialog(self, temperature_type):
-        """Build the components necessary to speak the daily temperature.
-
-        :param temperature_type: indicates if temperature is day, high or low
-        """
-        self.name = "daily.temperature"
-        if temperature_type == "high":
-            self.name += ".high"
-            self.data = dict(temperature=self.weather.temperature.high)
-        elif temperature_type == "low":
-            self.name += ".low"
-            self.data = dict(temperature=self.weather.temperature.low)
-        else:
-            self.data = dict(temperature=self.weather.temperature.day)
-        self.data.update(day=self.weather.date_time.strftime("%A"))
-
-    def _build_hourly_temperature_dialog(self):
-        """Build the components necessary to speak the hourly temperature."""
-        self.name = "hourly.temperature"
-        self.data = dict(
-            temperature=self.weather.temperature,
-            time=get_time_period(self.weather.date_time),
-        )
 
     def build_wind_dialog(self):
         """Build the components necessary to speak the wind conditions."""
@@ -163,35 +107,6 @@ class WeatherDialog:
             self.name = "current.humidity"
         self._add_location()
 
-    def build_condition_dialog(
-        self, condition: str, intent_match: bool, alternative: bool
-    ):
-        """Select the relevant dialog file for condition based reports.
-
-        A condition can for example be "snow" or "rain".
-
-        :param condition: name of condition eg snow
-        :param intent_match: true if intent matches a vocabulary for the condition
-        :param alternative: true if intent matches a vocabulary for an alternative
-            condition
-        """
-        self.data = dict(condition=condition.lower())
-        if self.daily_forecast:
-            self.name = "daily"
-            self.data.update(day=self.weather.date_time.strftime("%A"))
-        elif self.hourly_forecast:
-            self.name = "hourly"
-            self.data.update(time=nice_time(self.weather.date_time))
-        else:
-            self.name = "current"
-        if intent_match:
-            self.name += ".condition.expected"
-        elif alternative:
-            self.name += ".{}.alternative".format(condition.lower())
-        else:
-            self.name += ".{}.not.expected".format(condition.lower())
-        self._add_location()
-
     def build_next_precipitation_dialog(self):
         """Build the components necessary to speak the next chance of rain."""
         if self.weather is None:
@@ -211,56 +126,269 @@ class WeatherDialog:
             )
         self._add_location()
 
+
+class CurrentDialog(Dialog):
+    """Weather dialog builder for current weather."""
+
+    def __init__(
+        self, intent_data: WeatherIntent, config: WeatherConfig, weather: CurrentWeather
+    ):
+        super().__init__(intent_data, config)
+        self.weather = weather
+        self.name = CURRENT
+
+    def build_weather_dialog(self):
+        """Build the components necessary to speak current weather."""
+        self.name += ".weather"
+        self.data = dict(
+            condition=self.weather.condition.description,
+            temperature=self.weather.temperature,
+            temperature_unit=self.config.temperature_unit,
+        )
+        self._add_location()
+
+    def build_high_low_temperature_dialog(self):
+        """Build the components necessary to speak high and low temperature."""
+        self.name += ".temperature.high.low"
+        self.data = dict(
+            high_temperature=self.weather.high_temperature,
+            low_temperature=self.weather.low_temperature,
+        )
+
+    def build_temperature_dialog(self, temperature_type: str):
+        """Build the components necessary to speak the current temperature.
+
+        :param temperature_type: indicates if temperature is current, high or low
+        """
+        self.name += ".temperature"
+        if temperature_type == "high":
+            self.name += ".high"
+            self.data = dict(temperature=self.weather.high_temperature)
+        elif temperature_type == "low":
+            self.name += ".low"
+            self.data = dict(temperature=self.weather.low_temperature)
+        else:
+            self.data = dict(temperature=self.weather.temperature)
+        self._add_location()
+
+    def build_condition_dialog(self, intent_match: bool):
+        """Select the relevant dialog file for condition based reports.
+
+        A condition can for example be "snow" or "rain".
+
+        :param intent_match: true if intent matches a vocabulary for the condition
+        """
+        self.data = dict(condition=self.weather.condition.description.lower())
+        if intent_match:
+            self.name += ".condition.expected"
+        else:
+            self.name += ".condition.not.expected".format(
+                self.weather.condition.category.lower()
+            )
+        self._add_location()
+
     def build_sunrise_dialog(self):
         """Build the components necessary to speak the sunrise time."""
-        if self.daily_forecast:
-            self.name = "daily.sunrise"
+        if self.intent_data.location is None:
+            now = now_local()
         else:
-            if self.intent_data.location is None:
-                now = now_local()
-            else:
-                now = now_local(tz=self.intent_data.geolocation["timezone"])
-            if now < self.weather.sunrise:
-                self.name = "current.sunrise.future"
-            else:
-                self.name = "current.sunrise.past"
+            now = now_local(tz=self.intent_data.geolocation["timezone"])
+        if now < self.weather.sunrise:
+            self.name += ".sunrise.future"
+        else:
+            self.name += ".sunrise.past"
+        self.data = dict(time=nice_time(self.weather.sunrise))
         self._add_location()
-        self.data = dict(time=nice_time(self.weather.sunrise.strftime("%H:%M")))
 
     def build_sunset_dialog(self):
         """Build the components necessary to speak the sunset time."""
-        if self.daily_forecast:
-            self.name = "daily.sunset"
-        else:
-            if self.intent_data.location is None:
-                now = now_local()
-            else:
-                now = now_local(tz=self.intent_data.geolocation["timezone"])
-            if now < self.weather.sunset:
-                self.name = "current.sunset.future"
-            else:
-                self.name = "current.sunset.past"
-        self._add_location()
-        self.data = dict(time=nice_time(self.weather.sunset.strftime("%H:%M")))
-
-    def _add_location(self):
-        """Add location information to the dialog."""
         if self.intent_data.location is None:
-            self.name += ".local"
+            now = now_local()
         else:
-            self.name += ".location"
-            if self.config.country == self.intent_data.geolocation["country"]:
-                spoken_location = ", ".join(
-                    [
-                        self.intent_data.geolocation["city"],
-                        self.intent_data.geolocation["region"],
-                    ]
-                )
-            else:
-                spoken_location = ", ".join(
-                    [
-                        self.intent_data.geolocation["city"],
-                        self.intent_data.geolocation["country"],
-                    ]
-                )
-            self.data.update(location=spoken_location)
+            now = now_local(tz=self.intent_data.geolocation["timezone"])
+        if now < self.weather.sunset:
+            self.name += ".sunset.future"
+        else:
+            self.name = ".sunset.past"
+        self.data = dict(time=nice_time(self.weather.sunset))
+        self._add_location()
+
+
+class HourlyDialog(Dialog):
+    """Weather dialog builder for hourly weather."""
+
+    def __init__(
+        self, intent_data: WeatherIntent, config: WeatherConfig, weather: HourlyWeather
+    ):
+        super().__init__(intent_data, config)
+        self.weather = weather
+        self.name = HOURLY
+
+    def build_weather_dialog(self):
+        """Build the components necessary to speak the forecast for a hour."""
+        self.name = ".weather"
+        self.data = dict(
+            condition=self.weather.condition.description,
+            time=self.weather.date_time.strftime("%H:00"),
+            temperature=self.weather.temperature,
+        )
+        self._add_location()
+
+    def build_temperature_dialog(self, _):
+        """Build the components necessary to speak the hourly temperature."""
+        self.name += ".temperature"
+        self.data = dict(
+            temperature=self.weather.temperature,
+            time=get_time_period(self.weather.date_time),
+        )
+        self._add_location()
+
+    def build_condition_dialog(self, intent_match: bool):
+        """Select the relevant dialog file for condition based reports.
+
+        A condition can for example be "snow" or "rain".
+
+        :param intent_match: true if intent matches a vocabulary for the condition
+        """
+        self.data = dict(
+            condition=self.weather.condition.description.lower(),
+            time=nice_time(self.weather.date_time),
+        )
+        if intent_match:
+            self.name += ".condition.expected"
+        else:
+            self.name += ".condition.not.expected".format(
+                self.weather.condition.category.lower()
+            )
+        self._add_location()
+
+
+class DailyDialog(Dialog):
+    """Weather dialog builder for daily weather."""
+
+    def __init__(
+        self, intent_data: WeatherIntent, config: WeatherConfig, weather: DailyWeather
+    ):
+        super().__init__(intent_data, config)
+        self.weather = weather
+        self.name = DAILY
+
+    def build_weather_dialog(self):
+        """Build the components necessary to speak the forecast for a day."""
+        self.name += ".weather"
+        self.data = dict(
+            condition=self.weather.condition.description,
+            day=get_speakable_day_of_week(self.weather.date_time),
+            high_temperature=self.weather.temperature.high,
+            low_temperature=self.weather.temperature.low,
+        )
+        if self.weather.date_time.date() == self.intent_data.location_datetime.date():
+            self.data.update(day="Today")
+        self._add_location()
+
+    def build_temperature_dialog(self, temperature_type: str):
+        """Build the components necessary to speak the daily temperature.
+
+        :param temperature_type: indicates if temperature is day, high or low
+        """
+        self.name += ".temperature"
+        if temperature_type == "high":
+            self.name += ".high"
+            self.data = dict(temperature=self.weather.temperature.high)
+        elif temperature_type == "low":
+            self.name += ".low"
+            self.data = dict(temperature=self.weather.temperature.low)
+        else:
+            self.data = dict(temperature=self.weather.temperature.day)
+        self.data.update(day=get_speakable_day_of_week(self.weather.date_time))
+        self._add_location()
+
+    def build_condition_dialog(self, intent_match: bool):
+        """Select the relevant dialog file for condition based reports.
+
+        A condition can for example be "snow" or "rain".
+
+        :param intent_match: true if intent matches a vocabulary for the condition
+        """
+        self.data = dict(
+            condition=self.weather.condition.description.lower(),
+            day=get_speakable_day_of_week(self.weather.date_time),
+        )
+        if intent_match:
+            self.name += ".condition.expected"
+        else:
+            self.name += ".condition.not.expected".format(
+                self.weather.condition.category.lower()
+            )
+        self._add_location()
+
+    def build_sunrise_dialog(self):
+        """Build the components necessary to speak the sunrise time."""
+        self.name += ".sunrise"
+        self.data = dict(time=nice_time(self.weather.sunrise))
+        self.data.update(day=get_speakable_day_of_week(self.weather.date_time))
+        self._add_location()
+
+    def build_sunset_dialog(self):
+        """Build the components necessary to speak the sunset time."""
+        self.name += ".sunset"
+        self.data = dict(time=nice_time(self.weather.sunset))
+        self.data.update(day=get_speakable_day_of_week(self.weather.date_time))
+        self._add_location()
+
+
+class WeeklyDialog(Dialog):
+    """Weather dialog builder for weekly weather."""
+
+    def __init__(
+        self,
+        intent_data: WeatherIntent,
+        config: WeatherConfig,
+        forecast: List[DailyWeather],
+    ):
+        super().__init__(intent_data, config)
+        self.forecast = forecast
+        self.name = "weekly"
+
+    def build_temperature_dialog(self):
+        """Build the components necessary to temperature ranges for a week."""
+        low_temperatures = [daily.temperature.low for daily in self.forecast]
+        high_temperatures = [daily.temperature.low for daily in self.forecast]
+        self.name += ".temperature"
+        self.data = dict(
+            low_min=min(low_temperatures),
+            low_max=max(low_temperatures),
+            high_min=min(high_temperatures),
+            high_max=max(high_temperatures),
+        )
+
+    def build_condition_dialog(self, condition: str):
+        """Build the components necessary to speak the days of week for a condition."""
+        self.name += ".condition"
+        self.data = dict(condition=condition)
+        days_with_condition = []
+        for daily in self.forecast:
+            if daily.condition.category == condition:
+                day = get_speakable_day_of_week(daily.date_time)
+                days_with_condition.append(day)
+        if len(days_with_condition) > 1:
+            last_day = days_with_condition.pop(-1)
+            days_with_condition.append("and " + last_day)
+        self.data.update(days=", ".join(days_with_condition))
+
+
+def get_dialog_for_timeframe(timeframe: str, dialog_ags: Tuple):
+    """Use the intent data to determine which dialog builder to use.
+
+    :param timeframe: current, hourly, daily
+    :param dialog_ags: Arguments to pass to the dialog builder
+    :return: The correct dialog builder for the timeframe
+    """
+    if timeframe == DAILY:
+        dialog = DailyDialog(*dialog_ags)
+    elif timeframe == HOURLY:
+        dialog = HourlyDialog(*dialog_ags)
+    else:
+        dialog = CurrentDialog(*dialog_ags)
+
+    return dialog

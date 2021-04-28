@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for the weather skill."""
-from datetime import datetime, tzinfo
+from datetime import datetime, timedelta, tzinfo
 from time import time
 
 import pytz
 
 from mycroft.api import GeolocationApi
+from mycroft.util.format import nice_date
 from mycroft.util.parse import extract_datetime
+from mycroft.util.time import now_local
 
 
 class LocationNotFoundError(ValueError):
@@ -106,3 +108,24 @@ def get_time_period(intent_datetime: datetime) -> str:
         period = "overnight"
 
     return period
+
+
+def get_speakable_day_of_week(date_to_speak: datetime):
+    """Convert the time of the a daily weather forecast to a speakable day of week.
+
+    :param date_to_speak: The date/time for the forecast being reported.
+    :return: The day of the week in the device's configured language
+    """
+    now = now_local()
+    tomorrow = now.date() + timedelta(days=1)
+
+    # A little hack to prevent nice_date() from returning "tomorrow"
+    if date_to_speak.date() == tomorrow:
+        now_arg = now - timedelta(days=1)
+    else:
+        now_arg = now
+
+    speakable_date = nice_date(date_to_speak, now=now_arg)
+    day_of_week = speakable_date.split(",")[0]
+
+    return day_of_week
