@@ -13,7 +13,14 @@
 # limitations under the License.
 from .api import OpenWeatherMapApi
 from .config import WeatherConfig
-from .dialog import WeatherDialog
+from .dialog import (
+    CurrentDialog,
+    DailyDialog,
+    HourlyDialog,
+    WeatherDialog,
+    WeeklyDialog,
+    get_dialog_for_timeframe,
+)
 from .intent import WeatherIntent
-from .weather import DailyWeather, WeatherReport
+from .weather import CURRENT, DAILY, DailyWeather, HOURLY, WeatherReport
 from .util import LocationNotFoundError

@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Representations and conversions of the data returned by the weather API."""
-from datetime import time, timedelta
+from datetime import timedelta
 
-from mycroft.util.time import now_local
 from .config import MILES_PER_HOUR
 from .util import convert_to_local_datetime
 
+CURRENT = "current"
+DAILY = "daily"
+HOURLY = "hourly"
 THIRTY_PERCENT = 30
 SATURDAY = 5
 SUNDAY = 6
@@ -78,12 +80,11 @@ class Weather:
 
         :param degree_direction: Degrees on a compass indicating wind direction.
         """
-        wind_direction = None
         for min_degree, compass_direction in WIND_DIRECTION_CONVERSION:
             if degree_direction < min_degree:
                 wind_direction = compass_direction
                 break
-        if wind_direction is None:
+        else:
             wind_direction = "north"
 
         return wind_direction

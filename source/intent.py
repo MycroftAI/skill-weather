@@ -21,6 +21,7 @@ from .util import (
     get_tz_info,
     LocationNotFoundError,
 )
+from .weather import CURRENT
 
 
 class WeatherIntent:
@@ -38,7 +39,7 @@ class WeatherIntent:
         self.location = message.data.get("Location")
         self.language = language
         self.unit = message.data.get("Unit")
-        self.timeframe = "current"
+        self.timeframe = CURRENT
 
     @property
     def geolocation(self):
