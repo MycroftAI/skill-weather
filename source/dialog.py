@@ -169,6 +169,9 @@ class CurrentDialog(Dialog):
             self.data = dict(temperature=self.weather.low_temperature)
         else:
             self.data = dict(temperature=self.weather.temperature)
+        self.data.update(
+            temperature_unit=self.intent_data.unit or self.config.temperature_unit
+        )
         self._add_location()
 
     def build_condition_dialog(self, intent_match: bool):
@@ -226,7 +229,7 @@ class HourlyDialog(Dialog):
 
     def build_weather_dialog(self):
         """Build the components necessary to speak the forecast for a hour."""
-        self.name = ".weather"
+        self.name += ".weather"
         self.data = dict(
             condition=self.weather.condition.description,
             time=self.weather.date_time.strftime("%H:00"),
@@ -240,6 +243,7 @@ class HourlyDialog(Dialog):
         self.data = dict(
             temperature=self.weather.temperature,
             time=get_time_period(self.weather.date_time),
+            temperature_unit=self.intent_data.unit or self.config.temperature_unit
         )
         self._add_location()
 
@@ -300,7 +304,10 @@ class DailyDialog(Dialog):
             self.data = dict(temperature=self.weather.temperature.low)
         else:
             self.data = dict(temperature=self.weather.temperature.day)
-        self.data.update(day=get_speakable_day_of_week(self.weather.date_time))
+        self.data.update(
+            day=get_speakable_day_of_week(self.weather.date_time),
+            temperature_unit = self.intent_data.unit or self.config.temperature_unit
+        )
         self._add_location()
 
     def build_condition_dialog(self, intent_match: bool):

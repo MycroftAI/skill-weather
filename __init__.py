@@ -283,6 +283,8 @@ class WeatherSkill(MycroftSkill):
         .optionally("Location")
         .optionally("Unit")
         .optionally("RelativeDay")
+        .optionally('Now')
+        .optionally("Today")
     )
     def handle_high_temperature(self, message: Message):
         """Handle a request for the high temperature.
@@ -303,6 +305,8 @@ class WeatherSkill(MycroftSkill):
         .optionally("Location")
         .optionally("Unit")
         .optionally("RelativeDay")
+        .optionally("Now")
+        .optionally("Today")
     )
     def handle_low_temperature(self, message: Message):
         """Handle a request for the high temperature.
@@ -331,11 +335,12 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("How")
+        .optionally("Query")
         .one_of("Hot", "Cold")
         .require("ConfirmQuery")
         .optionally("Location")
         .optionally("RelativeDay")
+        .optionally("Today")
     )
     def handle_how_hot_or_cold(self, message):
         """Handler for temperature requests such as: how cold will it be today?
