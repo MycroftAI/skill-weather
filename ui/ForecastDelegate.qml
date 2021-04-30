@@ -30,27 +30,32 @@ WeatherDelegate {
                 fillMode: Image.PreserveAspectFit
                 running: true
             }
-            Mycroft.AutoFitLabel {
+            Label {
                 font.weight: Font.Bold
-                horizontalAlignment: Text.AlignLeft
+                horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
                 Layout.preferredHeight: proportionalGridUnit * 15
+                font.pixelSize: parent.height * 0.50
                 text: modelData.date
             }
 
-            Mycroft.AutoFitLabel {
+            Label {
                 font.weight: Font.Bold
                 Layout.fillWidth: true
                 Layout.preferredHeight: proportionalGridUnit * 20
                 rightPadding: -font.pixelSize * 0.1
+                font.pixelSize: parent.height * 0.50
+                horizontalAlignment: Text.AlignHCenter
                 text: modelData.max + "°"
             }
 
-            Mycroft.AutoFitLabel {
+            Label {
                 font.styleName: "Thin"
                 Layout.fillWidth: true
                 Layout.preferredHeight: proportionalGridUnit * 20
                 rightPadding: -font.pixelSize * 0.1
+                font.pixelSize: parent.height * 0.50
+                horizontalAlignment: Text.AlignHCenter
                 text: modelData.min + "°"
             }
         }
