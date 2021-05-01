@@ -547,6 +547,19 @@ class WeatherSkill(MycroftSkill):
             dialog.build_sunset_dialog()
             self._speak_weather(dialog)
 
+    def _display_sunrise_sunset_mark_ii(
+            self, forecast: DailyWeather, intent_data: WeatherIntent
+    ):
+        """Display the sunrise and sunset.
+
+        :param forecast: daily forecasts to display
+        """
+        self.gui.clear()
+        self.gui["sunrise"] = forecast.sunrise
+        self.gui["sunset"] = forecast.sunset
+        self.gui["ampm"] = True
+        self.gui.show_page("sunrise_sunset_mark_ii.qml")
+
     def _report_current_weather(self, message: Message):
         """Handles all requests for current weather conditions.
 
@@ -561,6 +574,7 @@ class WeatherSkill(MycroftSkill):
             self._speak_weather(dialog)
             if self.gui.connected and self.platform != MARK_II:
                 self._display_more_current_conditions(weather)
+            dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_high_low_temperature_dialog()
             self._speak_weather(dialog)
             if self.gui.connected:
@@ -570,7 +584,7 @@ class WeatherSkill(MycroftSkill):
                     self._display_hourly_forecast(weather)
                 else:
                     four_day_forecast = weather.daily[1:5]
-                    self._display_forecast(four_day_forecast)
+                    self._display_multi_day_forecast(four_day_forecast)
 
     def _display_current_conditions(
         self, weather: WeatherReport, intent_data: WeatherIntent
@@ -690,6 +704,37 @@ class WeatherSkill(MycroftSkill):
         self.gui["hourlyForecast"] = dict(hours=hourly_forecast)
         self.gui.show_page("hourly_mark_ii.qml")
 
+    def _report_one_day_forecast(self, message: Message):
+        """Handles all requests for a single day forecast.
+
+        :param message: Message Bus event information from the intent parser
+        """
+        intent_data = WeatherIntent(message, self.lang)
+        weather = self._get_weather(intent_data)
+        if weather is not None:
+            forecast = weather.get_forecast_for_date(intent_data)
+            dialogs = self._build_forecast_dialogs([forecast], intent_data)
+            if self.platform == MARK_II:
+                self._display_one_day_mark_ii(forecast, intent_data)
+            for dialog in dialogs:
+                self._speak_weather(dialog)
+
+    def _display_one_day_mark_ii(
+            self, forecast: DailyWeather, intent_data: WeatherIntent
+    ):
+        """Display the forecast for a single day on a Mark II.
+
+        :param forecast: daily forecasts to display
+        """
+        self.gui.clear()
+        self.gui["weatherLocation"] = self._build_display_location(intent_data)
+        self.gui["weatherCode"] = self.image_codes[forecast.condition.icon]
+        self.gui["weatherDate"] = forecast.date_time.strftime("%A %x")
+        self.gui["highTemperature"] = forecast.temperature.high
+        self.gui["lowTemperature"] = forecast.temperature.low
+        self.gui["chanceOfPrecipitation"] = str(forecast.chance_of_precipitation)
+        self.gui.show_page("single_day_mark_ii.qml")
+
     def _report_multi_day_forecast(self, message: Message, days: int):
         """Handles all requests for multiple day forecasts.
 
@@ -704,21 +749,7 @@ class WeatherSkill(MycroftSkill):
                 self.speak_dialog("seven.days.available")
                 forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
-            self._display_forecast(forecast)
-            for dialog in dialogs:
-                self._speak_weather(dialog)
-
-    def _report_one_day_forecast(self, message: Message):
-        """Handles all requests for a single day forecast.
-
-        :param message: Message Bus event information from the intent parser
-        """
-        intent_data = WeatherIntent(message, self.lang)
-        weather = self._get_weather(intent_data)
-        if weather is not None:
-            forecast = [weather.get_forecast_for_date(intent_data)]
-            dialogs = self._build_forecast_dialogs(forecast, intent_data)
-            self._display_forecast(forecast)
+            self._display_multi_day_forecast(forecast)
             for dialog in dialogs:
                 self._speak_weather(dialog)
 
@@ -732,7 +763,7 @@ class WeatherSkill(MycroftSkill):
         if weather is not None:
             forecast = weather.get_weekend_forecast()
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
-            self._display_forecast(forecast)
+            self._display_multi_day_forecast(forecast)
             for dialog in dialogs:
                 self._speak_weather(dialog)
 
@@ -768,7 +799,7 @@ class WeatherSkill(MycroftSkill):
             forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_weekly_condition_dialogs(forecast, intent_data)
             dialogs.append(self._build_weekly_temperature_dialog(forecast, intent_data))
-            self._display_forecast(forecast)
+            self._display_multi_day_forecast(forecast)
             for dialog in dialogs:
                 self._speak_weather(dialog)
 
@@ -808,17 +839,17 @@ class WeatherSkill(MycroftSkill):
 
         return dialog
 
-    def _display_forecast(self, forecast: List[DailyWeather]):
+    def _display_multi_day_forecast(self, forecast: List[DailyWeather]):
         """Display daily forecast data on devices that support the GUI.
 
         :param forecast: daily forecasts to display
         """
         if self.platform == MARK_II:
-            self._display_forecast_mark_ii(forecast)
+            self._display_multi_day_mark_ii(forecast)
         else:
-            self._display_forecast_scalable(forecast)
+            self._display_multi_day_scalable(forecast)
 
-    def _display_forecast_mark_ii(self, forecast: List[DailyWeather]):
+    def _display_multi_day_mark_ii(self, forecast: List[DailyWeather]):
         """Display daily forecast data on a Mark II.
 
         The Mark II supports displaying four days of a forecast at a time.
@@ -845,7 +876,7 @@ class WeatherSkill(MycroftSkill):
             self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
             self.gui.show_page(page_name)
 
-    def _display_forecast_scalable(self, forecast: List[DailyWeather]):
+    def _display_multi_day_scalable(self, forecast: List[DailyWeather]):
         """Display daily forecast data on GUI devices other than the Mark II.
 
         The generic layout supports displaying two days of a forecast at a time.
