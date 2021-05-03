@@ -19,6 +19,7 @@ proxies its calls to the API through Mycroft's officially supported API,
 Selene.  The Selene API is also used to get geographical information about the
 city name provided in the request.
 """
+from datetime import datetime
 from multi_key_dict import multi_key_dict
 from time import sleep
 from typing import List, Tuple
@@ -523,6 +524,8 @@ class WeatherSkill(MycroftSkill):
             dialog_args = intent_data, self.weather_config, intent_weather
             dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_sunrise_dialog()
+            if self.platform == MARK_II:
+                self._display_sunrise_sunset_mark_ii(intent_weather)
             self._speak_weather(dialog)
 
     @intent_handler(
@@ -545,20 +548,38 @@ class WeatherSkill(MycroftSkill):
             dialog_args = intent_data, self.weather_config, intent_weather
             dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_sunset_dialog()
+            if self.platform == MARK_II:
+                self._display_sunrise_sunset_mark_ii(intent_weather)
             self._speak_weather(dialog)
 
-    def _display_sunrise_sunset_mark_ii(
-            self, forecast: DailyWeather, intent_data: WeatherIntent
-    ):
+    def _display_sunrise_sunset_mark_ii(self, forecast: DailyWeather):
         """Display the sunrise and sunset.
 
         :param forecast: daily forecasts to display
         """
         self.gui.clear()
-        self.gui["sunrise"] = forecast.sunrise
-        self.gui["sunset"] = forecast.sunset
-        self.gui["ampm"] = True
+        self.gui["sunrise"] = self._format_sunrise_sunset_time(forecast.sunrise)
+        self.gui["sunset"] = self._format_sunrise_sunset_time(forecast.sunset)
+        self.gui["ampm"] = self.config_core["time_format"] == TWELVE_HOUR
         self.gui.show_page("sunrise_sunset_mark_ii.qml")
+
+    def _format_sunrise_sunset_time(self, date_time: datetime) -> str:
+        """Format a the sunrise or sunset datetime into a string for GUI display.
+
+        The datetime builtin returns hour in two character format.  Convert
+        to a integer and back again to remove the leading zero when present.
+
+        :param date_time: the sunrise or sunset
+        :return: the value to display on the screen.
+        """
+        if self.config_core["time_format"] == TWELVE_HOUR:
+            display_time = date_time.strftime("%I:%M")
+            if display_time.startswith("0"):
+                display_time = display_time[1:]
+        else:
+            display_time = date_time.strftime("%H:%M")
+
+        return display_time
 
     def _report_current_weather(self, message: Message):
         """Handles all requests for current weather conditions.
@@ -683,7 +704,6 @@ class WeatherSkill(MycroftSkill):
                 continue
             if hour_count > 4:
                 break
-            # TODO: make the timeframe aware of language/location settings
             if self.config_core["time_format"] == TWELVE_HOUR:
                 # The datetime builtin returns hour in two character format.  Convert
                 # to a integer and back again to remove the leading zero when present.
