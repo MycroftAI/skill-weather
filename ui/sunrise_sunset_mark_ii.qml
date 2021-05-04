@@ -31,11 +31,20 @@ WeatherDelegateMarkII {
         height: parent.height
         width: parent.width
 
+        WeatherLabel {
+            // City/state if in same country as device.  City/country if in a different country
+            id: weatherLocation
+            heightUnits: 4
+            fontSize: 48
+            fontStyle: "Medium"
+            text: sessionData.weatherLocation
+        }
+
         GridLayout {
             id: sunriseSunset
             anchors.left: parent.left
             anchors.leftMargin: gridUnit * 2
-            anchors.top: parent.top
+            anchors.top: weatherLocation.bottom
             anchors.topMargin: gridUnit * 2
             columns: 2
             columnSpacing: gridUnit * 2
@@ -45,12 +54,12 @@ WeatherDelegateMarkII {
                 // First column in grid
                 id: sunrise
                 height: gridUnit * 22
-                spacing: gridUnit * 2
+                spacing: gridUnit
                 width: parent.width
 
                 WeatherImage {
                     id: sunriseImage
-                    heightUnits: 8
+                    heightUnits: 6
                     imageSource: "images/sunrise.svg"
                 }
 
@@ -75,12 +84,12 @@ WeatherDelegateMarkII {
                 // Second column in grid
                 id: sunset
                 height: gridUnit * 22
-                spacing: gridUnit * 2
+                spacing: gridUnit
                 width: parent.width
 
                 WeatherImage {
                     id: sunsetImage
-                    heightUnits: 8
+                    heightUnits: 6
                     imageSource: "images/sunset.svg"
                 }
 
