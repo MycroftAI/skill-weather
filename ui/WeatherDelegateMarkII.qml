@@ -24,6 +24,7 @@ import QtQuick.Controls 2.0
 
 import Mycroft 1.0 as Mycroft
 
+// TODO: Change to use CardDelegate
 Mycroft.Delegate {
     id: root
 
@@ -33,34 +34,5 @@ Mycroft.Delegate {
     leftPadding: 32
     rightPadding: 32
     topPadding: 32
-
-    function getWeatherImagery(weathercode) {
-        switch(weathercode) {
-        case 0:
-            return "images/sunny.svg";
-            break
-        case 1:
-            return "images/partly_cloudy.svg";
-            break
-        case 2:
-            return "images/cloudy.svg";
-            break
-        case 3:
-            return "images/rain.svg";
-            break
-        case 4:
-            return "images/rain.svg";
-            break
-        case 5:
-            return "images/storm.svg";
-            break
-        case 6:
-            return "images/snow.svg";
-            break
-        case 7:
-            return "images/cloudy.svg";
-            break
-        }
-    }
 
 }

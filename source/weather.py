@@ -13,16 +13,59 @@
 # limitations under the License.
 """Representations and conversions of the data returned by the weather API."""
 from datetime import timedelta
+from pathlib import Path
 
 from .config import MILES_PER_HOUR
 from .util import convert_to_local_datetime
 
+# Forecast timeframes
 CURRENT = "current"
 DAILY = "daily"
 HOURLY = "hourly"
-THIRTY_PERCENT = 30
+
+# Days of week
 SATURDAY = 5
 SUNDAY = 6
+
+# Condition Icons (see https://openweathermap.org/weather-conditions)
+#   Map each of the possible weather condition icon codes from OpenWeatherMap to an
+#   image/animation file used by the GUI.  The icon codes contain a number and a letter.
+#   A "n" after the number indicates night and a "d" indicates day.
+#
+#   The icon/image map is used by the Mark II, which does not use animations for
+#   performance reasons.  The icon/animation map is used by the scalable QML.  The
+#   icon/code map is for the Mark I, which accepts a code to determine what
+#   is displayed.
+ICON_IMAGE_MAP = (
+    (("01d",), "sun.svg"),
+    (("01n",), "moon.svg"),
+    (("04d", "04n"), "clouds.svg"),
+    (("50d",), "fog.svg"),
+    (("02d", "03d", "02n", "03n"), "partial_clouds.svg"),
+    (("09d", "10d"), "rain.svg"),
+    (("13d",), "snow.svg"),
+    (("11d",), "storm.svg"),
+)
+ICON_ANIMATION_MAP = (
+    (("01d", "01n"), "sun.json"),
+    (("04d", "04n"), "clouds.json"),
+    (("50d",), "fog.json"),
+    (("02d", "03d", "02n", "03n"), "partial_clouds.json"),
+    (("09d", "10d"), "rain.json"),
+    (("13d",), "snow.json"),
+    (("11d",), "storm.json"),
+)
+ICON_CODE_MAP = (
+    (("01d", "01n"), 0),
+    (("04d", "04n"), 2),
+    (("50d",), 7),
+    (("02d", "03d", "02n", "03n"), 1),
+    (("09d", "10d"), 3),
+    (("13d",), 6),
+    (("11d",), 5),
+)
+
+THIRTY_PERCENT = 30
 WIND_DIRECTION_CONVERSION = (
     (22.5, "north"),
     (67.5, "northeast"),
@@ -58,6 +101,36 @@ class WeatherCondition:
         self.category = conditions["main"]
         self.description = conditions["description"]
         self.icon = conditions["icon"]
+
+    @property
+    def image(self) -> str:
+        """Use the icon to image mapping to determine which image to display."""
+        image_path = Path("images")
+        for icons, image_file_name in ICON_IMAGE_MAP:
+            if self.icon in icons:
+                image_path = image_path.joinpath(image_file_name)
+
+        return str(image_path)
+
+    @property
+    def animation(self) -> str:
+        """Use the icon to animation mapping to determine which animation to display."""
+        image_path = Path("animations")
+        for icons, animation_file_name in ICON_ANIMATION_MAP:
+            if self.icon in icons:
+                image_path = image_path.joinpath(animation_file_name)
+
+        return str(image_path)
+
+    @property
+    def code(self) -> str:
+        """Use the icon to animation mapping to determine which animation to display."""
+        condition_code = None
+        for icons, code in ICON_CODE_MAP:
+            if self.icon in icons:
+                condition_code = code
+
+        return condition_code
 
 
 class Weather:
