@@ -31,13 +31,21 @@ WeatherDelegateMarkII {
         height: parent.height
         width: parent.width
 
+        WeatherLabel {
+            // City/state if in same country as device.  City/country if in a different country
+            id: weatherLocation
+            heightUnits: 4
+            fontSize: 48
+            fontStyle: "Medium"
+            text: sessionData.weatherLocation
+        }
+
         RowLayout {
-            // Four column grid, one for each day of the forecast.  Can be less than
-            // four days depending on the user's request.
-            id: dailyWeather
+            // Four rows, one for each hour of the forecast.
+            id: hourlyWeather
             anchors.left: parent.left
             anchors.leftMargin: gridUnit * 2
-            anchors.top: parent.top
+            anchors.top: weatherLocation.bottom
             anchors.topMargin: gridUnit * 2
             spacing: gridUnit * 2
 

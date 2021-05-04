@@ -33,12 +33,21 @@ WeatherDelegateMarkII {
         height: parent.height
         width: parent.width
 
+        WeatherLabel {
+            // City/state if in same country as device.  City/country if in a different country
+            id: weatherLocation
+            heightUnits: 4
+            fontSize: 48
+            fontStyle: "Medium"
+            text: sessionData.weatherLocation
+        }
+
         GridLayout {
             // Two column grid containg wind and humidity data
             id: weather
             anchors.left: parent.left
             anchors.leftMargin: gridUnit * 2
-            anchors.top: parent.top
+            anchors.top: weatherLocation.bottom
             anchors.topMargin: gridUnit * 2
             columns: 2
             columnSpacing: gridUnit * 2
@@ -49,7 +58,7 @@ WeatherDelegateMarkII {
                 id: wind
                 height: gridUnit * 22
                 width: gridUnit * 20
-                spacing: gridUnit * 4
+                spacing: gridUnit * 2
 
                 WeatherImage {
                     id: windIcon
@@ -71,7 +80,7 @@ WeatherDelegateMarkII {
                 id: humidity
                 height: gridUnit * 22
                 width: gridUnit * 20
-                spacing: gridUnit * 4
+                spacing: gridUnit * 2
 
                 WeatherImage {
                     id: humidityIcon

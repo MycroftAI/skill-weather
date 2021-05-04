@@ -536,15 +536,17 @@ class WeatherSkill(MycroftSkill):
             dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_sunset_dialog()
             if self.platform == MARK_II:
-                self._display_sunrise_sunset_mark_ii(intent_weather)
+                weather_location = self._build_display_location(intent_data)
+                self._display_sunrise_sunset_mark_ii(intent_weather, weather_location)
             self._speak_weather(dialog)
 
-    def _display_sunrise_sunset_mark_ii(self, forecast: DailyWeather):
+    def _display_sunrise_sunset_mark_ii(self, forecast: DailyWeather, weather_location: str):
         """Display the sunrise and sunset.
 
         :param forecast: daily forecasts to display
         """
         self.gui.clear()
+        self.gui["weatherLocation"] = weather_location
         self.gui["sunrise"] = self._format_sunrise_sunset_time(forecast.sunrise)
         self.gui["sunset"] = self._format_sunrise_sunset_time(forecast.sunset)
         self.gui["ampm"] = self.config_core["time_format"] == TWELVE_HOUR
@@ -576,26 +578,27 @@ class WeatherSkill(MycroftSkill):
         intent_data = self._get_intent_data(message)
         weather = self._get_weather(intent_data)
         if weather is not None:
-            self._display_current_conditions(weather, intent_data)
+            weather_location = self._build_display_location(intent_data)
+            self._display_current_conditions(weather, weather_location)
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_weather_dialog()
             self._speak_weather(dialog)
             if self.gui.connected and self.platform != MARK_II:
-                self._display_more_current_conditions(weather)
+                self._display_more_current_conditions(weather, weather_location)
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_high_low_temperature_dialog()
             self._speak_weather(dialog)
             if self.gui.connected:
                 if self.platform == MARK_II:
-                    self._display_more_current_conditions(weather)
+                    self._display_more_current_conditions(weather, weather_location)
                     sleep(5)
-                    self._display_hourly_forecast(weather)
+                    self._display_hourly_forecast(weather, weather_location)
                 else:
                     four_day_forecast = weather.daily[1:5]
                     self._display_multi_day_forecast(four_day_forecast)
 
     def _display_current_conditions(
-        self, weather: WeatherReport, intent_data: WeatherIntent
+        self, weather: WeatherReport, weather_location: str
     ):
         """Display current weather conditions on a screen.
 
@@ -609,7 +612,7 @@ class WeatherSkill(MycroftSkill):
             self.gui["currentTemperature"] = weather.current.temperature
             if self.platform == MARK_II:
                 self.gui["weatherCondition"] = weather.current.condition.image
-                self.gui["weatherLocation"] = self._build_display_location(intent_data)
+                self.gui["weatherLocation"] = weather_location
                 self.gui["highTemperature"] = weather.current.high_temperature
                 self.gui["lowTemperature"] = weather.current.low_temperature
                 page_name = page_name.replace("scalable", "mark_ii")
@@ -645,7 +648,9 @@ class WeatherSkill(MycroftSkill):
 
         return ", ".join(location)
 
-    def _display_more_current_conditions(self, weather: WeatherReport):
+    def _display_more_current_conditions(
+            self, weather: WeatherReport, weather_location: str
+    ):
         """Display current weather conditions on a device that supports a GUI.
 
         This is the second screen that shows for current weather.
@@ -655,6 +660,7 @@ class WeatherSkill(MycroftSkill):
         page_name = "current_2_scalable.qml"
         self.gui.clear()
         if self.platform == MARK_II:
+            self.gui["weatherLocation"] = weather_location
             self.gui["windSpeed"] = weather.current.wind_speed
             self.gui["humidity"] = weather.current.humidity
             page_name = page_name.replace("scalable", "mark_ii")
@@ -680,7 +686,7 @@ class WeatherSkill(MycroftSkill):
                 dialog.build_weather_dialog()
                 self._speak_weather(dialog)
 
-    def _display_hourly_forecast(self, weather: WeatherReport):
+    def _display_hourly_forecast(self, weather: WeatherReport, weather_location: str):
         """Display hourly forecast on a device that supports the GUI.
 
         On the Mark II this screen is the final for current weather.  It can
@@ -711,6 +717,7 @@ class WeatherSkill(MycroftSkill):
                 )
             )
         self.gui.clear()
+        self.gui["weatherLocation"] = weather_location
         self.gui["hourlyForecast"] = dict(hours=hourly_forecast)
         self.gui.show_page("hourly_mark_ii.qml")
 
