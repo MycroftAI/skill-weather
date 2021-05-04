@@ -35,7 +35,7 @@ Column {
     WeatherImage {
         id: forecastCondition
         heightUnits: 4
-        imageSource: Qt.resolvedUrl(getWeatherImagery(forecast.weatherCode))
+        imageSource: forecast.weatherCondition
     }
 
     WeatherLabel {

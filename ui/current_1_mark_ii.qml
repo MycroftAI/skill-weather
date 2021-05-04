@@ -66,7 +66,7 @@ WeatherDelegateMarkII {
                     anchors.horizontalCenterOffset: gridUnit * -2
                     fillMode: Image.PreserveAspectFit
                     height: gridUnit * 7
-                    source: Qt.resolvedUrl(getWeatherImagery(sessionData.weatherCode))
+                    source: sessionData.weatherCondition
                 }
 
                 Label {
@@ -103,7 +103,7 @@ WeatherDelegateMarkII {
                         anchors.leftMargin: gridUnit * 2
                         fillMode: Image.PreserveAspectFit
                         height: gridUnit * 4
-                        source: Qt.resolvedUrl("images/high_temperature.svg")
+                        source: "images/high_temperature.svg"
                     }
 
                     Label {
@@ -133,7 +133,7 @@ WeatherDelegateMarkII {
                         anchors.leftMargin: gridUnit * 2
                         fillMode: Image.PreserveAspectFit
                         height: gridUnit * 4
-                        source: Qt.resolvedUrl("images/low_temperature.svg")
+                        source: "images/low_temperature.svg"
                     }
 
                     Label {

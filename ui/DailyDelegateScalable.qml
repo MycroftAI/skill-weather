@@ -45,10 +45,9 @@ WeatherDelegateScalable {
                 Layout.preferredHeight: proportionalGridUnit * 20
                 Layout.preferredWidth: Layout.preferredHeight
 
-                source: Qt.resolvedUrl(getWeatherImagery(modelData.weatherCode))
+                source: Qt.resolvedUrl(modelData.weatherCondition)
                 loops: Animation.Infinite
                 fillMode: Image.PreserveAspectFit
-                running: true
             }
             Mycroft.AutoFitLabel {
                 font.weight: Font.Bold

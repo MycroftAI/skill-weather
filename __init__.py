@@ -76,19 +76,6 @@ class WeatherSkill(MycroftSkill):
         self.weather_config = WeatherConfig(self.config_core, self.settings)
         self.platform = self.config_core["enclosure"].get("platform", "unknown")
 
-        # Build a dictionary to translate OWM weather-conditions
-        # codes into the Mycroft weather icon codes
-        # (see https://openweathermap.org/weather-conditions)
-        self.image_codes = multi_key_dict()
-        self.image_codes["01d", "01n"] = CLEAR
-        self.image_codes["02d", "02n", "03d", "03n"] = PARTLY_CLOUDY
-        self.image_codes["04d", "04n"] = CLOUDY
-        self.image_codes["09d", "09n"] = LIGHT_RAIN
-        self.image_codes["10d", "10n"] = RAIN
-        self.image_codes["11d", "11n"] = THUNDERSTORM
-        self.image_codes["13d", "13n"] = SNOW
-        self.image_codes["50d", "50n"] = WINDY
-
         # Use Mycroft proxy if no private key provided
         self.settings["api_key"] = None
         self.settings["use_proxy"] = True
@@ -284,7 +271,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("Location")
         .optionally("Unit")
         .optionally("RelativeDay")
-        .optionally('Now')
+        .optionally("Now")
         .optionally("Today")
     )
     def handle_high_temperature(self, message: Message):
@@ -566,8 +553,8 @@ class WeatherSkill(MycroftSkill):
     def _format_sunrise_sunset_time(self, date_time: datetime) -> str:
         """Format a the sunrise or sunset datetime into a string for GUI display.
 
-        The datetime builtin returns hour in two character format.  Convert
-        to a integer and back again to remove the leading zero when present.
+        The datetime builtin returns hour in two character format.  Remove the
+        leading zero when present.
 
         :param date_time: the sunrise or sunset
         :return: the value to display on the screen.
@@ -616,21 +603,24 @@ class WeatherSkill(MycroftSkill):
 
         :param weather: current weather conditions from Open Weather Maps
         """
-        image_code = self.image_codes[weather.current.condition.icon]
         if self.gui.connected:
             page_name = "current_1_scalable.qml"
             self.gui.clear()
             self.gui["currentTemperature"] = weather.current.temperature
-            self.gui["weatherCode"] = image_code
             if self.platform == MARK_II:
+                self.gui["weatherCondition"] = weather.current.condition.image
                 self.gui["weatherLocation"] = self._build_display_location(intent_data)
                 self.gui["highTemperature"] = weather.current.high_temperature
                 self.gui["lowTemperature"] = weather.current.low_temperature
                 page_name = page_name.replace("scalable", "mark_ii")
+            else:
+                self.gui["weatherCode"] = weather.current.condition.code
             self.gui.show_page(page_name)
         else:
             self.enclosure.deactivate_mouth_events()
-            self.enclosure.weather_display(image_code, weather.current.temperature)
+            self.enclosure.weather_display(
+                weather.current.condition.code, weather.current.temperature
+            )
 
     def _build_display_location(self, intent_data: WeatherIntent) -> str:
         """Build a string representing the location of the weather for display on GUI
@@ -717,7 +707,7 @@ class WeatherSkill(MycroftSkill):
                     time=hourly.date_time.strftime(formatted_time),
                     precipitation=hourly.chance_of_precipitation,
                     temperature=hourly.temperature,
-                    weatherCode=self.image_codes.get(hourly.condition.icon),
+                    weatherCondition=hourly.condition.image,
                 )
             )
         self.gui.clear()
@@ -740,7 +730,7 @@ class WeatherSkill(MycroftSkill):
                 self._speak_weather(dialog)
 
     def _display_one_day_mark_ii(
-            self, forecast: DailyWeather, intent_data: WeatherIntent
+        self, forecast: DailyWeather, intent_data: WeatherIntent
     ):
         """Display the forecast for a single day on a Mark II.
 
@@ -748,7 +738,7 @@ class WeatherSkill(MycroftSkill):
         """
         self.gui.clear()
         self.gui["weatherLocation"] = self._build_display_location(intent_data)
-        self.gui["weatherCode"] = self.image_codes[forecast.condition.icon]
+        self.gui["weatherCondition"] = forecast.condition.image
         self.gui["weatherDate"] = forecast.date_time.strftime("%A %x")
         self.gui["highTemperature"] = forecast.temperature.high
         self.gui["lowTemperature"] = forecast.temperature.low
@@ -881,7 +871,7 @@ class WeatherSkill(MycroftSkill):
         for day in forecast:
             daily_forecast.append(
                 dict(
-                    weatherCode=self.image_codes[day.condition.icon],
+                    weatherCondition=day.condition.image,
                     day=day.date_time.strftime("%a"),
                     highTemperature=day.temperature.high,
                     lowTemperature=day.temperature.low,
@@ -911,7 +901,7 @@ class WeatherSkill(MycroftSkill):
                 break
             display_data.append(
                 dict(
-                    weatherCode=self.image_codes[day.condition.icon],
+                    weatherCondition=day.condition.animation,
                     highTemperature=day.temperature.high,
                     lowTemperature=day.temperature.low,
                     date=day.date_time.strftime("%a"),

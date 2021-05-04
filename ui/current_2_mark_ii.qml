@@ -54,7 +54,7 @@ WeatherDelegateMarkII {
                 WeatherImage {
                     id: windIcon
                     heightUnits: 8
-                    imageSource: Qt.resolvedUrl("images/wind.svg")
+                    imageSource: "images/wind.svg"
                 }
 
                 WeatherLabel {
@@ -76,7 +76,7 @@ WeatherDelegateMarkII {
                 WeatherImage {
                     id: humidityIcon
                     heightUnits: 8
-                    imageSource: Qt.resolvedUrl("images/humidity.svg")
+                    imageSource: "images/humidity.svg"
                 }
 
                 WeatherLabel {

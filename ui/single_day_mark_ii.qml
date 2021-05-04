@@ -72,7 +72,7 @@ WeatherDelegateMarkII {
                 WeatherImage {
                     id: forecastCondition
                     heightUnits: 6
-                    imageSource: Qt.resolvedUrl(getWeatherImagery(sessionData.weatherCode))
+                    imageSource: sessionData.weatherCondition
                 }
 
                 WeatherLabel {
