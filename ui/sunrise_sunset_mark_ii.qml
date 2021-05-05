@@ -31,13 +31,13 @@ WeatherDelegateMarkII {
         height: parent.height
         width: parent.width
 
-        WeatherLabel {
-            // City/state if in same country as device.  City/country if in a different country
+        WeatherDate {
+            id: weatherDate
+        }
+
+        WeatherLocation {
             id: weatherLocation
-            heightUnits: 4
-            fontSize: 48
-            fontStyle: "Medium"
-            text: sessionData.weatherLocation
+            anchors.top: weatherDate.bottom
         }
 
         GridLayout {
@@ -54,26 +54,26 @@ WeatherDelegateMarkII {
                 // First column in grid
                 id: sunrise
                 height: gridUnit * 22
-                spacing: gridUnit
+                spacing: gridUnit * 2
                 width: parent.width
 
                 WeatherImage {
                     id: sunriseImage
-                    heightUnits: 6
+                    heightUnits: 5
                     imageSource: "images/sunrise.svg"
                 }
 
                 WeatherLabel {
                     id: sunriseTime
-                    heightUnits: 6
-                    fontSize: 118
+                    heightUnits: 4
+                    fontSize: 82
                     fontStyle: "Bold"
                     text: sessionData.sunrise
                 }
 
                 WeatherLabel {
                     id: sunriseAm
-                    heightUnits: 4
+                    heightUnits: 2
                     fontSize: 60
                     fontStyle: "Regular"
                     text: sessionData.ampm ? "AM" : ""
@@ -84,26 +84,26 @@ WeatherDelegateMarkII {
                 // Second column in grid
                 id: sunset
                 height: gridUnit * 22
-                spacing: gridUnit
+                spacing: gridUnit * 2
                 width: parent.width
 
                 WeatherImage {
                     id: sunsetImage
-                    heightUnits: 6
+                    heightUnits: 5
                     imageSource: "images/sunset.svg"
                 }
 
                 WeatherLabel {
                     id: sunsetTime
-                    heightUnits: 6
-                    fontSize: 118
+                    heightUnits: 4
+                    fontSize: 82
                     fontStyle: "Bold"
                     text: sessionData.sunset
                 }
 
                 WeatherLabel {
                     id: sunsetPm
-                    heightUnits: 4
+                    heightUnits: 2
                     fontSize: 60
                     fontStyle: "Regular"
                     text: sessionData.ampm ? "PM" : ""

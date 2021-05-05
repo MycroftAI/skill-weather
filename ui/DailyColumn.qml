@@ -27,7 +27,7 @@ import QtQuick.Controls 2.3
 
 Column {
     id: dailyColumn
-    spacing: 1
+    spacing: gridUnit * 2
     width: gridUnit * 9
 
     property var forecast
@@ -40,7 +40,7 @@ Column {
 
     WeatherLabel {
         id: forecastDay
-        heightUnits: 4
+        heightUnits: 2
         fontSize: 47
         fontStyle: "Regular"
         text: forecast.day
@@ -48,7 +48,7 @@ Column {
 
     WeatherLabel {
         id: forecastHighTemperature
-        heightUnits: 5
+        heightUnits: 3
         fontSize: 72
         fontStyle: "Bold"
         text: forecast.highTemperature + "°"
@@ -56,7 +56,7 @@ Column {
 
     WeatherLabel {
         id: forecastLowTemperature
-        heightUnits: 5
+        heightUnits: 3
         fontSize: 72
         fontStyle: "Light"
         text: forecast.lowTemperature + "°"
