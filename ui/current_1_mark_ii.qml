@@ -34,13 +34,8 @@ WeatherDelegateMarkII {
         height: parent.height
         width: parent.width
 
-        WeatherLabel {
-            // City/state if in same country as device.  City/country if in a different country
+        WeatherLocation {
             id: weatherLocation
-            heightUnits: 4
-            fontSize: 48
-            fontStyle: "Medium"
-            text: sessionData.weatherLocation
         }
 
         GridLayout {

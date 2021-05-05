@@ -27,20 +27,20 @@ import QtQuick.Controls 2.3
 
 Column {
     id: hourlyColumn
-    spacing: gridUnit
+    spacing: gridUnit * 2
     width: gridUnit * 9
 
     property var forecast
 
     WeatherImage {
         id: forecastCondition
-        heightUnits: 3
+        heightUnits: 4
         imageSource: forecast.weatherCondition
     }
 
     WeatherLabel {
         id: forecastTime
-        heightUnits: 3
+        heightUnits: 2
         fontSize: 47
         fontStyle: "Regular"
         text: forecast.time
@@ -48,7 +48,7 @@ Column {
 
     WeatherLabel {
         id: forecastTemperature
-        heightUnits: 5
+        heightUnits: 3
         fontSize: 72
         fontStyle: "Bold"
         text: forecast.temperature + "°"
@@ -56,7 +56,7 @@ Column {
 
     WeatherLabel {
         id: forecastPrecipitation
-        heightUnits: 5
+        heightUnits: 3
         fontSize: 72
         fontStyle: "Light"
         text: forecast.precipitation + "%"

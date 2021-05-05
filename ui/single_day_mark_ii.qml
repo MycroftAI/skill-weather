@@ -34,23 +34,13 @@ WeatherDelegateMarkII {
         height: parent.height
         width: parent.width
 
-        WeatherLabel {
-            // The date of the weather forecast being displayed
+        WeatherDate {
             id: weatherDate
-            heightUnits: 4
-            fontSize: 48
-            fontStyle: "Medium"
-            text: sessionData.weatherDate
         }
 
-        WeatherLabel {
-            // City/state if in same country as device.  City/country if in a different country
+        WeatherLocation {
             id: weatherLocation
             anchors.top: weatherDate.bottom
-            heightUnits: 4
-            fontSize: 48
-            fontStyle: "Medium"
-            text: sessionData.weatherLocation
         }
 
         GridLayout {

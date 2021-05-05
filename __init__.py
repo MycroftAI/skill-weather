@@ -545,6 +545,7 @@ class WeatherSkill(MycroftSkill):
         :param forecast: daily forecasts to display
         """
         self.gui.clear()
+        self.gui["weatherDate"] = forecast.date_time.strftime("%A %b %d")
         self.gui["weatherLocation"] = weather_location
         self.gui["sunrise"] = self._format_sunrise_sunset_time(forecast.sunrise)
         self.gui["sunset"] = self._format_sunrise_sunset_time(forecast.sunset)
@@ -745,7 +746,7 @@ class WeatherSkill(MycroftSkill):
         self.gui.clear()
         self.gui["weatherLocation"] = self._build_display_location(intent_data)
         self.gui["weatherCondition"] = forecast.condition.image
-        self.gui["weatherDate"] = forecast.date_time.strftime("%A %x")
+        self.gui["weatherDate"] = forecast.date_time.strftime("%A %b %d")
         self.gui["highTemperature"] = forecast.temperature.high
         self.gui["lowTemperature"] = forecast.temperature.low
         self.gui["chanceOfPrecipitation"] = str(forecast.chance_of_precipitation)
