@@ -20,7 +20,6 @@ Selene.  The Selene API is also used to get geographical information about the
 city name provided in the request.
 """
 from datetime import datetime
-from multi_key_dict import multi_key_dict
 from time import sleep
 from typing import List, Tuple
 
@@ -30,7 +29,7 @@ from requests import HTTPError
 from mycroft import MycroftSkill, intent_handler
 from mycroft.messagebus.message import Message
 from mycroft.util.parse import extract_number
-from .source import (
+from .skill import (
     CurrentDialog,
     DAILY,
     DailyDialog,
