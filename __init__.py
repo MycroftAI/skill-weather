@@ -511,7 +511,8 @@ class WeatherSkill(MycroftSkill):
             dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_sunrise_dialog()
             if self.platform == MARK_II:
-                self._display_sunrise_sunset_mark_ii(intent_weather)
+                weather_location = self._build_display_location(intent_data)
+                self._display_sunrise_sunset_mark_ii(intent_weather, weather_location)
             self._speak_weather(dialog)
 
     @intent_handler(
