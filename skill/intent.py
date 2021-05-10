@@ -36,9 +36,9 @@ class WeatherIntent:
         :param language: The configured language of the device
         """
         self.utterance = message.data["utterance"]
-        self.location = message.data.get("Location")
+        self.location = message.data.get("location")
         self.language = language
-        self.unit = message.data.get("Unit")
+        self.unit = message.data.get("unit")
         self.timeframe = CURRENT
 
     @property

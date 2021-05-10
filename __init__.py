@@ -81,10 +81,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .one_of("Weather", "Forecast")
-        .optionally("Location")
-        .optionally("Today")
+        .optionally("query")
+        .one_of("weather", "forecast")
+        .optionally("location")
+        .optionally("today")
     )
     def handle_current_weather(self, message: Message):
         """Handle current weather requests such as: what is the weather like?
@@ -95,10 +95,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("Query")
-        .require("Like")
-        .require("Outside")
-        .optionally("Location")
+        .require("query")
+        .require("like")
+        .require("outside")
+        .optionally("location")
     )
     def handle_like_outside(self, message: Message):
         """Handle current weather requests such as: what's it like outside?
@@ -109,10 +109,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .one_of("Weather", "Forecast")
-        .require("NumberDays")
-        .optionally("Location")
+        .optionally("query")
+        .one_of("weather", "forecast")
+        .require("number-days")
+        .optionally("location")
     )
     def handle_number_days_forecast(self, message: Message):
         """Handle multiple day forecast without specified location.
@@ -123,9 +123,9 @@ class WeatherSkill(MycroftSkill):
 
         :param message: Message Bus event information from the intent parser
         """
-        if self.voc_match(message.data["utterance"], "Couple"):
+        if self.voc_match(message.data["utterance"], "couple"):
             days = 2
-        elif self.voc_match(message.data["utterance"], "Few"):
+        elif self.voc_match(message.data["utterance"], "few"):
             days = 3
         else:
             days = int(extract_number(message.data["utterance"]))
@@ -133,10 +133,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .one_of("Weather", "Forecast")
-        .require("RelativeDay")
-        .optionally("Location")
+        .optionally("query")
+        .one_of("weather", "forecast")
+        .require("relative-day")
+        .optionally("location")
     )
     def handle_one_day_forecast(self, message):
         """Handle forecast for a single day.
@@ -151,10 +151,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("Query")
-        .require("Weather")
-        .require("Later")
-        .optionally("Location")
+        .require("query")
+        .require("weather")
+        .require("later")
+        .optionally("location")
     )
     def handle_weather_later(self, message: Message):
         """Handle future weather requests such as: what's the weather later?
@@ -165,11 +165,11 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .one_of("Weather", "Forecast")
-        .require("RelativeTime")
-        .optionally("RelativeDay")
-        .optionally("Location")
+        .optionally("query")
+        .one_of("weather", "forecast")
+        .require("relative-time")
+        .optionally("relative-day")
+        .optionally("location")
     )
     def handle_weather_at_time(self, message: Message):
         """Handle future weather requests such as: what's the weather tonight?
@@ -180,10 +180,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("Query")
-        .one_of("Weather", "Forecast")
-        .require("Weekend")
-        .optionally("Location")
+        .require("query")
+        .one_of("weather", "forecast")
+        .require("weekend")
+        .optionally("location")
     )
     def handle_weekend_forecast(self, message: Message):
         """Handle requests for the weekend forecast.
@@ -194,10 +194,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .one_of("Weather", "Forecast")
-        .require("Week")
-        .optionally("Location")
+        .optionally("query")
+        .one_of("weather", "forecast")
+        .require("week")
+        .optionally("location")
     )
     def handle_week_weather(self, message: Message):
         """Handle weather for week (i.e. seven days).
@@ -208,12 +208,12 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .require("Temperature")
-        .optionally("Location")
-        .optionally("Unit")
-        .optionally("Today")
-        .optionally("Now")
+        .optionally("query")
+        .require("temperature")
+        .optionally("location")
+        .optionally("unit")
+        .optionally("today")
+        .optionally("now")
     )
     def handle_current_temperature(self, message: Message):
         """Handle requests for current temperature.
@@ -228,11 +228,11 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .require("Temperature")
-        .require("RelativeDay")
-        .optionally("Location")
-        .optionally("Unit")
+        .optionally("query")
+        .require("temperature")
+        .require("relative-day")
+        .optionally("location")
+        .optionally("unit")
     )
     def handle_daily_temperature(self, message: Message):
         """Handle simple requests for current temperature.
@@ -245,11 +245,11 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .require("Temperature")
-        .require("RelativeTime")
-        .optionally("RelativeDay")
-        .optionally("Location")
+        .optionally("query")
+        .require("temperature")
+        .require("relative-time")
+        .optionally("relative-day")
+        .optionally("location")
     )
     def handle_hourly_temperature(self, message: Message):
         """Handle requests for current temperature at a relative time.
@@ -264,14 +264,14 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .require("High")
-        .optionally("Temperature")
-        .optionally("Location")
-        .optionally("Unit")
-        .optionally("RelativeDay")
-        .optionally("Now")
-        .optionally("Today")
+        .optionally("query")
+        .require("high")
+        .optionally("temperature")
+        .optionally("location")
+        .optionally("unit")
+        .optionally("relative-day")
+        .optionally("now")
+        .optionally("today")
     )
     def handle_high_temperature(self, message: Message):
         """Handle a request for the high temperature.
@@ -286,14 +286,14 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .require("Low")
-        .optionally("Temperature")
-        .optionally("Location")
-        .optionally("Unit")
-        .optionally("RelativeDay")
-        .optionally("Now")
-        .optionally("Today")
+        .optionally("query")
+        .require("low")
+        .optionally("temperature")
+        .optionally("location")
+        .optionally("unit")
+        .optionally("relative-day")
+        .optionally("now")
+        .optionally("today")
     )
     def handle_low_temperature(self, message: Message):
         """Handle a request for the high temperature.
@@ -308,10 +308,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("ConfirmQueryCurrent")
-        .one_of("Hot", "Cold")
-        .optionally("Location")
-        .optionally("Today")
+        .require("confirm-query-current")
+        .one_of("hot", "cold")
+        .optionally("location")
+        .optionally("today")
     )
     def handle_is_it_hot(self, message: Message):
         """Handler for temperature requests such as: is it going to be hot today?
@@ -322,12 +322,12 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .optionally("Query")
-        .one_of("Hot", "Cold")
-        .require("ConfirmQuery")
-        .optionally("Location")
-        .optionally("RelativeDay")
-        .optionally("Today")
+        .optionally("query")
+        .one_of("hot", "cold")
+        .require("confirm-query")
+        .optionally("location")
+        .optionally("relative-day")
+        .optionally("today")
     )
     def handle_how_hot_or_cold(self, message):
         """Handler for temperature requests such as: how cold will it be today?
@@ -339,10 +339,10 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("ConfirmQuery")
-        .require("Windy")
-        .optionally("Location")
-        .optionally("RelativeDay")
+        .require("confirm-query")
+        .require("windy")
+        .optionally("location")
+        .optionally("relative-day")
     )
     def handle_is_it_windy(self, message: Message):
         """Handler for weather requests such as: is it windy today?
@@ -353,11 +353,11 @@ class WeatherSkill(MycroftSkill):
 
     @intent_handler(
         IntentBuilder("")
-        .require("How")
-        .require("Windy")
-        .optionally("ConfirmQuery")
-        .optionally("RelativeDay")
-        .optionally("Location")
+        .require("how")
+        .require("windy")
+        .optionally("confirm-query")
+        .optionally("relative-day")
+        .optionally("location")
     )
     def handle_windy(self, message):
         """Handler for weather requests such as: how windy is it?
@@ -367,41 +367,41 @@ class WeatherSkill(MycroftSkill):
         self._report_wind(message)
 
     @intent_handler(
-        IntentBuilder("").require("ConfirmQuery").require("Snow").optionally("Location")
+        IntentBuilder("").require("confirm-query").require("snow").optionally("location")
     )
     def handle_is_it_snowing(self, message: Message):
         """Handler for weather requests such as: is it snowing today?
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "Snow")
+        self._report_weather_condition(message, "snow")
 
     @intent_handler(
         IntentBuilder("")
-        .require("ConfirmQuery")
-        .require("Clear")
-        .optionally("Location")
+        .require("confirm-query")
+        .require("clear")
+        .optionally("location")
     )
     def handle_is_it_clear(self, message: Message):
         """Handler for weather requests such as: is the sky clear today?
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, condition="Clear")
+        self._report_weather_condition(message, condition="clear")
 
     @intent_handler(
         IntentBuilder("")
-        .require("ConfirmQuery")
-        .require("Clouds")
-        .optionally("Location")
-        .optionally("RelativeTime")
+        .require("confirm-query")
+        .require("clouds")
+        .optionally("location")
+        .optionally("relative-time")
     )
     def handle_is_it_cloudy(self, message: Message):
         """Handler for weather requests such as: is it cloudy today?
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "Clouds")
+        self._report_weather_condition(message, "clouds")
 
     @intent_handler(
         IntentBuilder("").require("ConfirmQuery").require("Fog").optionally("Location")
@@ -411,7 +411,7 @@ class WeatherSkill(MycroftSkill):
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "Fog")
+        self._report_weather_condition(message, "fog")
 
     @intent_handler(
         IntentBuilder("").require("ConfirmQuery").require("Rain").optionally("Location")
@@ -421,15 +421,15 @@ class WeatherSkill(MycroftSkill):
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "Rain")
+        self._report_weather_condition(message, "rain")
 
-    @intent_handler("do.i.need.an.umbrella.intent")
+    @intent_handler("do-i-need-an-umbrella.intent")
     def handle_need_umbrella(self, message: Message):
         """Handler for weather requests such as: will I need an umbrella today?
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "Rain")
+        self._report_weather_condition(message, "rain")
 
     @intent_handler(
         IntentBuilder("")
@@ -442,7 +442,7 @@ class WeatherSkill(MycroftSkill):
 
         :param message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "Thunderstorm")
+        self._report_weather_condition(message, "thunderstorm")
 
     @intent_handler(
         IntentBuilder("")
@@ -1002,12 +1002,12 @@ class WeatherSkill(MycroftSkill):
         except ValueError:
             self.speak_dialog("cant.get.forecast")
         else:
-            if self.voc_match(intent_data.utterance, "RelativeTime"):
+            if self.voc_match(intent_data.utterance, "relative-time"):
                 intent_data.timeframe = HOURLY
-            elif self.voc_match(intent_data.utterance, "Later"):
+            elif self.voc_match(intent_data.utterance, "later"):
                 intent_data.timeframe = HOURLY
-            elif self.voc_match(intent_data.utterance, "RelativeDay"):
-                if not self.voc_match(intent_data.utterance, "Today"):
+            elif self.voc_match(intent_data.utterance, "relative-day"):
+                if not self.voc_match(intent_data.utterance, "today"):
                     intent_data.timeframe = DAILY
 
         return intent_data
