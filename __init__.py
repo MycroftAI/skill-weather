@@ -40,7 +40,6 @@ from .skill import (
     LocationNotFoundError,
     OpenWeatherMapApi,
     WeatherConfig,
-    WeatherDialog,
     WeatherIntent,
     WeatherReport,
     WeeklyDialog,
@@ -477,12 +476,13 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        intent_data = WeatherIntent(message, self.lang)
+        intent_data = self._get_intent_data(message)
         weather = self._get_weather(intent_data)
         if weather is not None:
             forecast, timeframe = weather.get_next_precipitation(intent_data)
             intent_data.timeframe = timeframe
-            dialog = WeatherDialog(forecast, self.weather_config, intent_data)
+            dialog_args = intent_data, self.weather_config, forecast
+            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_next_precipitation_dialog()
             spoken_percentage = self.translate(
                 "percentage-number", data=dict(number=dialog.data["percent"])
@@ -507,7 +507,8 @@ class WeatherSkill(MycroftSkill):
         weather = self._get_weather(intent_data)
         if weather is not None:
             intent_weather = weather.get_weather_for_intent(intent_data)
-            dialog = WeatherDialog(intent_weather, self.weather_config, intent_data)
+            dialog_args = intent_data, self.weather_config, intent_weather
+            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_humidity_dialog()
             dialog.data.update(
                 humidity=self.translate(
@@ -847,7 +848,7 @@ class WeatherSkill(MycroftSkill):
 
         :param forecast: daily forecasts to report
         :param intent_data: information about the intent that was triggered
-        :return: one WeatherDialog instance for each day being reported.
+        :return: one DailyDialog instance for each day being reported.
         """
         dialogs = list()
         for forecast_day in forecast:
@@ -1021,7 +1022,7 @@ class WeatherSkill(MycroftSkill):
 
     def _build_condition_dialog(
         self, weather, intent_data: WeatherIntent, condition: str
-    ) -> WeatherDialog:
+    ):
         """Builds a dialog for the requested weather condition.
 
         Args:
@@ -1050,7 +1051,8 @@ class WeatherSkill(MycroftSkill):
             intent_weather.wind_direction = self.translate(
                 intent_weather.wind_direction
             )
-            dialog = WeatherDialog(intent_weather, self.weather_config, intent_data)
+            dialog_args = intent_data, self.weather_config, intent_weather
+            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_wind_dialog()
             self._speak_weather(dialog)
 

@@ -54,7 +54,7 @@ from .weather import (
 #   - daily.snow.alternative.local
 #   - all hourly.<condition>.alternative.local/location
 #   - all hourly.<condition>.not.expected.local/location
-class Dialog:
+class WeatherDialog:
     """Abstract base class for the weather dialog builders."""
 
     def __init__(self, intent_data: WeatherIntent, config: WeatherConfig):
@@ -86,7 +86,7 @@ class Dialog:
             self.data.update(location=spoken_location)
 
 
-class CurrentDialog(Dialog):
+class CurrentDialog(WeatherDialog):
     """Weather dialog builder for current weather."""
 
     def __init__(
@@ -193,7 +193,7 @@ class CurrentDialog(Dialog):
         self._add_location()
 
 
-class HourlyDialog(Dialog):
+class HourlyDialog(WeatherDialog):
     """Weather dialog builder for hourly weather."""
 
     def __init__(
@@ -270,7 +270,7 @@ class HourlyDialog(Dialog):
         self._add_location()
 
 
-class DailyDialog(Dialog):
+class DailyDialog(WeatherDialog):
     """Weather dialog builder for daily weather."""
 
     def __init__(
@@ -381,7 +381,7 @@ class DailyDialog(Dialog):
         self._add_location()
 
 
-class WeeklyDialog(Dialog):
+class WeeklyDialog(WeatherDialog):
     """Weather dialog builder for weekly weather."""
 
     def __init__(
