@@ -27,6 +27,7 @@ import Mycroft 1.0 as Mycroft
 
 Mycroft.ProportionalDelegate {
     id: root
+    skillBackgroundColorOverlay: Qt.rgba(0, 0, 0, 1)
 
     function getWeatherImagery(weathercode) {
         switch(weathercode) {
