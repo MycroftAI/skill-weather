@@ -86,61 +86,6 @@ class Dialog:
             self.data.update(location=spoken_location)
 
 
-class WeatherDialog(Dialog):
-    """Use intent and weather data to determine which dialog will be spoken."""
-
-    def __init__(self, weather, config, intent_data):
-        super().__init__(intent_data, config)
-        self.weather = weather
-        self.config = config
-        self.intent_data = intent_data
-
-    def build_wind_dialog(self):
-        """Build the components necessary to speak the wind conditions."""
-        wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
-        self.data = dict(
-            speed=nice_number(self.weather.wind_speed),
-            speed_unit=self.config.speed_unit,
-            direction=self.weather.wind_direction,
-        )
-        self.name = self.intent_data.timeframe
-        if self.intent_data.timeframe == DAILY:
-            self.data.update(day=self.weather.date_time.strftime("%A"))
-        elif self.hourly_forecast:
-            self.data.update(time=nice_time(self.weather.date_time))
-        self.name += "-wind-" + wind_strength
-        self._add_location()
-
-    def build_humidity_dialog(self):
-        """Build the components necessary to speak the percentage humidity."""
-        self.data = dict(percent=self.weather.humidity)
-        if self.intent_data.timeframe == DAILY:
-            self.name = "daily-humidity"
-            self.data.update(day=self.weather.date_time.strftime("%A"))
-        else:
-            self.name = "current-humidity"
-        self._add_location()
-
-    def build_next_precipitation_dialog(self):
-        """Build the components necessary to speak the next chance of rain."""
-        if self.weather is None:
-            self.name = "daily.precipitation.next.none"
-            self.data = dict()
-        else:
-            if self.intent_data.timeframe == DAILY:
-                self.name = "daily-precipitation-next"
-                self.data = dict(day=self.weather.date_time.strftime("%A"))
-            else:
-                self.name = "hourly-precipitation-next"
-                self.data = dict(time=get_time_period(self.weather.date_time))
-            self.data = dict(
-                percent=self.weather.chance_of_precipitation,
-                precipitation="rain",
-                day=self.weather.date_time.strftime("%A"),
-            )
-        self._add_location()
-
-
 class CurrentDialog(Dialog):
     """Weather dialog builder for current weather."""
 
@@ -230,6 +175,23 @@ class CurrentDialog(Dialog):
         self.data = dict(time=nice_time(self.weather.sunset))
         self._add_location()
 
+    def build_wind_dialog(self):
+        """Build the components necessary to speak the wind conditions."""
+        wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
+        self.data = dict(
+            speed=nice_number(self.weather.wind_speed),
+            speed_unit=self.config.speed_unit,
+            direction=self.weather.wind_direction,
+        )
+        self.name += "-wind-" + wind_strength
+        self._add_location()
+
+    def build_humidity_dialog(self):
+        """Build the components necessary to speak the percentage humidity."""
+        self.data = dict(percent=self.weather.humidity)
+        self.name += "-humidity"
+        self._add_location()
+
 
 class HourlyDialog(Dialog):
     """Weather dialog builder for hourly weather."""
@@ -257,7 +219,7 @@ class HourlyDialog(Dialog):
         self.data = dict(
             temperature=self.weather.temperature,
             time=get_time_period(self.weather.date_time),
-            temperature_unit=self.intent_data.unit or self.config.temperature_unit
+            temperature_unit=self.intent_data.unit or self.config.temperature_unit,
         )
         self._add_location()
 
@@ -277,6 +239,33 @@ class HourlyDialog(Dialog):
         else:
             self.name += "-condition-not-expected".format(
                 self.weather.condition.category.lower()
+            )
+        self._add_location()
+
+    def build_wind_dialog(self):
+        """Build the components necessary to speak the wind conditions."""
+        wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
+        self.data = dict(
+            speed=nice_number(self.weather.wind_speed),
+            speed_unit=self.config.speed_unit,
+            direction=self.weather.wind_direction,
+            time=nice_time(self.weather.date_time),
+        )
+        self.name += "-wind-" + wind_strength
+        self._add_location()
+
+    def build_next_precipitation_dialog(self):
+        """Build the components necessary to speak the next chance of rain."""
+        if self.weather is None:
+            self.name += "-precipitation-next-none"
+            self.data = dict()
+        else:
+            self.name += "-precipitation-next"
+            self.data = dict(
+                percent=self.weather.chance_of_precipitation,
+                precipitation="rain",
+                day=self.weather.date_time.strftime("%A"),
+                time=get_time_period(self.weather.date_time),
             )
         self._add_location()
 
@@ -320,7 +309,7 @@ class DailyDialog(Dialog):
             self.data = dict(temperature=self.weather.temperature.day)
         self.data.update(
             day=get_speakable_day_of_week(self.weather.date_time),
-            temperature_unit = self.intent_data.unit or self.config.temperature_unit
+            temperature_unit=self.intent_data.unit or self.config.temperature_unit,
         )
         self._add_location()
 
@@ -355,6 +344,40 @@ class DailyDialog(Dialog):
         self.name += "-sunset"
         self.data = dict(time=nice_time(self.weather.sunset))
         self.data.update(day=get_speakable_day_of_week(self.weather.date_time))
+        self._add_location()
+
+    def build_wind_dialog(self):
+        """Build the components necessary to speak the wind conditions."""
+        wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
+        self.data = dict(
+            day=self.weather.date_time.strftime("%A"),
+            speed=nice_number(self.weather.wind_speed),
+            speed_unit=self.config.speed_unit,
+            direction=self.weather.wind_direction,
+        )
+        self.name += "-wind-" + wind_strength
+        self._add_location()
+
+    def build_humidity_dialog(self):
+        """Build the components necessary to speak the percentage humidity."""
+        self.data = dict(
+            percent=self.weather.humidity, day=self.weather.date_time.strftime("%A")
+        )
+        self.name += "-humidity"
+        self._add_location()
+
+    def build_next_precipitation_dialog(self):
+        """Build the components necessary to speak the next chance of rain."""
+        if self.weather is None:
+            self.name += "-precipitation-next-none"
+            self.data = dict()
+        else:
+            self.name += "-precipitation-next"
+            self.data = dict(
+                percent=self.weather.chance_of_precipitation,
+                precipitation="rain",
+                day=self.weather.date_time.strftime("%A"),
+            )
         self._add_location()
 
 

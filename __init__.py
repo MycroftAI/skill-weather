@@ -341,7 +341,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        temperature_type = "high" if message.data.get("Hot") else "low"
+        utterance = message.data["utterance"]
+        temperature_type = "high" if self.voc_match(utterance, "hot") else "low"
         self._report_temperature(message, temperature_type)
 
     @intent_handler(
@@ -376,7 +377,10 @@ class WeatherSkill(MycroftSkill):
         self._report_wind(message)
 
     @intent_handler(
-        IntentBuilder("").require("confirm-query").require("snow").optionally("location")
+        IntentBuilder("")
+        .require("confirm-query")
+        .require("snow")
+        .optionally("location")
     )
     def handle_is_it_snowing(self, message: Message):
         """Handler for weather requests such as: is it snowing today?
@@ -562,9 +566,7 @@ class WeatherSkill(MycroftSkill):
             self._display_sunrise_sunset(intent_weather, weather_location)
             self._speak_weather(dialog)
 
-    def _display_sunrise_sunset(
-        self, forecast: DailyWeather, weather_location: str
-    ):
+    def _display_sunrise_sunset(self, forecast: DailyWeather, weather_location: str):
         """Display the sunrise and sunset.
 
         Args:
