@@ -14,15 +14,16 @@ WeatherDelegate {
     spacing: proportionalGridUnit * 10
     Repeater {
         id: forecastRepeater
-        model: sessionData.forecast.first
         delegate: GridLayout {
             columns: 2
             rowSpacing: proportionalGridUnit * 5
             columnSpacing: proportionalGridUnit * 5
             Layout.fillWidth: true
+            Layout.fillHeight: true
+
             LottieAnimation {
                 Layout.alignment: Qt.AlignCenter
-                Layout.preferredHeight: proportionalGridUnit * 20
+                Layout.preferredHeight: proportionalGridUnit * 30
                 Layout.preferredWidth: Layout.preferredHeight
 
                 source: Qt.resolvedUrl(getWeatherImagery(modelData.weathercode))
@@ -30,28 +31,33 @@ WeatherDelegate {
                 fillMode: Image.PreserveAspectFit
                 running: true
             }
-            Mycroft.AutoFitLabel {
+            Label {
                 font.weight: Font.Bold
-                horizontalAlignment: Text.AlignLeft
+                horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
-                Layout.preferredHeight: proportionalGridUnit * 15
+                Layout.preferredHeight: proportionalGridUnit * 30
+                font.pixelSize: height * 0.90
                 text: modelData.date
             }
 
-            Mycroft.AutoFitLabel {
+            Label {
                 font.weight: Font.Bold
                 Layout.fillWidth: true
-                Layout.preferredHeight: proportionalGridUnit * 20
+                Layout.preferredHeight: proportionalGridUnit * 30
                 rightPadding: -font.pixelSize * 0.1
+                font.pixelSize: height * 0.90
+                horizontalAlignment: Text.AlignHCenter
                 text: modelData.max + "°"
             }
 
-            Mycroft.AutoFitLabel {
+            Label {
                 font.styleName: "Thin"
                 Layout.fillWidth: true
-                Layout.preferredHeight: proportionalGridUnit * 20
+                Layout.preferredHeight: proportionalGridUnit * 30
                 rightPadding: -font.pixelSize * 0.1
-                text: modelData.min + "°"
+                font.pixelSize: height * 0.90
+                horizontalAlignment: Text.AlignHCenter
+               text: modelData.min + "°"
             }
         }
     }

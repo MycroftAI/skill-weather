@@ -32,11 +32,13 @@ WeatherDelegate {
         }
     }
 
-    Mycroft.AutoFitLabel {
+    Label {
         id: temperature
         font.weight: Font.Bold
         Layout.fillWidth: true
+        horizontalAlignment: Text.AlignHCenter
         Layout.preferredHeight: proportionalGridUnit * 40
+        font.pixelSize: parent.height * 0.65
         rightPadding: -font.pixelSize * 0.1
         text: sessionData.current + "°"
     }
