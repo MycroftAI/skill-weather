@@ -3,7 +3,7 @@ Feature: Mycroft Weather Skill local daily forecasts
   Scenario Outline: what is the forecast for tomorrow
     Given an english speaking user
      When the user says "<what is the forecast for tomorrow>"
-     Then "mycroft-weather" should reply with dialog from "daily.weather.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-weather-local.dialog"
 
   Examples: What is the forecast for tomorrow
     | what is the forecast for tomorrow |
@@ -15,7 +15,7 @@ Feature: Mycroft Weather Skill local daily forecasts
   Scenario Outline: what is the forecast for a future date
     Given an english speaking user
      When the user says "<what is the forecast for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily.weather.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-weather-local.dialog"
 
   Examples: what is the forecast for a future date
     | what is the forecast for a future date |

@@ -3,7 +3,7 @@ Feature: Mycroft Weather Skill current local weather
   Scenario Outline: What is the temperature today
     Given an english speaking user
      When the user says "<what is the temperature today>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "current-temperature-local.dialog"
 
   Examples: What is the temperature today
     | what is the temperature today |
@@ -19,7 +19,7 @@ Feature: Mycroft Weather Skill current local weather
   Scenario Outline: What is the high temperature today
     Given an english speaking user
      When the user says "<what is the high temperature today>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.high.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "current-temperature-high-local.dialog"
 
   Examples: What is the high temperature today
     | what is the high temperature today |
@@ -35,7 +35,7 @@ Feature: Mycroft Weather Skill current local weather
   Scenario Outline: What is the low temperature today
     Given an english speaking user
      When the user says "<what is the low temperature today>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.low.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "current-temperature-low-local.dialog"
 
   Examples: What is the low temperature today
     | what is the low temperature today |

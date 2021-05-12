@@ -3,7 +3,7 @@ Feature: Mycroft Weather Skill current temperature at specified location
   Scenario Outline: User asks for the temperature today in a location
     Given an english speaking user
      When the user says "<what is the temperature today in location>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.location.dialog"
+     Then "mycroft-weather" should reply with dialog from "current-temperature-location.dialog"
 
   Examples: what is the temperature today in location
     | what is the temperature today in location |
@@ -18,7 +18,7 @@ Feature: Mycroft Weather Skill current temperature at specified location
   Scenario Outline: User asks for the high temperature today in a location
     Given an english speaking user
      When the user says "<what is the high temperature today in location>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.high.location.dialog"
+     Then "mycroft-weather" should reply with dialog from "current-temperature-high-location.dialog"
 
     Examples: what is the high temperature today in location
     | what is the high temperature today in location |
@@ -34,7 +34,7 @@ Feature: Mycroft Weather Skill current temperature at specified location
   Scenario Outline: User asks for the low temperature in a location
     Given an english speaking user
      When the user says "<what is the low temperature today in location>"
-     Then "mycroft-weather" should reply with dialog from "current.temperature.low.location.dialog"
+     Then "mycroft-weather" should reply with dialog from "current-temperature-low-location.dialog"
 
   Examples: low temperature today in location
     | what is the low temperature today in location |
