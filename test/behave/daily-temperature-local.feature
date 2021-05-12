@@ -54,7 +54,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the temperature for a future date
     Given an english speaking user
      When the user says "<what is the temperature for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily.temperature.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-temperature-local.dialog"
 
   Examples: what is the temperature for a future date
     | what is the temperature for a future date |
@@ -65,7 +65,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the high temperature for a future date
     Given an english speaking user
      When the user says "<what is the high temperature for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily.temperature.high.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-temperature-high-local.dialog"
 
   Examples: what is the high temperature for a future date
     | what is the high temperature for a future date |
@@ -76,7 +76,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the low temperature for a future date
     Given an english speaking user
      When the user says "<what is the low temperature for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily.temperature.low.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-temperature-low-local.dialog"
 
   Examples: what is the low temperature for a future date
     | what is the low temperature for a future date |
@@ -87,7 +87,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the temperature at a certain time
     Given an english speaking user
      When the user says "<what is the temperature at a certain time>"
-     Then "mycroft-weather" should reply with dialog from "hourly.temperature.local.dialog"
+     Then "mycroft-weather" should reply with dialog from "hourly-temperature-local.dialog"
 
   Examples: what is the temperature at a certain time
     | what is the temperature at a certain time |

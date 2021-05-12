@@ -1099,11 +1099,11 @@ class WeatherSkill(MycroftSkill):
             except LocationNotFoundError:
                 self.log.exception("City not found.")
                 self.speak_dialog(
-                    "location.not.found", data=dict(location=intent_data.location)
+                    "location-not-found", data=dict(location=intent_data.location)
                 )
             except Exception:
                 self.log.exception("Unexpected error retrieving weather")
-                self.speak_dialog("cant.get.forecast")
+                self.speak_dialog("cant-get-forecast")
 
         return weather
 
