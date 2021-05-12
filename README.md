@@ -5,13 +5,9 @@ Weather conditions and forecasts
 
 ## About 
 Get weather conditions, forecasts, expected precipitation and more!  By default, it will tell
-you about your default location. You can also ask for other cities around the world. 
+you about your device's configured location. You can also ask for other cities around the world. 
 
 Current conditions and weather forecasts come from [Open Weather Map](https://openweathermap.org).
-
-For hardware with Arduino support, like the Mark I, conditions are briefly shown.
-For hardware with GUI support, like the Mark II, there are several screens depending
-on your request.
 
 The temperature is shown in Celsius or Fahrenheit depending on the preferences 
 set in your [https://home.mycroft.ai](https://home.mycroft.ai) account.  You can ask 

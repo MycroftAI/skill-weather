@@ -89,9 +89,10 @@ class OpenWeatherMapApi(Api):
     ) -> WeatherReport:
         """Issue an API call and map the return value into a weather report
 
-        :param measurement_system: Metric or Imperial measurement units
-        :param latitude: the geologic latitude of the weather location
-        :param longitude: the geologic longitude of the weather location
+        Args:
+            measurement_system: Metric or Imperial measurement units
+            latitude: the geologic latitude of the weather location
+            longitude: the geologic longitude of the weather location
         """
         query_parameters = dict(
             exclude="minutely",
@@ -109,7 +110,11 @@ class OpenWeatherMapApi(Api):
     def set_language_parameter(self, language_config: str):
         """
         OWM supports 31 languages, see https://openweathermap.org/current#multi
-        Convert language code to owm language, if missing use 'en'
+
+        Convert Mycroft's language code to OpenWeatherMap's, if missing use english.
+
+        Args:
+            language_config: The Mycroft language code.
         """
         special_cases = {"cs": "cz", "ko": "kr", "lv": "la"}
         language_part_one, language_part_two = language_config.split('-')

@@ -11,10 +11,30 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Abstraction of dialog building for the weather skill."""
+"""Abstraction of dialog building for the weather skill.
+
+There are A LOT of dialog files in this skill.  All the permutations of timeframe,
+weather condition and location add up fast.  To help with discoverability, a naming
+convention was applied to the dialog files:
+    <timeframe>-<weather info>-<qualifier>-<locale>.dialog
+
+    Example:
+         daily-temperature-high-local.dialog
+
+    * Timeframe: the date or time applicable to the forecast.  This skill supports
+        current, hourly and daily weather.
+    * Weather info: a description of what type of weather the dialog refers to.
+        Examples include "temperature", "weather" and "sunrise".
+    * Qualifier: further qualifies what type of weather is being reported.  For
+        example, temperature can be qualified by "high" or "low".
+    * Locale: indicates if the dialog is for local weather or weather in a remote
+        location.
+
+The skill class will use the "name" and "data" attributes to pass to the TTS process.
+"""
 from typing import List, Tuple
 
-from mycroft.util.format import nice_number, nice_time
+from mycroft.util.format import join_list, nice_number, nice_time
 from mycroft.util.time import now_local
 from .config import WeatherConfig
 from .intent import WeatherIntent
@@ -26,9 +46,6 @@ from .weather import (
     DailyWeather,
     HOURLY,
     HourlyWeather,
-    is_current_weather,
-    is_hourly_forecast,
-    is_daily_forecast,
 )
 
 # TODO: MISSING DIALOGS
@@ -77,9 +94,6 @@ class WeatherDialog(Dialog):
         self.weather = weather
         self.config = config
         self.intent_data = intent_data
-        self.current_weather = is_current_weather(weather)
-        self.daily_forecast = is_daily_forecast(weather)
-        self.hourly_forecast = is_hourly_forecast(weather)
 
     def build_wind_dialog(self):
         """Build the components necessary to speak the wind conditions."""
@@ -378,10 +392,7 @@ class WeeklyDialog(Dialog):
             if daily.condition.category == condition:
                 day = get_speakable_day_of_week(daily.date_time)
                 days_with_condition.append(day)
-        if len(days_with_condition) > 1:
-            last_day = days_with_condition.pop(-1)
-            days_with_condition.append("and " + last_day)
-        self.data.update(days=", ".join(days_with_condition))
+        self.data.update(days=join_list(days_with_condition, "and"))
 
 
 def get_dialog_for_timeframe(timeframe: str, dialog_ags: Tuple):

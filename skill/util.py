@@ -35,8 +35,12 @@ def convert_to_local_datetime(timestamp: time, timezone: str) -> datetime:
     This function assumes it is passed a timestamp in the UTC timezone.  It
     then adjusts the datetime to match the specified timezone.
 
-    :param timestamp: seconds since epoch
-    :param timezone: the timezone requested by the user
+    Args:
+        timestamp: seconds since epoch
+        timezone: the timezone requested by the user
+
+    Returns:
+        A datetime in the passed timezone based on the passed timestamp
     """
     naive_datetime = datetime.fromtimestamp(timestamp)
     utc_datetime = pytz.utc.localize(naive_datetime)
@@ -51,9 +55,13 @@ def get_utterance_datetime(
 ) -> datetime:
     """Get a datetime representation of a date or time concept in an utterance.
 
-    :param utterance: the words spoken by the user
-    :param timezone: the timezone requested by the user
-    :param language: the language configured on the device
+    Args:
+        utterance: the words spoken by the user
+        timezone: the timezone requested by the user
+        language: the language configured on the device
+
+    Returns:
+        The date and time represented in the utterance in the specified timezone.
     """
     utterance_datetime = None
     if timezone is None:
@@ -71,7 +79,11 @@ def get_utterance_datetime(
 def get_tz_info(timezone: str) -> tzinfo:
     """Generate a tzinfo object from a timezone string.
 
-    :param timezone: a string representing a timezone
+    Args:
+        timezone: a string representing a timezone
+
+    Returns:
+        timezone in a string format
     """
     return pytz.timezone(timezone)
 
@@ -79,7 +91,15 @@ def get_tz_info(timezone: str) -> tzinfo:
 def get_geolocation(location: str):
     """Retrieve the geolocation information about the requested location.
 
-    :param location: a location specified in the utterance
+    Args:
+        location: a location specified in the utterance
+
+    Returns:
+        A deserialized JSON object containing geolocation information for the
+        specified city.
+
+    Raises:
+        LocationNotFound error if the API returns no results.
     """
     geolocation_api = GeolocationApi()
     geolocation = geolocation_api.get_geolocation(location)
@@ -93,7 +113,11 @@ def get_geolocation(location: str):
 def get_time_period(intent_datetime: datetime) -> str:
     """Translate a specific time '9am' to period of the day 'morning'
 
-    :param intent_datetime: the datetime extracted from an utterance
+    Args:
+        intent_datetime: the datetime extracted from an utterance
+
+    Returns:
+        A generalized time of day based on the passed datetime object.
     """
     hour = intent_datetime.time().hour
     if 1 <= hour < 5:
@@ -113,8 +137,11 @@ def get_time_period(intent_datetime: datetime) -> str:
 def get_speakable_day_of_week(date_to_speak: datetime):
     """Convert the time of the a daily weather forecast to a speakable day of week.
 
-    :param date_to_speak: The date/time for the forecast being reported.
-    :return: The day of the week in the device's configured language
+    Args:
+        date_to_speak: The date/time for the forecast being reported.
+
+    Returns:
+        The day of the week in the device's configured language
     """
     now = now_local()
     tomorrow = now.date() + timedelta(days=1)

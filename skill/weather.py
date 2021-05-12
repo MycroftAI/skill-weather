@@ -14,6 +14,7 @@
 """Representations and conversions of the data returned by the weather API."""
 from datetime import timedelta
 from pathlib import Path
+from typing import List
 
 from .config import MILES_PER_HOUR
 from .util import convert_to_local_datetime
@@ -79,21 +80,6 @@ WIND_DIRECTION_CONVERSION = (
 )
 
 
-def is_daily_forecast(weather_report) -> bool:
-    """Helper function to determine if the object passed is a DailyWeather object."""
-    return isinstance(weather_report, DailyWeather)
-
-
-def is_hourly_forecast(weather_report) -> bool:
-    """Helper function to determine if the object passed is a HourlyWeather object."""
-    return isinstance(weather_report, HourlyWeather)
-
-
-def is_current_weather(weather_report) -> bool:
-    """Helper function to determine if the object passed is a CurrentWeather object."""
-    return isinstance(weather_report, CurrentWeather)
-
-
 class WeatherCondition:
     """Data representation of a weather conditions JSON object from the API"""
 
@@ -152,7 +138,11 @@ class Weather:
     def _determine_wind_direction(degree_direction: int):
         """Convert wind direction from compass degrees to compass direction.
 
-        :param degree_direction: Degrees on a compass indicating wind direction.
+        Args:
+            degree_direction: Degrees on a compass indicating wind direction.
+
+        Returns:
+            the wind direction in one of eight compass directions
         """
         for min_degree, compass_direction in WIND_DIRECTION_CONVERSION:
             if degree_direction < min_degree:
@@ -166,7 +156,11 @@ class Weather:
     def determine_wind_strength(self, speed_unit: str):
         """Convert a wind speed to a wind strength.
 
-        :param speed_unit: unit of measure for speed depending on device configuration
+        Args:
+            speed_unit: unit of measure for speed depending on device configuration
+
+        Returns:
+            a string representation of the wind strength
         """
         if speed_unit == MILES_PER_HOUR:
             limits = dict(strong=20, moderate=11)
@@ -263,7 +257,11 @@ class WeatherReport:
             self.alerts = None
 
     def get_weather_for_intent(self, intent_data):
-        """Use the intent to determine which forecast satisfies the request"""
+        """Use the intent to determine which forecast satisfies the request.
+
+        Args:
+            intent_data: Parsed intent data
+        """
         if intent_data.timeframe == "hourly":
             weather = self.get_forecast_for_hour(intent_data)
         elif intent_data.timeframe == "daily":
@@ -274,7 +272,11 @@ class WeatherReport:
         return weather
 
     def get_forecast_for_date(self, intent_data):
-        """Use the intent to determine which daily forecast(s) satisfies the request"""
+        """Use the intent to determine which daily forecast(s) satisfies the request.
+
+        Args:
+            intent_data: Parsed intent data
+        """
         if intent_data.intent_datetime.date() == intent_data.location_datetime.date():
             forecast = self.daily[0]
         else:
@@ -285,8 +287,18 @@ class WeatherReport:
 
         return forecast
 
-    def get_forecast_for_multiple_days(self, days):
-        """Use the intent to determine which daily forecast(s) satisfies the request"""
+    def get_forecast_for_multiple_days(self, days: int) -> List[DailyWeather]:
+        """Use the intent to determine which daily forecast(s) satisfies the request.
+
+        Args:
+            days: number of forecast days to return
+
+        Returns:
+            list of daily forecasts for the specified number of days
+
+        Raises:
+            IndexError when number of days is more than what is returned by the API
+        """
         if days > 7:
             raise IndexError("Only seven days of forecasted weather available.")
 
@@ -295,7 +307,14 @@ class WeatherReport:
         return forecast
 
     def get_forecast_for_hour(self, intent_data):
-        """Use the intent to determine which hourly forecast(s) satisfies the request"""
+        """Use the intent to determine which hourly forecast(s) satisfies the request.
+
+        Args:
+            intent_data: Parsed intent data
+
+        Returns:
+            A single hour of forecast data based on the intent data
+        """
         delta = intent_data.intent_datetime - intent_data.location_datetime
         hour_delta = int(delta / timedelta(hours=1))
         hour_index = hour_delta + 1
@@ -304,7 +323,11 @@ class WeatherReport:
         return report
 
     def get_weekend_forecast(self):
-        """Use the intent to determine which daily forecast(s) satisfies the request"""
+        """Use the intent to determine which daily forecast(s) satisfies the request.
+
+        Returns:
+            The Saturday and Sunday forecast from the list of daily forecasts
+        """
         forecast = list()
         for forecast_day in self.daily:
             report_date = forecast_day.date_time.date()
@@ -314,10 +337,18 @@ class WeatherReport:
         return forecast
 
     def get_next_precipitation(self, intent_data):
-        """Determine when the next chance of precipitation is in the forecast"""
+        """Determine when the next chance of precipitation is in the forecast.
+
+        Args:
+            intent_data: Parsed intent data
+
+        Returns:
+            The weather report containing the next chance of rain and the timeframe of
+            the selected report.
+        """
         report = None
         current_precipitation = True
-        timeframe = "hourly"
+        timeframe = HOURLY
         for hourly in self.hourly:
             if hourly.date_time.date() > intent_data.location_datetime.date():
                 break
@@ -329,7 +360,7 @@ class WeatherReport:
                 current_precipitation = False
 
         if report is None:
-            timeframe = "daily"
+            timeframe = DAILY
             for daily in self.daily:
                 if daily.date_time.date() == intent_data.location_datetime.date():
                     continue
