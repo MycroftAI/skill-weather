@@ -54,10 +54,12 @@ WeatherDelegateScalable {
         }
     }
 
-    Mycroft.AutoFitLabel {
+    Label {
         //  Current temperature in the configured temperature unit
         id: temperature
         font.weight: Font.Bold
+        font.pixelSize: parent.height * 0.65
+        horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true
         Layout.preferredHeight: proportionalGridUnit * 40
         rightPadding: -font.pixelSize * 0.1

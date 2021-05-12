@@ -31,9 +31,11 @@ import org.kde.lottie 1.0
 WeatherDelegateScalable {
     id: root
 
-    Mycroft.AutoFitLabel {
+    Label {
         id: highTemperature
         font.weight: Font.Bold
+        font.pixelSize: parent.height * 0.50
+        horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true
         Layout.preferredHeight: proportionalGridUnit * 40
         //The off-centering to balance the ° should be proportional as well, so we use the computed pixel size
@@ -41,13 +43,15 @@ WeatherDelegateScalable {
         text: sessionData.highTemperature + "°"
     }
 
-    Mycroft.AutoFitLabel {
+    Label {
         id: lowTemperature
+        font.pixelSize: parent.height * 0.50
+        font.styleName: "Thin"
+        font.weight: Font.Thin
+        horizontalAlignment: Text.AlignHCenter
         Layout.fillWidth: true
         Layout.preferredHeight: proportionalGridUnit * 40
         rightPadding: -font.pixelSize * 0.1
-        font.weight: Font.Thin
-        font.styleName: "Thin"
         text: sessionData.lowTemperature + "°"
     }
 }
