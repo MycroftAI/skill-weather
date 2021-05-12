@@ -24,15 +24,6 @@ import QtQuick.Controls 2.0
 
 import Mycroft 1.0 as Mycroft
 
-// TODO: Change to use CardDelegate
-Mycroft.Delegate {
+Mycroft.CardDelegate {
     id: root
-
-    readonly property int gridUnit: 16
-
-    bottomPadding: 32
-    leftPadding: 32
-    rightPadding: 32
-    topPadding: 32
-
 }
