@@ -30,7 +30,7 @@ from mycroft import MycroftSkill, intent_handler
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 from mycroft.util.format import (nice_date, nice_time, nice_number,
-                                 pronounce_number, join_list)
+                                 pronounce_number, join_list, date_time_format)
 from mycroft.util.parse import extract_datetime, extract_number
 from mycroft.util.time import now_local, to_utc, to_local
 
@@ -308,7 +308,9 @@ class WeatherSkill(MycroftSkill):
         except Exception as e:
             self.log.warning('Could not prepare forecasts. '
                              '({})'.format(repr(e)))
-
+        
+        date_time_format.cache(self.lang)
+        
         # self.test_screen()    # DEBUG:  Used during screen testing/debugging
 
     def test_screen(self):
@@ -369,14 +371,17 @@ class WeatherSkill(MycroftSkill):
             Returns: List of dicts containg weather info
         """
         days = days or 4
-        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        if self.lang in date_time_format.lang_config.keys():
+            weekdays = list(date_time_format.lang_config[self.lang]['weekday'].values())
+        else:
+            weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         forecast_list = []
         # Get tomorrow and 4 days forward
         for weather in list(forecast.get_weathers())[1:5]:
             result_temp = weather.get_temperature(unit)
             day_num = datetime.weekday(
                 datetime.fromtimestamp(weather.get_reference_time()))
-            result_temp_day = weekdays[day_num]
+            result_temp_day = weekdays[day_num][:3]
             forecast_list.append({
                 "weathercode": self.CODES[weather.get_weather_icon_name()],
                 "max": round(result_temp['max']),
