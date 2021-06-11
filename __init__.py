@@ -27,6 +27,7 @@ import mycroft.audio
 from adapt.intent import IntentBuilder
 from mycroft.api import Api
 from mycroft import MycroftSkill, intent_handler
+from mycroft.skills import skill_api_method
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 from mycroft.util.format import (nice_date, nice_time, nice_number,
@@ -323,6 +324,17 @@ class WeatherSkill(MycroftSkill):
         self.gui["wind"] = "--"
 
         self.gui.show_page('weather.qml')
+
+    @skill_api_method
+    def get_current_weather_homescreen(self):
+        unit = self.__get_temperature_unit()
+        report = self.__initialize_report(None)
+        current_report = self.__populate_current(report, unit)
+        weather_code = str(current_report['icon'])
+        img_code = self.CODES[weather_code]
+        current_weather = current_report["temp"]
+        result = {"weather_code": img_code, "weather_temp": current_weather}
+        return result
 
     def prime_weather_cache(self):
         # If not already cached, this will reach out for current conditions
