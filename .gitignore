@@ -2,3 +2,4 @@
 *.qmlc
 settings.json
 .vscode
+.idea/**
