@@ -1,5 +1,0 @@
-{day} expect {condition}, with a high of {temp_max} and a low of {temp_min}
-Expect {condition}, with a high of {temp_max} and a low of {temp_min} {day}
-{day} the high will be {temp_max} and the low {temp_min}, with {condition}
-{day} it will be {condition} with a high of {temp_max} and a low of {temp_min}
-The forecast {day} is a high of {temp_max} and a low of {temp_min}
