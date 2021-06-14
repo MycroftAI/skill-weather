@@ -28,6 +28,7 @@ from requests import HTTPError
 
 from mycroft import MycroftSkill, intent_handler
 from mycroft.messagebus.message import Message
+from mycroft.skills import skill_api_method
 from mycroft.util.parse import extract_number
 from .skill import (
     CurrentDialog,
@@ -1149,6 +1150,38 @@ class WeatherSkill(MycroftSkill):
         """
         self.log.info("Speaking dialog: " + dialog.name)
         self.speak_dialog(dialog.name, dialog.data, wait=True)
+
+    @skill_api_method
+    def get_current_weather(self, message=None):
+        """Get the current temperature and condition code.
+        
+        Args:
+            message (Message): [Optional] mock message will be parsed to
+                               determine weather intent.
+
+        Returns:
+            Dict: {
+                temperature: current temperature
+                high_temperature: forecasted high for today
+                low_temperature: forecasted low for today
+                condition_code: code representing overall weather condition
+                                see Maps for all codes in skill/weather.py
+            }
+        """
+        self.log.debug("Requested current weather information:")
+        if message is None:
+            message = Message("", data={"utterance": ""})
+        intent_data = self._get_intent_data(message)
+        weather = self._get_weather(intent_data)
+        data = {
+            "temperature": weather.current.temperature,
+            "high_temperature": weather.current.high_temperature,
+            "low_temperature": weather.current.low_temperature,
+            "condition_code": weather.current.condition.code
+        }
+        for k in data:
+            self.log.debug(f"{k}: {data[k]}")
+        return data
 
 
 def create_skill():
