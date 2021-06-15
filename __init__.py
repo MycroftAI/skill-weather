@@ -1152,12 +1152,8 @@ class WeatherSkill(MycroftSkill):
         self.speak_dialog(dialog.name, dialog.data, wait=True)
 
     @skill_api_method
-    def get_current_weather(self, message=None):
-        """Get the current temperature and condition code.
-        
-        Args:
-            message (Message): [Optional] mock message will be parsed to
-                               determine weather intent.
+    def get_current_local_weather(self):
+        """Get the current temperature and weather condition.
 
         Returns:
             Dict: {
@@ -1166,21 +1162,30 @@ class WeatherSkill(MycroftSkill):
                 low_temperature: forecasted low for today
                 condition_code: code representing overall weather condition
                                 see Maps for all codes in skill/weather.py
+                condition_category: category of conditions eg "Cloudy"
+                condition_description: more detail eg "slightly cloudly"
+                system_unit: whether the report uses metric or imperial
             }
         """
-        self.log.debug("Requested current weather information:")
-        if message is None:
-            message = Message("", data={"utterance": ""})
-        intent_data = self._get_intent_data(message)
-        weather = self._get_weather(intent_data)
-        data = {
-            "temperature": weather.current.temperature,
-            "high_temperature": weather.current.high_temperature,
-            "low_temperature": weather.current.low_temperature,
-            "condition_code": weather.current.condition.code
-        }
-        for k in data:
-            self.log.debug(f"{k}: {data[k]}")
+        system_unit = self.config_core.get("system_unit")
+        try:
+            weather = self.weather_api.get_weather_for_coordinates(
+                system_unit,
+                self.weather_config.latitude,
+                self.weather_config.longitude
+            )
+        except Exception:
+            self.log.exception("Unexpected error getting weather for skill API.")
+
+        data = dict(
+            temperature=weather.current.temperature,
+            high_temperature=weather.current.high_temperature,
+            low_temperature=weather.current.low_temperature,
+            condition_code=weather.current.condition.code,
+            condition_category=weather.current.condition.category,
+            condition_description=weather.current.condition.description,
+            system_unit=system_unit
+        )
         return data
 
 
