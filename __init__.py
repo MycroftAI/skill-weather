@@ -419,7 +419,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "clouds")
 
     @intent_handler(
-        IntentBuilder("").require("ConfirmQuery").require("Fog").optionally("Location")
+        IntentBuilder("").require("ConfirmQuery").require("Fog").optionally("location")
     )
     def handle_is_it_foggy(self, message: Message):
         """Handler for weather requests such as: is it foggy today?
@@ -430,7 +430,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "fog")
 
     @intent_handler(
-        IntentBuilder("").require("ConfirmQuery").require("Rain").optionally("Location")
+        IntentBuilder("").require("ConfirmQuery").require("Rain").optionally("location")
     )
     def handle_is_it_raining(self, message: Message):
         """Handler for weather requests such as: is it raining today?
@@ -453,7 +453,7 @@ class WeatherSkill(MycroftSkill):
         IntentBuilder("")
         .require("ConfirmQuery")
         .require("Thunderstorm")
-        .optionally("Location")
+        .optionally("location")
     )
     def handle_is_it_storming(self, message: Message):
         """Handler for weather requests such as:  is it storming today?
@@ -468,7 +468,7 @@ class WeatherSkill(MycroftSkill):
         .require("When")
         .optionally("Next")
         .require("Precipitation")
-        .optionally("Location")
+        .optionally("location")
     )
     def handle_next_precipitation(self, message: Message):
         """Handler for weather requests such as: when will it rain next?
@@ -495,7 +495,7 @@ class WeatherSkill(MycroftSkill):
         .require("Query")
         .require("Humidity")
         .optionally("RelativeDay")
-        .optionally("Location")
+        .optionally("location")
     )
     def handle_humidity(self, message: Message):
         """Handler for weather requests such as: how humid is it?
@@ -520,7 +520,7 @@ class WeatherSkill(MycroftSkill):
     @intent_handler(
         IntentBuilder("")
         .one_of("Query", "When")
-        .optionally("Location")
+        .optionally("location")
         .require("Sunrise")
         .optionally("Today")
         .optionally("RelativeDay")
@@ -546,7 +546,7 @@ class WeatherSkill(MycroftSkill):
         IntentBuilder("")
         .one_of("Query", "When")
         .require("Sunset")
-        .optionally("Location")
+        .optionally("location")
         .optionally("Today")
         .optionally("RelativeDay")
     )

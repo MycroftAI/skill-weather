@@ -38,7 +38,7 @@ from mycroft.util.format import join_list, nice_number, nice_time
 from mycroft.util.time import now_local
 from .config import WeatherConfig
 from .intent import WeatherIntent
-from .util import get_speakable_day_of_week, get_time_period
+from .util import get_speakable_day_of_week, get_time_period, get_tz_info
 from .weather import (
     CURRENT,
     CurrentWeather,
@@ -154,7 +154,7 @@ class CurrentDialog(WeatherDialog):
         if self.intent_data.location is None:
             now = now_local()
         else:
-            now = now_local(tz=self.intent_data.geolocation["timezone"])
+            now = now_local(tz=get_tz_info(self.intent_data.geolocation["timezone"]))
         if now < self.weather.sunrise:
             self.name += "-sunrise-future"
         else:
@@ -167,11 +167,11 @@ class CurrentDialog(WeatherDialog):
         if self.intent_data.location is None:
             now = now_local()
         else:
-            now = now_local(tz=self.intent_data.geolocation["timezone"])
+            now = now_local(tz=get_tz_info(self.intent_data.geolocation["timezone"]))
         if now < self.weather.sunset:
-            self.name += ".sunset.future"
+            self.name += "-sunset-future"
         else:
-            self.name = ".sunset.past"
+            self.name = "-sunset-past"
         self.data = dict(time=nice_time(self.weather.sunset))
         self._add_location()
 
