@@ -1,3 +1,3 @@
-Es sind aktuell {temp} Grad {scale}. 
-Es sind aktuell {temp} Grad.
-Aktuell haben wir {temp} Grad.
+Es sind aktuell {temperature} Grad {temperature_unit}.
+Es sind aktuell {temperature} Grad.
+Aktuell haben wir {temperature} Grad.

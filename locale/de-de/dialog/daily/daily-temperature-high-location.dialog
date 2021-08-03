@@ -1,2 +1,2 @@
-Es wird so warm wie {temp_max} Grad in {location} {day} sein
-{location} hat ein Höchsttemperatur von {temp_max} Grad {day}
+{day} werden maximal {temperature} Grad in {location} erwartet
+{day} werden in {location} Höchsttemperaturen von {temperature} Grad vorhergesagt

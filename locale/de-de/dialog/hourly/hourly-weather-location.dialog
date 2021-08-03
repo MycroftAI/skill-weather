@@ -1,4 +1,3 @@
-{location} Wetter in den nächsten Stunden wird {condition} und {temp} Grad
-Später gibt es {condition} in {location}, mit Temperaturen um die {temp}
-In {location} werden es um die {temp} Grad mit {condition}
-In {location} werden es ungefähr {temp} Grad mit {condition}
+in {location} wird in den nächsten Stunden {condition} und {temperature} Grad vorhergesagt
+Später gibt es {condition} in {location}, mit Temperaturen um die {temperature} Grad
+In {location} werden es ungefähr {temperature} Grad mit {condition}
