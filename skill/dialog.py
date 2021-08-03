@@ -264,7 +264,7 @@ class HourlyDialog(WeatherDialog):
             self.data = dict(
                 percent=self.weather.chance_of_precipitation,
                 precipitation="rain",
-                day=self.weather.date_time.strftime("%A"),
+                day=get_speakable_day_of_week(self.weather.date_time),
                 time=get_time_period(self.weather.date_time),
             )
         self._add_location()
@@ -289,8 +289,6 @@ class DailyDialog(WeatherDialog):
             high_temperature=self.weather.temperature.high,
             low_temperature=self.weather.temperature.low,
         )
-        if self.weather.date_time.date() == self.intent_data.location_datetime.date():
-            self.data.update(day="Today")
         self._add_location()
 
     def build_temperature_dialog(self, temperature_type: str):
@@ -350,7 +348,7 @@ class DailyDialog(WeatherDialog):
         """Build the components necessary to speak the wind conditions."""
         wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
         self.data = dict(
-            day=self.weather.date_time.strftime("%A"),
+            day=get_speakable_day_of_week(self.weather.date_time),
             speed=nice_number(self.weather.wind_speed),
             speed_unit=self.config.speed_unit,
             direction=self.weather.wind_direction,
@@ -361,7 +359,7 @@ class DailyDialog(WeatherDialog):
     def build_humidity_dialog(self):
         """Build the components necessary to speak the percentage humidity."""
         self.data = dict(
-            percent=self.weather.humidity, day=self.weather.date_time.strftime("%A")
+            percent=self.weather.humidity, day=get_speakable_day_of_week(self.weather.date_time)
         )
         self.name += "-humidity"
         self._add_location()
@@ -376,7 +374,7 @@ class DailyDialog(WeatherDialog):
             self.data = dict(
                 percent=self.weather.chance_of_precipitation,
                 precipitation="rain",
-                day=self.weather.date_time.strftime("%A"),
+                day=get_speakable_day_of_week(self.weather.date_time),
             )
         self._add_location()
 
