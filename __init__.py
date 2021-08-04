@@ -23,10 +23,10 @@ from datetime import datetime
 from time import sleep
 from typing import List, Tuple
 
-from adapt.intent import IntentBuilder
 from requests import HTTPError
 
-from mycroft import MycroftSkill, intent_handler
+from mycroft.skills import MycroftSkill, intent_handler
+from mycroft.skills.intent_service import AdaptIntent
 from mycroft.messagebus.message import Message
 from mycroft.util.parse import extract_number
 from .skill import (
@@ -71,7 +71,7 @@ class WeatherSkill(MycroftSkill):
         self.weather_config = WeatherConfig(self.config_core, self.settings)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .one_of("weather", "forecast")
         .optionally("location")
@@ -86,7 +86,7 @@ class WeatherSkill(MycroftSkill):
         self._report_current_weather(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("query")
         .require("like")
         .require("outside")
@@ -101,7 +101,7 @@ class WeatherSkill(MycroftSkill):
         self._report_current_weather(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .one_of("weather", "forecast")
         .require("number-days")
@@ -126,7 +126,7 @@ class WeatherSkill(MycroftSkill):
         self._report_multi_day_forecast(message, days)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .one_of("weather", "forecast")
         .require("relative-day")
@@ -145,7 +145,7 @@ class WeatherSkill(MycroftSkill):
         self._report_one_day_forecast(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("query")
         .require("weather")
         .require("later")
@@ -160,7 +160,7 @@ class WeatherSkill(MycroftSkill):
         self._report_one_hour_weather(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .one_of("weather", "forecast")
         .require("relative-time")
@@ -176,7 +176,7 @@ class WeatherSkill(MycroftSkill):
         self._report_one_hour_weather(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("query")
         .one_of("weather", "forecast")
         .require("weekend")
@@ -191,7 +191,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weekend_forecast(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .one_of("weather", "forecast")
         .require("week")
@@ -206,7 +206,7 @@ class WeatherSkill(MycroftSkill):
         self._report_week_summary(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .require("temperature")
         .optionally("location")
@@ -227,7 +227,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message, temperature_type="current")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .require("temperature")
         .require("relative-day")
@@ -245,7 +245,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message, temperature_type="current")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .require("temperature")
         .require("relative-time")
@@ -265,7 +265,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .require("high")
         .optionally("temperature")
@@ -288,7 +288,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message, temperature_type="high")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .require("low")
         .optionally("temperature")
@@ -311,7 +311,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message, temperature_type="low")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("confirm-query-current")
         .one_of("hot", "cold")
         .optionally("location")
@@ -326,7 +326,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message, "current")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .optionally("query")
         .one_of("hot", "cold")
         .require("confirm-query")
@@ -345,7 +345,7 @@ class WeatherSkill(MycroftSkill):
         self._report_temperature(message, temperature_type)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("confirm-query")
         .require("windy")
         .optionally("location")
@@ -360,7 +360,7 @@ class WeatherSkill(MycroftSkill):
         self._report_wind(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("how")
         .require("windy")
         .optionally("confirm-query")
@@ -376,7 +376,7 @@ class WeatherSkill(MycroftSkill):
         self._report_wind(message)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("confirm-query")
         .require("snow")
         .optionally("location")
@@ -390,7 +390,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "snow")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("confirm-query")
         .require("clear")
         .optionally("location")
@@ -404,7 +404,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, condition="clear")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("confirm-query")
         .require("clouds")
         .optionally("location")
@@ -419,7 +419,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "clouds")
 
     @intent_handler(
-        IntentBuilder("").require("ConfirmQuery").require("Fog").optionally("Location")
+        AdaptIntent().require("ConfirmQuery").require("Fog").optionally("location")
     )
     def handle_is_it_foggy(self, message: Message):
         """Handler for weather requests such as: is it foggy today?
@@ -430,7 +430,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "fog")
 
     @intent_handler(
-        IntentBuilder("").require("ConfirmQuery").require("Rain").optionally("Location")
+        AdaptIntent().require("ConfirmQuery").require("Rain").optionally("location")
     )
     def handle_is_it_raining(self, message: Message):
         """Handler for weather requests such as: is it raining today?
@@ -450,7 +450,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "rain")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("ConfirmQuery")
         .require("Thunderstorm")
         .optionally("Location")
@@ -464,7 +464,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "thunderstorm")
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("When")
         .optionally("Next")
         .require("Precipitation")
@@ -491,7 +491,7 @@ class WeatherSkill(MycroftSkill):
             self._speak_weather(dialog)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .require("Query")
         .require("Humidity")
         .optionally("RelativeDay")
@@ -518,7 +518,7 @@ class WeatherSkill(MycroftSkill):
             self._speak_weather(dialog)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .one_of("Query", "When")
         .optionally("Location")
         .require("Sunrise")
@@ -543,7 +543,7 @@ class WeatherSkill(MycroftSkill):
             self._speak_weather(dialog)
 
     @intent_handler(
-        IntentBuilder("")
+        AdaptIntent()
         .one_of("Query", "When")
         .require("Sunset")
         .optionally("Location")
