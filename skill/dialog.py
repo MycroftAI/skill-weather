@@ -171,7 +171,7 @@ class CurrentDialog(WeatherDialog):
         if now < self.weather.sunset:
             self.name += "-sunset-future"
         else:
-            self.name = "-sunset-past"
+            self.name += "-sunset-past"
         self.data = dict(time=nice_time(self.weather.sunset))
         self._add_location()
 
