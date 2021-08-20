@@ -74,7 +74,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .optionally("query")
         .one_of("weather", "forecast")
-        .optionally("location")
+        .optionally("Location")
         .optionally("today")
     )
     def handle_current_weather(self, message: Message):
@@ -90,7 +90,7 @@ class WeatherSkill(MycroftSkill):
         .require("query")
         .require("like")
         .require("outside")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_like_outside(self, message: Message):
         """Handle current weather requests such as: what's it like outside?
@@ -105,7 +105,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .one_of("weather", "forecast")
         .require("number-days")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_number_days_forecast(self, message: Message):
         """Handle multiple day forecast without specified location.
@@ -130,7 +130,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .one_of("weather", "forecast")
         .require("relative-day")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_one_day_forecast(self, message):
         """Handle forecast for a single day.
@@ -149,7 +149,7 @@ class WeatherSkill(MycroftSkill):
         .require("query")
         .require("weather")
         .require("later")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_weather_later(self, message: Message):
         """Handle future weather requests such as: what's the weather later?
@@ -165,7 +165,7 @@ class WeatherSkill(MycroftSkill):
         .one_of("weather", "forecast")
         .require("relative-time")
         .optionally("relative-day")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_weather_at_time(self, message: Message):
         """Handle future weather requests such as: what's the weather tonight?
@@ -180,7 +180,7 @@ class WeatherSkill(MycroftSkill):
         .require("query")
         .one_of("weather", "forecast")
         .require("weekend")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_weekend_forecast(self, message: Message):
         """Handle requests for the weekend forecast.
@@ -195,7 +195,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .one_of("weather", "forecast")
         .require("week")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_week_weather(self, message: Message):
         """Handle weather for week (i.e. seven days).
@@ -209,7 +209,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .optionally("query")
         .require("temperature")
-        .optionally("location")
+        .optionally("Location")
         .optionally("unit")
         .optionally("today")
         .optionally("now")
@@ -231,7 +231,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .require("temperature")
         .require("relative-day")
-        .optionally("location")
+        .optionally("Location")
         .optionally("unit")
     )
     def handle_daily_temperature(self, message: Message):
@@ -250,7 +250,7 @@ class WeatherSkill(MycroftSkill):
         .require("temperature")
         .require("relative-time")
         .optionally("relative-day")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_hourly_temperature(self, message: Message):
         """Handle requests for current temperature at a relative time.
@@ -269,7 +269,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .require("high")
         .optionally("temperature")
-        .optionally("location")
+        .optionally("Location")
         .optionally("unit")
         .optionally("relative-day")
         .optionally("now")
@@ -292,7 +292,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .require("low")
         .optionally("temperature")
-        .optionally("location")
+        .optionally("Location")
         .optionally("unit")
         .optionally("relative-day")
         .optionally("now")
@@ -314,7 +314,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .require("confirm-query-current")
         .one_of("hot", "cold")
-        .optionally("location")
+        .optionally("Location")
         .optionally("today")
     )
     def handle_is_it_hot(self, message: Message):
@@ -330,7 +330,7 @@ class WeatherSkill(MycroftSkill):
         .optionally("query")
         .one_of("hot", "cold")
         .require("confirm-query")
-        .optionally("location")
+        .optionally("Location")
         .optionally("relative-day")
         .optionally("today")
     )
@@ -348,7 +348,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .require("confirm-query")
         .require("windy")
-        .optionally("location")
+        .optionally("Location")
         .optionally("relative-day")
     )
     def handle_is_it_windy(self, message: Message):
@@ -365,7 +365,7 @@ class WeatherSkill(MycroftSkill):
         .require("windy")
         .optionally("confirm-query")
         .optionally("relative-day")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_windy(self, message):
         """Handler for weather requests such as: how windy is it?
@@ -379,7 +379,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .require("confirm-query")
         .require("snow")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_is_it_snowing(self, message: Message):
         """Handler for weather requests such as: is it snowing today?
@@ -393,7 +393,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .require("confirm-query")
         .require("clear")
-        .optionally("location")
+        .optionally("Location")
     )
     def handle_is_it_clear(self, message: Message):
         """Handler for weather requests such as: is the sky clear today?
@@ -407,7 +407,7 @@ class WeatherSkill(MycroftSkill):
         AdaptIntent()
         .require("confirm-query")
         .require("clouds")
-        .optionally("location")
+        .optionally("Location")
         .optionally("relative-time")
     )
     def handle_is_it_cloudy(self, message: Message):
