@@ -20,6 +20,7 @@ Selene.  The Selene API is also used to get geographical information about the
 city name provided in the request.
 """
 from datetime import datetime
+from pathlib import Path
 from time import sleep
 from typing import List, Tuple
 
@@ -52,6 +53,7 @@ from .skill import (
 #   Later weather: only the word "later" in the vocab file works all others
 #       invoke datetime skill
 
+FIFTEEN_MINUTES = 900
 MARK_II = "mycroft_mark_2"
 TWELVE_HOUR = "half"
 
@@ -64,11 +66,44 @@ class WeatherSkill(MycroftSkill):
         self.weather_api = OpenWeatherMapApi()
         self.weather_api.set_language_parameter(self.lang)
         self.platform = self.config_core["enclosure"].get("platform", "unknown")
+        self.gui_image_directory = Path(self.root_dir).joinpath("ui")
         self.weather_config = None
 
     def initialize(self):
         """Do these things after the skill is loaded."""
         self.weather_config = WeatherConfig(self.config_core, self.settings)
+        self.add_event("skill.weather.request-local", self.handle_get_local_weather)
+
+    def handle_get_local_weather(self, _):
+        """Handles a message bus command requesting current local weather information.
+
+        Such a request will typically come from a domain external to this skill that
+        requires weather information but should not go through the intent system
+        to get it.
+        """
+        system_unit = self.config_core.get("system_unit")
+        try:
+            weather = self.weather_api.get_weather_for_coordinates(
+                system_unit, self.weather_config.latitude, self.weather_config.longitude
+            )
+        except Exception:
+            self.log.exception("Unexpected error getting weather for skill API.")
+        else:
+            self._emit_local_weather_response(weather)
+
+    def _emit_local_weather_response(self, weather):
+        """Emits an event indicating that the request for local weather was satisfied.
+
+        Responds to the command for local weather retrieval.
+        """
+        image_path = self.gui_image_directory.joinpath(weather.current.condition.image)
+        weather_condition_url = "file://" + str(image_path)
+        event_data = dict(
+            temperature=weather.current.temperature,
+            weather_condition=weather_condition_url,
+        )
+        event = Message("skill.weather.local-retrieved", data=event_data)
+        self.bus.emit(event)
 
     @intent_handler(
         AdaptIntent()
@@ -376,10 +411,7 @@ class WeatherSkill(MycroftSkill):
         self._report_wind(message)
 
     @intent_handler(
-        AdaptIntent()
-        .require("confirm-query")
-        .require("snow")
-        .optionally("location")
+        AdaptIntent().require("confirm-query").require("snow").optionally("location")
     )
     def handle_is_it_snowing(self, message: Message):
         """Handler for weather requests such as: is it snowing today?
@@ -390,10 +422,7 @@ class WeatherSkill(MycroftSkill):
         self._report_weather_condition(message, "snow")
 
     @intent_handler(
-        AdaptIntent()
-        .require("confirm-query")
-        .require("clear")
-        .optionally("location")
+        AdaptIntent().require("confirm-query").require("clear").optionally("location")
     )
     def handle_is_it_clear(self, message: Message):
         """Handler for weather requests such as: is the sky clear today?
@@ -435,9 +464,9 @@ class WeatherSkill(MycroftSkill):
     def handle_is_it_raining(self, message: Message):
         """Handler for weather requests such as: is it raining today?
 
-        Args:
-            message: Message Bus event information from the intent parser
-0]       """
+                Args:
+                    message: Message Bus event information from the intent parser
+        0]"""
         self._report_weather_condition(message, "rain")
 
     @intent_handler("do-i-need-an-umbrella.intent")
