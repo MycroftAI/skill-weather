@@ -53,7 +53,6 @@ from .skill import (
 #   Later weather: only the word "later" in the vocab file works all others
 #       invoke datetime skill
 
-FIFTEEN_MINUTES = 900
 MARK_II = "mycroft_mark_2"
 TWELVE_HOUR = "half"
 
@@ -464,9 +463,9 @@ class WeatherSkill(MycroftSkill):
     def handle_is_it_raining(self, message: Message):
         """Handler for weather requests such as: is it raining today?
 
-                Args:
-                    message: Message Bus event information from the intent parser
-        0]"""
+        Args:
+            message: Message Bus event information from the intent parser
+        """
         self._report_weather_condition(message, "rain")
 
     @intent_handler("do-i-need-an-umbrella.intent")
