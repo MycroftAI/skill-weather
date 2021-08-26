@@ -71,9 +71,11 @@ class WeatherSkill(MycroftSkill):
     def initialize(self):
         """Do these things after the skill is loaded."""
         self.weather_config = WeatherConfig(self.config_core, self.settings)
-        self.add_event("skill.weather.request-local", self.handle_get_local_weather)
+        self.add_event(
+            "skill.weather.request-local-forecast", self.handle_get_local_forecast
+        )
 
-    def handle_get_local_weather(self, _):
+    def handle_get_local_forecast(self, _):
         """Handles a message bus command requesting current local weather information.
 
         Such a request will typically come from a domain external to this skill that
@@ -86,7 +88,8 @@ class WeatherSkill(MycroftSkill):
                 system_unit, self.weather_config.latitude, self.weather_config.longitude
             )
         except Exception:
-            self.log.exception("Unexpected error getting weather for skill API.")
+            self.log.exception("Unexpected error getting weather.")
+            self.bus.emit(Message("skill.weather.local-forecast-failure."))
         else:
             self._emit_local_weather_response(weather)
 
@@ -101,7 +104,7 @@ class WeatherSkill(MycroftSkill):
             temperature=weather.current.temperature,
             weather_condition=weather_condition_url,
         )
-        event = Message("skill.weather.local-retrieved", data=event_data)
+        event = Message("skill.weather.local-forecast-obtained", data=event_data)
         self.bus.emit(event)
 
     @intent_handler(
