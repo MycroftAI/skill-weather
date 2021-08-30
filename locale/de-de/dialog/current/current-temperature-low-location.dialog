@@ -1,2 +1,2 @@
-Heute wird die Tiefsttemperatur {temp_min} Grad {scale} in {location} betragen. 
-Die Temperaturen können auf Tiefstwerte von {temp_min} Grad in {location} fallen.
+Heute wird die Tiefsttemperatur {temperature} Grad {temperature_unit} in {location} betragen.
+Die Temperaturen können auf Tiefstwerte von {temperature} Grad in {location} fallen.

@@ -1,2 +1,2 @@
-{day} wird es {temp_max} Grad warm werden
-{day} wird eine Höchsttemperatur von {temp_max} Grad erreicht.
+{day} wird es maximal {temperature} Grad werden
+{day} wird eine Höchsttemperatur von {temperature} Grad erreicht.

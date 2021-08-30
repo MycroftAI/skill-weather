@@ -1,4 +1,3 @@
-Es wird {condition}, mit Temperaturen nahe {temp}
-Später wird es {condition} und wir haben um die {temp} Grad
-Später wird es {condition} und wir haben {temp} Grad
-Um die {temp} Grad bei {condition}
+Es wird {condition}, mit Temperaturen nahe {temperature} vorhergesagt
+Später wird {condition} vorausgesagt, bei {temperature} Grad
+Um die {temperature} Grad und {condition}

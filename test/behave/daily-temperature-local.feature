@@ -94,4 +94,13 @@ Feature: Mycroft Weather Skill local forecasted temperatures
     | what will the temperature be tonight |
     | what will the temperature be this evening |
     | what is the temperature this morning |
+
+  @xfail
+  Scenario Outline: Failing - what is the temperature at a certain time
+    Given an english speaking user
+     When the user says "<Failing what is the temperature at a certain time>"
+     Then "mycroft-weather" should reply with dialog from "hourly-temperature-local.dialog"
+
+  Examples: Failing what is the temperature at a certain time
+    | Failing what is the temperature at a certain time |
     | temperature in the afternoon |
