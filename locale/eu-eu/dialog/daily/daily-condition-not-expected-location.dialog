@@ -1,0 +1,3 @@
+# Informing that an the requested condition is not in the forecast
+Ez, {day}en {condition} izango da {location}an.
+Ez, badirudi {day}en {condition} egongo dela {location}an.
