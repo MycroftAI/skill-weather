@@ -1,4 +1,4 @@
-voor {{location}} zal het weer in de komende paar uren {{condition}} zijn en {{temp_max}} graden
-Later zal het {{condition}} in {{location}}, met temperaturen rond de {{temp_max}} graden
-in {{location}} zal het {{condition}} zijn met temperaturen rond de {{temp_max}} graden
-in {{location}} zal het {{condition}} zijn en ongeveer {{temp_max}} graden
+voor {location} zal het weer in de komende paar uren {condition} zijn en {high_temperature} graden
+Later zal het {condition} in {location}, met temperaturen rond de {high_temperature} graden
+in {location} zal het {condition} zijn met temperaturen rond de {high_temperature} graden
+in {location} zal het {condition} zijn en ongeveer {high_temperature} graden

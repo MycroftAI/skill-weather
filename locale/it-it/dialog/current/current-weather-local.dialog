@@ -1,3 +1,3 @@
-Attualmente è {{condition}} con {{temp}} gradi {{scale}}. 
-Attualmente è {{condition}} con {{temp}} gradi.
-Al momento, è {{condition}} e {{temp}} gradi.
+Attualmente è {condition} con {temperature} gradi {temperature_unit}. 
+Attualmente è {condition} con {temperature} gradi.
+Al momento, è {condition} e {temperature} gradi.

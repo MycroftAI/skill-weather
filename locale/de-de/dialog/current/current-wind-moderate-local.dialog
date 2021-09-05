@@ -1,2 +1,2 @@
-Derzeit {wind} {wind_unit}, also etwas windig
-Es ist heute etwas windig, derzeit {wind} {wind_unit}
+Derzeit {speed} {speed_unit}, also etwas windig
+Es ist heute etwas windig, derzeit {speed} {speed_unit}

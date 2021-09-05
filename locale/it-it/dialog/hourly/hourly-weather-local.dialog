@@ -1,4 +1,4 @@
-Sarà {{condition}}, con temperature di circa {{temp_max}}
-Più tardi sarà {{condition}} con circa {{temp_max}} gradi
-Più tardi sarà {{condition}} con {{temp_max}} gradi
-Circa {{temp_max}} gradi e {{condition}}
+Sarà {condition}, con temperature di circa {high_temperature}
+Più tardi sarà {condition} con circa {high_temperature} gradi
+Più tardi sarà {condition} con {high_temperature} gradi
+Circa {high_temperature} gradi e {condition}

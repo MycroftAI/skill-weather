@@ -1,3 +1,3 @@
-Atualmente faz {temp} graus {scale} em {location}.
-No momento faz {temp} graus em {location}.
-No momento, faz {temp} graus em {location}.
+Atualmente faz {temperature} graus {temperature_unit} em {location}.
+No momento faz {temperature} graus em {location}.
+No momento, faz {temperature} graus em {location}.

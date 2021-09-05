@@ -1,4 +1,4 @@
-# Currently {wind} {wind_unit}, so a bit windy
-I øjeblikket {wind} {wind_unit}, så lidt blæsende  
-# It's a bit windy today, currently {wind} {wind_unit}
-Det er lidt blæsende i dag, i øjeblikket {wind} {wind_unit}  
+# Currently {speed} {speed_unit}, so a bit windy
+I øjeblikket {speed} {speed_unit}, så lidt blæsende  
+# It's a bit windy today, currently {speed} {speed_unit}
+Det er lidt blæsende i dag, i øjeblikket {speed} {speed_unit}  

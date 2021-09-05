@@ -1,6 +1,6 @@
-# {day} it will be {condition}, with a high of {temp_max} and a low of {temp_min} in {location}
-{day} det vil være {condition}, med en højde af {temp_max} og en lav af {temp_min} i {location}  
-# {day}, {location} will have a high of {temp_max} and a low of {temp_min}, with {condition}
-{day}, {location} vil have en højde af {temp_max} og en lav af {temp_min}, med {condition}  
-# The forecast {day} is {temp_max} for a high and {temp_min} for a low in {location}
-Prognosen {day} er {temp_max} for en høj og {temp_min} for et lavt niveau i {location}  
+# {day} it will be {condition}, with a high of {high_temperature} and a low of {low_temperature} in {location}
+{day} det vil være {condition}, med en højde af {high_temperature} og en lav af {low_temperature} i {location}  
+# {day}, {location} will have a high of {high_temperature} and a low of {low_temperature}, with {condition}
+{day}, {location} vil have en højde af {high_temperature} og en lav af {low_temperature}, med {condition}  
+# The forecast {day} is {high_temperature} for a high and {low_temperature} for a low in {location}
+Prognosen {day} er {high_temperature} for en høj og {low_temperature} for et lavt niveau i {location}  

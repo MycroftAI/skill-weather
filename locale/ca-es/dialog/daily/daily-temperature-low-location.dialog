@@ -1,2 +1,2 @@
-{day} les temperatures baixaran {temp_min} graus a {location}
-{day}, a {location} hi haurà una mínima de {temp} graus
+{day} les temperatures baixaran {low_temperature} graus a {location}
+{day}, a {location} hi haurà una mínima de {temperature} graus

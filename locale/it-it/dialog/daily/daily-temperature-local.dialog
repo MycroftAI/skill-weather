@@ -1,2 +1,2 @@
-{{day}} ci saranno {{temp}}
-{{day}} la temperatura raggiungerà i {{temp_max}} gradi.
+{day} ci saranno {temperature}
+{day} la temperatura raggiungerà i {high_temperature} gradi.

@@ -1,2 +1,2 @@
-Ci sarà vento a {wind} {wind_unit}
-Il vento soffierà forte a {wind} {wind_unit}
+Ci sarà vento a {speed} {speed_unit}
+Il vento soffierà forte a {speed} {speed_unit}

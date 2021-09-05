@@ -1,1 +1,1 @@
-A previsão para hoje é máxima de {temp_max} e mínima de {temp_min}.
+A previsão para hoje é máxima de {high_temperature} e mínima de {low_temperature}.

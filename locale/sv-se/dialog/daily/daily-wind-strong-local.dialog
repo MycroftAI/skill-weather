@@ -1,2 +1,2 @@
-{day} kommer vinden vara {wind} {wind_unit}
-{day} så kommer vinden bli som mest {wind} {wind_unit}
+{day} kommer vinden vara {speed} {speed_unit}
+{day} så kommer vinden bli som mest {speed} {speed_unit}

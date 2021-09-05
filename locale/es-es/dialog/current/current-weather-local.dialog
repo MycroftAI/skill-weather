@@ -1,4 +1,4 @@
-Ahora está {{condition}} con {{temp}} grados {{scale}}. El pronóstico de hoy es una temperatura máxima de {{temp_max}} y una mínima de {{temp_min}}.
-Ahora está {{condition}} y con {{temp}} grados. El pronóstico de hoy es de una temperatura máxima {{temp_max}} y una mínima {{temp_min}}.
-Ahora mismo, está {{condition}} y {{temp}} grados, con una máxima {{temp_max}} y una mínima de {{temp_min}}.
-Con una máxima {{temp_max}} y una mínima de {{temp_min}}, {{location}} está {{condition}} con una temperatura en estos momentos de {{temp}} grados.
+Ahora está {condition} con {temperature} grados {temperature_unit}. El pronóstico de hoy es una temperatura máxima de {high_temperature} y una mínima de {low_temperature}.
+Ahora está {condition} y con {temperature} grados. El pronóstico de hoy es de una temperatura máxima {high_temperature} y una mínima {low_temperature}.
+Ahora mismo, está {condition} y {temperature} grados, con una máxima {high_temperature} y una mínima de {low_temperature}.
+Con una máxima {high_temperature} y una mínima de {low_temperature}, {location} está {condition} con una temperatura en estos momentos de {temperature} grados.

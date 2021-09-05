@@ -1,2 +1,2 @@
-{day} terá unha mínima de {temp_min}
-{day} a temperatura alcanzará unha mínima de {temp_min} graos.
+{day} terá unha mínima de {low_temperature}
+{day} a temperatura alcanzará unha mínima de {low_temperature} graos.

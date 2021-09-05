@@ -1,3 +1,3 @@
-S'espera un màxim de {temp_max} graus {scale}.
-Es pot esperar un màxim de {temp_max} graus.
-Avui la temperatura arribarà a {temp_max} graus.
+S'espera un màxim de {high_temperature} graus {temperature_unit}.
+Es pot esperar un màxim de {high_temperature} graus.
+Avui la temperatura arribarà a {high_temperature} graus.
