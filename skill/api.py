@@ -82,10 +82,11 @@ class OpenWeatherMapApi(Api):
 
     def __init__(self):
         super().__init__(path="owm")
+        self.lang = "en-us"
         self.language = "en"
 
     def get_weather_for_coordinates(
-        self, measurement_system: str, latitude: float, longitude: float
+        self, measurement_system: str, latitude: float, longitude: float, lang: str
     ) -> WeatherReport:
         """Issue an API call and map the return value into a weather report
 
@@ -94,6 +95,9 @@ class OpenWeatherMapApi(Api):
             latitude: the geologic latitude of the weather location
             longitude: the geologic longitude of the weather location
         """
+        if not self.lang == lang:
+            self.lang = lang
+            self.set_language_parameter(lang)
         query_parameters = dict(
             exclude="minutely",
             lang=self.language,
