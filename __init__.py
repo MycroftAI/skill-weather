@@ -63,7 +63,6 @@ class WeatherSkill(MycroftSkill):
     def __init__(self):
         super().__init__("WeatherSkill")
         self.weather_api = OpenWeatherMapApi()
-        self.weather_api.set_language_parameter(self.lang)
         self.platform = self.config_core["enclosure"].get("platform", "unknown")
         self.gui_image_directory = Path(self.root_dir).joinpath("ui")
         self.weather_config = None

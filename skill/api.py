@@ -77,16 +77,37 @@ OPEN_WEATHER_MAP_LANGUAGES = (
 )
 
 
+def own_language(lang: str):
+    """
+    OWM supports 31 languages, see https://openweathermap.org/current#multi
+
+    Convert Mycroft's language code to OpenWeatherMap's, if missing use english.
+
+    Args:
+        language_config: The Mycroft language code.
+    """
+    special_cases = {"cs": "cz", "ko": "kr", "lv": "la"}
+    lang1, lang2 = lang.split('-')
+    if lang.replace('-', '_') in OPEN_WEATHER_MAP_LANGUAGES:
+        return lang.replace('-', '_')
+    if lang1 in OPEN_WEATHER_MAP_LANGUAGES:
+        return lang1
+    if lang2 in OPEN_WEATHER_MAP_LANGUAGES:
+        return lang2
+    if lang1 in special_cases:
+        return special_cases[lang1]
+    return "en"
+
+
 class OpenWeatherMapApi(Api):
     """Use Open Weather Map's One Call API to retrieve weather information"""
 
     def __init__(self):
         super().__init__(path="owm")
-        self.lang = "en-us"
-        self.language = "en"
 
     def get_weather_for_coordinates(
-        self, measurement_system: str, latitude: float, longitude: float, lang: str
+        self, measurement_system: str, latitude: float,
+        longitude: float, lang: str
     ) -> WeatherReport:
         """Issue an API call and map the return value into a weather report
 
@@ -95,12 +116,9 @@ class OpenWeatherMapApi(Api):
             latitude: the geologic latitude of the weather location
             longitude: the geologic longitude of the weather location
         """
-        if not self.lang == lang:
-            self.lang = lang
-            self.set_language_parameter(lang)
         query_parameters = dict(
             exclude="minutely",
-            lang=self.language,
+            lang=own_language(lang),
             lat=latitude,
             lon=longitude,
             units=measurement_system
@@ -110,23 +128,3 @@ class OpenWeatherMapApi(Api):
         local_weather = WeatherReport(response)
 
         return local_weather
-
-    def set_language_parameter(self, language_config: str):
-        """
-        OWM supports 31 languages, see https://openweathermap.org/current#multi
-
-        Convert Mycroft's language code to OpenWeatherMap's, if missing use english.
-
-        Args:
-            language_config: The Mycroft language code.
-        """
-        special_cases = {"cs": "cz", "ko": "kr", "lv": "la"}
-        language_part_one, language_part_two = language_config.split('-')
-        if language_config.replace('-', '_') in OPEN_WEATHER_MAP_LANGUAGES:
-            self.language = language_config.replace('-', '_')
-        elif language_part_one in OPEN_WEATHER_MAP_LANGUAGES:
-            self.language = language_part_one
-        elif language_part_two in OPEN_WEATHER_MAP_LANGUAGES:
-            self.language = language_part_two
-        elif language_part_one in special_cases:
-            self.language = special_cases[language_part_one]
