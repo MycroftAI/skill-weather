@@ -77,7 +77,7 @@ OPEN_WEATHER_MAP_LANGUAGES = (
 )
 
 
-def own_language(lang: str):
+def owm_language(lang: str):
     """
     OWM supports 31 languages, see https://openweathermap.org/current#multi
 
@@ -87,15 +87,15 @@ def own_language(lang: str):
         language_config: The Mycroft language code.
     """
     special_cases = {"cs": "cz", "ko": "kr", "lv": "la"}
-    lang1, lang2 = lang.split('-')
+    lang_primary, lang_subtag = lang.split('-')
     if lang.replace('-', '_') in OPEN_WEATHER_MAP_LANGUAGES:
         return lang.replace('-', '_')
-    if lang1 in OPEN_WEATHER_MAP_LANGUAGES:
-        return lang1
-    if lang2 in OPEN_WEATHER_MAP_LANGUAGES:
-        return lang2
-    if lang1 in special_cases:
-        return special_cases[lang1]
+    if lang_primary in OPEN_WEATHER_MAP_LANGUAGES:
+        return lang_primary
+    if lang_subtag in OPEN_WEATHER_MAP_LANGUAGES:
+        return lang_subtag
+    if lang_primary in special_cases:
+        return special_cases[lang_primary]
     return "en"
 
 
@@ -118,7 +118,7 @@ class OpenWeatherMapApi(Api):
         """
         query_parameters = dict(
             exclude="minutely",
-            lang=own_language(lang),
+            lang=owm_language(lang),
             lat=latitude,
             lon=longitude,
             units=measurement_system
