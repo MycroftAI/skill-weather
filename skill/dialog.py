@@ -169,9 +169,9 @@ class CurrentDialog(WeatherDialog):
         else:
             now = now_local(tz=self.intent_data.geolocation["timezone"])
         if now < self.weather.sunset:
-            self.name += ".sunset.future"
+            self.name += "-sunset-future"
         else:
-            self.name = ".sunset.past"
+            self.name += "-sunset-past"
         self.data = dict(time=nice_time(self.weather.sunset))
         self._add_location()
 
