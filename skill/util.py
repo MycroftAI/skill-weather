@@ -32,8 +32,7 @@ class LocationNotFoundError(ValueError):
 def convert_to_local_datetime(timestamp: time, timezone: str) -> datetime:
     """Convert a timestamp to a datetime object in the requested timezone.
 
-    This function assumes it is passed a timestamp in the UTC timezone.  It
-    then adjusts the datetime to match the specified timezone.
+    The timestamp as represented by seconds since epoch is inherently UTC.
 
     Args:
         timestamp: seconds since epoch
@@ -42,8 +41,7 @@ def convert_to_local_datetime(timestamp: time, timezone: str) -> datetime:
     Returns:
         A datetime in the passed timezone based on the passed timestamp
     """
-    naive_datetime = datetime.fromtimestamp(timestamp)
-    utc_datetime = pytz.utc.localize(naive_datetime)
+    utc_datetime = datetime.utcfromtimestamp(timestamp)
     local_timezone = pytz.timezone(timezone)
     local_datetime = utc_datetime.astimezone(local_timezone)
 
