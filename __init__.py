@@ -159,7 +159,10 @@ class WeatherSkill(MycroftSkill):
         elif self.voc_match(message.data["utterance"], "few"):
             days = 3
         else:
-            days = int(extract_number(message.data["utterance"]))
+            # Some STT engines hyphenate the day count (i.e. 3-day).  This is not
+            # handled by extract_number() so remove the hyphen if it is there.
+            utterance = message.data["utterance"].replace("-day", " day")
+            days = int(extract_number(utterance))
         self._report_multi_day_forecast(message, days)
 
     @intent_handler(

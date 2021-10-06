@@ -23,3 +23,17 @@ Feature: Mycroft Weather Skill local daily forecasts
     | what is the weather like on saturday |
     | what is the weather like monday |
     | what is the weather like in 5 days from now |
+
+  Scenario Outline: multiple day forecast
+    Given an english speaking user
+     When the user says "<multiple day forecast request>"
+     Then "mycroft-weather" should reply with dialog from "daily-weather-local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-weather-local.dialog"
+     Then "mycroft-weather" should reply with dialog from "daily-weather-local.dialog"
+
+  Examples: what is the forecast for a future date
+    | multiple day forecast request |
+    | what is the forecast for the next three days |
+    | what is the weather forecast for the next three days |
+    | what is the three-day weather forecast |
+    | for the next three days what is the weather forecast |
