@@ -17,6 +17,7 @@ Feature: Mycroft Weather Skill current weather at a specified location
     | what is it like outside in italy |
     | In tokyo what is it like outside |
     | how is the weather in new york city |
+    | what is it like outside in baltimore today |
 
 
   @xfail
@@ -28,7 +29,6 @@ Feature: Mycroft Weather Skill current weather at a specified location
   Examples: what is the current local weather in a location
     | what is the current weather in location |
     | what's the current weather conditions in Washington, D.C. |
-    | what is it like outside in baltimore today |
 
 
   Scenario Outline: User asks for the current weather in an unknown location

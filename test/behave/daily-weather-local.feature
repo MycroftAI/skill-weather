@@ -22,7 +22,7 @@ Feature: Mycroft Weather Skill local daily forecasts
     | what is the weather like tuesday |
     | what is the weather like on saturday |
     | what is the weather like monday |
-    | what is the weather like in 5 days from now |
+    | what is the weather like 5 days from now |
 
   Scenario Outline: multiple day forecast
     Given an english speaking user
