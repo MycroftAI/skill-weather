@@ -28,13 +28,4 @@ Feature: Mycroft Weather Skill local current weather conditions
     | how is the weather now |
     | what is it like outside right now |
     | what's it like outside |
-
-  @xfail
-  Scenario Outline: Current local weather matches date/time relative day intent
-    Given an english speaking user
-     When the user says "<current local weather>"
-     Then "mycroft-weather" should reply with dialog from "current-weather-local.dialog"
-
-  Examples: What is the current local weather
-    | current local weather |
     | what's it like outside today |
