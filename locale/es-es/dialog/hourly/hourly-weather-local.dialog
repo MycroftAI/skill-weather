@@ -1,4 +1,4 @@
-Tendremos {{condition}}, con temperaturas rondando los {{temp_max}}
-Más tarde tendremos {{condición}} y alrededor de {{temp_max}} grados
-Más tarde estará {{condición}} y {{temp_max}} grados
-Alrededor de {{temp_max}} grados con condiciones de {{condition}}
+Tendremos {condition}, con temperaturas rondando los {high_temperature}
+Más tarde tendremos {condición} y alrededor de {high_temperature} grados
+Más tarde estará {condición} y {high_temperature} grados
+Alrededor de {high_temperature} grados con condiciones de {condition}

@@ -1,1 +1,1 @@
-La previsió d'avui és una temperatura màxima de {temp_max} i una mínima de {temp_min}
+La previsió d'avui és una temperatura màxima de {high_temperature} i una mínima de {low_temperature}

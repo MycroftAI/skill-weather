@@ -1,2 +1,2 @@
-Idag kommer temperaturen vara {temp_min} grader {scale} som lägst i {location}. 
-Temperaturen kan bli så låg som {temp_min} grader i {location}.
+Idag kommer temperaturen vara {low_temperature} grader {temperature_unit} som lägst i {location}. 
+Temperaturen kan bli så låg som {low_temperature} grader i {location}.

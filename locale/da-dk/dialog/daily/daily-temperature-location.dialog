@@ -1,4 +1,4 @@
-# {day} it will be {temp} degrees in {location}
-{day} det vil være {temp} grader i {location}  
-# {day}, {location} will have a temperature of {temp} degrees
-{day}, {location} vil have en temperatur på {temp} grader  
+# {day} it will be {temperature} degrees in {location}
+{day} det vil være {temperature} grader i {location}  
+# {day}, {location} will have a temperature of {temperature} degrees
+{day}, {location} vil have en temperatur på {temperature} grader  

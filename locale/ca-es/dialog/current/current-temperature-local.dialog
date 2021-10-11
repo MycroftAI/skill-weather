@@ -1,3 +1,3 @@
-Actualment marca {temp} graus {scale}.
-Actualment hi ha {temp} graus.
-Ara mateix, hi ha {temp} graus.
+Actualment marca {temperature} graus {temperature_unit}.
+Actualment hi ha {temperature} graus.
+Ara mateix, hi ha {temperature} graus.

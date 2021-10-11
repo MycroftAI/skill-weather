@@ -1,2 +1,2 @@
-A {location} ci sarà {wind} {wind_unit}
-A {location} il vento sarà forte {wind} {wind_unit}
+A {location} ci sarà {speed} {speed_unit}
+A {location} il vento sarà forte {speed} {speed_unit}

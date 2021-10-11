@@ -1,4 +1,4 @@
-Det kommer bli {condition}, med temperaturer nära {temp} grader
-Senare kommer det vara {condition} och runt {temp} grader
-Senare kommer det vara {condition} och {temp} grader
-Omkring {temp} grader och {condition}
+Det kommer bli {condition}, med temperaturer nära {temperature} grader
+Senare kommer det vara {condition} och runt {temperature} grader
+Senare kommer det vara {condition} och {temperature} grader
+Omkring {temperature} grader och {condition}

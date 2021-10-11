@@ -1,5 +1,5 @@
-{day} espérase {condition}, cunha máxima de {temp_max} e mínima de {temp_min}
-o {day} espérase{condition}, cunha máxima de {temp_max} e mínima de {temp_min}
-{day} a máxima será de {temp_max} e a mínima {temp_min}, con {condition}
-{day} estará {condition}, cunha máxima de {temp_max} e mínima de {temp_min}
-A previsión para o {day} é: máxima de {temp_max} e mínima de {temp_min}.
+{day} espérase {condition}, cunha máxima de {high_temperature} e mínima de {low_temperature}
+o {day} espérase{condition}, cunha máxima de {high_temperature} e mínima de {low_temperature}
+{day} a máxima será de {high_temperature} e a mínima {low_temperature}, con {condition}
+{day} estará {condition}, cunha máxima de {high_temperature} e mínima de {low_temperature}
+A previsión para o {day} é: máxima de {high_temperature} e mínima de {low_temperature}.

@@ -1,8 +1,8 @@
-# It's currently {temp} degrees {scale}. 
-Det er i øjeblikket {temp} grader {scale}.   
-# It's currently {temp} degrees.
-Det er i øjeblikket {temp} grader.  
-# Right now, it's {temp} degrees.
-Lige nu, det er {temp} grader.  
+# It's currently {temperature} degrees {temperature_unit}. 
+Det er i øjeblikket {temperature} grader {temperature_unit}.   
+# It's currently {temperature} degrees.
+Det er i øjeblikket {temperature} grader.  
+# Right now, it's {temperature} degrees.
+Lige nu, det er {temperature} grader.  
 # 
   

@@ -1,2 +1,2 @@
-Hi haurà {wind} {wind_unit} a {location} el {day}
-Les ratxes de vent arribaran a {wind} {wind_unit} a {location} el {day}
+Hi haurà {speed} {speed_unit} a {location} el {day}
+Les ratxes de vent arribaran a {speed} {speed_unit} a {location} el {day}

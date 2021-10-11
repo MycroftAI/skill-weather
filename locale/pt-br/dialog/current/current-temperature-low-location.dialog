@@ -1,2 +1,2 @@
-Hoje a temperatura mínima será {temp_min} graus {scale} em {location}.
-As temperaturas podem chegar à uma mínima de {temp_min} graus em {location}.
+Hoje a temperatura mínima será {low_temperature} graus {temperature_unit} em {location}.
+As temperaturas podem chegar à uma mínima de {low_temperature} graus em {location}.

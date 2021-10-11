@@ -1,4 +1,4 @@
-Teremos {condition}, con temperaturas preto de {temp}
-Máis tarde teremos {condition} e temperatura ao redor de {temp} graos
-Máis tarde teremos {condition} e {temp} graos
-Cerca de {temp} graos con {condition}
+Teremos {condition}, con temperaturas preto de {temperature}
+Máis tarde teremos {condition} e temperatura ao redor de {temperature} graos
+Máis tarde teremos {condition} e {temperature} graos
+Cerca de {temperature} graos con {condition}

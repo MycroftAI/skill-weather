@@ -1,3 +1,3 @@
-Som lägst förväntas det bli {temp_min} grader {scale}. 
-En lägsta temperatur på {temp_min} grader kan förväntas.
-I dag kommer det bli {temp_min} grader som lägst.
+Som lägst förväntas det bli {low_temperature} grader {temperature_unit}. 
+En lägsta temperatur på {low_temperature} grader kan förväntas.
+I dag kommer det bli {low_temperature} grader som lägst.

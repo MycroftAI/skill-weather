@@ -1,2 +1,2 @@
-El {day} la temperatura baixarà a {temp_min}
-El {day} la temperatura baixarà fins als {temp_min} graus.
+El {day} la temperatura baixarà a {low_temperature}
+El {day} la temperatura baixarà fins als {low_temperature} graus.

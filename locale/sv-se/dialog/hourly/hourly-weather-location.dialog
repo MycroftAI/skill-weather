@@ -1,4 +1,4 @@
-vädret i {location} de kommande timmarna kommer vara {condition} och {temp} grader
-Senare kommer det vara {condition} i {location}, med temperaturer omkring {temp}
-{location} kommer vara omkring {temp} med {condition}
-{location} kommer vara ungefär {temp} grader med {condition}
+vädret i {location} de kommande timmarna kommer vara {condition} och {temperature} grader
+Senare kommer det vara {condition} i {location}, med temperaturer omkring {temperature}
+{location} kommer vara omkring {temperature} med {condition}
+{location} kommer vara ungefär {temperature} grader med {condition}

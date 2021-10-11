@@ -1,2 +1,2 @@
-Det kommer att bli {wind} {wind_unit} i {location} på {day}
-Vinden kommer bli som mest {wind} {wind_unit} i {location} på {day}
+Det kommer att bli {speed} {speed_unit} i {location} på {day}
+Vinden kommer bli som mest {speed} {speed_unit} i {location} på {day}

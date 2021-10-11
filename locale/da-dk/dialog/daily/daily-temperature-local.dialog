@@ -1,4 +1,4 @@
-# {day} it will be {temp}
-{day} det vil være {temp}  
-# {day} the temperature will be {temp} degrees.
-{day} temperaturen vil være {temp} grader.  
+# {day} it will be {temperature}
+{day} det vil være {temperature}  
+# {day} the temperature will be {temperature} degrees.
+{day} temperaturen vil være {temperature} grader.  

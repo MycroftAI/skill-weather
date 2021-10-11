@@ -1,2 +1,2 @@
-{day} fará {temp} graus em {location}
-{day}, {location} terá uma temperatura de {temp} graus
+{day} fará {temperature} graus em {location}
+{day}, {location} terá uma temperatura de {temperature} graus
