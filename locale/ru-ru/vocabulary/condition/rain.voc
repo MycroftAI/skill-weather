@@ -1,0 +1,4 @@
+# Rain conditions used for example in "is it going to rain today"
+(капать|капает|идти|лить)? (дождик|дождь|с неба)
+дождливо
+дождливая погода

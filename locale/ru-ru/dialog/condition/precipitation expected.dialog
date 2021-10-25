@@ -1,2 +1,2 @@
-{modifier} {precip} ожидается {day}
-Прогноз погоды говорит {modifier} {precip} {day}
+{day} будет {modifier} {precip}
+Прогноз погоды сообщает, что {day} будет {modifier} {precip}

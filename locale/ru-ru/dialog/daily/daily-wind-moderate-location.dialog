@@ -1,0 +1,3 @@
+{day} в {location} ветер {direction}, скорость умеренная, около {speed} {speed_unit}
+Прогноз на {day} в {location} сообщает, что будет умеренный {direction} ветер, скорость {speed} {speed_unit}
+{day} в {location} можете ожидать умеренный ветер со скоростью около {speed} {speed_unit}

@@ -1,0 +1,6 @@
+It will be as high as {temperature} degrees in {location} {day}
+{location} will have a high of {temperature} degrees {day}
+
+{day} в {location} будет до {temperature} градусов
+{day} в {location} температура достигнет {temperature} градусов
+{day} в {location} температура будет достигать {temperature} градусов

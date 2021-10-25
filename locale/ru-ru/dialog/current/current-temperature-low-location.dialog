@@ -1,0 +1,3 @@
+В {location} ожидается понижение температуры до {temperature} градусов {temperature_unit}.
+Можно ожидать понижения температуры в {location} до {temperature} градусов.
+Сегодня температура в {location} опустится до {temperature} градусов.

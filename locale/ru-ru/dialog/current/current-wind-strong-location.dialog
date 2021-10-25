@@ -1,0 +1,3 @@
+Сейчас в {location} сильный {direction} ветер со скоростью {speed} {speed_unit}, хороший день, чтобы остаться дома
+Сегодня в {location} сильный {direction} ветер, скорость {speed} {speed_unit}
+Сегодня в {location} очень ветренно, скорость {speed} {speed_unit}
