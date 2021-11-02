@@ -1,0 +1,3 @@
+В данный момент в {location} {temperature} градусов {temperature_unit}.
+В данный момент в {location} {temperature} градусов.
+Прямо сейчас в {location} {temperature} градусов.

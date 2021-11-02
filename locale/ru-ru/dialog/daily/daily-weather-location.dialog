@@ -1,0 +1,3 @@
+{day} в {location} будет {condition}, температура от {low_temperature} до {high_temperature}
+{day} в {location} температура будет от {low_temperature} до {high_temperature}, {condition}
+Прогноз на {day} для {location}: температура от {low_temperature} до {high_temperature}, {condition}

@@ -1,0 +1,3 @@
+# Affirmative response to questions like "is it going to snow in Paris tomorrow"
+Да, {day} в {location} будет {condition}
+Да, прогноз погоды сообщает, что {day} в {location} будет {condition}

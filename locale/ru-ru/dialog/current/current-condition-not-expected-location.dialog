@@ -1,0 +1,3 @@
+# Informing that an the requested condition is not in the forecast
+Нет, прогноз сообщает, что сегодня в {location} будет {condition}
+Нет, ожидается, что сегодня в {location} будет {condition}
