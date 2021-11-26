@@ -29,29 +29,95 @@ import Mycroft 1.0 as Mycroft
 import org.kde.lottie 1.0
 
 WeatherDelegateScalable {
-    id: root
+    id: rootPageTwo
 
-    Label {
-        id: highTemperature
-        font.weight: Font.Bold
-        font.pixelSize: parent.height * 0.50
-        horizontalAlignment: Text.AlignHCenter
-        Layout.fillWidth: true
-        Layout.preferredHeight: proportionalGridUnit * 40
-        //The off-centering to balance the ° should be proportional as well, so we use the computed pixel size
-        rightPadding: -font.pixelSize * 0.1
-        text: sessionData.highTemperature + "°"
-    }
+    Rectangle {
+        width: parent.width
+        height: parent.height
+        color: "black"
 
-    Label {
-        id: lowTemperature
-        font.pixelSize: parent.height * 0.50
-        font.styleName: "Thin"
-        font.weight: Font.Thin
-        horizontalAlignment: Text.AlignHCenter
-        Layout.fillWidth: true
-        Layout.preferredHeight: proportionalGridUnit * 40
-        rightPadding: -font.pixelSize * 0.1
-        text: sessionData.lowTemperature + "°"
+        WeatherLocation {
+            id: weatherLocationPageTwo
+            fontSize: parent.height > parent.width ? parent.width * 0.10 : 45
+        }
+
+        GridLayout {
+            id: weatherPageTwo
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.top: weatherLocationPageTwo.bottom
+            anchors.topMargin: Mycroft.Units.gridUnit * 2
+            columns: 2
+            columnSpacing: Mycroft.Units.gridUnit * 2
+
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                Item {
+                    id: windIconArea
+                    anchors.top: parent.top
+                    width: parent.width
+                    height: parent.height / 2
+
+                    Image {
+                        id: windIcon
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: Mycroft.Units.gridUnit
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width - Mycroft.Units.gridUnit * 2
+                        height: parent.height > parent.width ? width : parent.height - Mycroft.Units.gridUnit * 2
+                        fillMode: Image.PreserveAspectFit
+                        source: Qt.resolvedUrl("images/wind.svg")
+                    }
+                }
+                Label {
+                    id: windSpeed
+                    anchors.top: windIconArea.bottom
+                    width: parent.width
+                    height: parent.height / 2
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pixelSize: parent.height > parent.width ? parent.width * 0.65 : parent.height * 0.65
+                    font.family: "Noto Sans Display"
+                    font.styleName: "Bold"
+                    text: sessionData.windSpeed
+                }
+            }
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                Item {
+                    id: humidityIconArea
+                    anchors.top: parent.top
+                    width: parent.width
+                    height: parent.height / 2
+
+                    Image {
+                        id: humidityIcon
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: Mycroft.Units.gridUnit
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width - Mycroft.Units.gridUnit * 2
+                        height: parent.height > parent.width ? width : parent.height - Mycroft.Units.gridUnit * 2
+                        fillMode: Image.PreserveAspectFit
+                        source: Qt.resolvedUrl("images/humidity.svg")
+                    }
+                }
+
+                Label {
+                    id: humidityPercentage
+                    anchors.top: humidityIconArea.bottom
+                    width: parent.width
+                    height: parent.height / 2
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pixelSize: parent.height > parent.width ? parent.width * 0.65 : parent.height * 0.65
+                    font.family: "Noto Sans Display"
+                    font.styleName: "Bold"
+                    text: sessionData.humidity
+                }
+            }
+        }
     }
 }

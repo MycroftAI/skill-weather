@@ -29,55 +29,55 @@ import org.kde.lottie 1.0
 WeatherDelegateScalable {
     id: root
 
-    property alias model: forecastRepeater.model
+    property var model
 
-    spacing: proportionalGridUnit * 10
-    Repeater {
-        id: forecastRepeater
-        delegate: GridLayout {
-            columns: 2
-            rowSpacing: proportionalGridUnit * 5
-            columnSpacing: proportionalGridUnit * 5
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+    Rectangle {
+        width: parent.width
+        height: parent.height
+        color: "black"
 
-            LottieAnimation {
-                Layout.alignment: Qt.AlignCenter
-                Layout.preferredHeight: proportionalGridUnit * 30
-                Layout.preferredWidth: Layout.preferredHeight
+        WeatherLocation {
+            id: weatherLocationPageThree
+            fontSize: parent.height > parent.width ? parent.width * 0.10 : 45
+        }
 
-                source: Qt.resolvedUrl(modelData.weatherCondition)
-                loops: Animation.Infinite
-                fillMode: Image.PreserveAspectFit
-                running: true
-            }
-            Label {
-                font.weight: Font.Bold
-                horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
-                Layout.preferredHeight: proportionalGridUnit * 30
-                font.pixelSize: height * 0.90
-                text: modelData.date
+        Item {
+            anchors.top: weatherLocationPageThree.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Mycroft.Units.gridUnit * 2
+
+            DailyColumnScalable {
+                id: d1
+                width: parent.width / 4
+                height: parent.height
+                anchors.left: parent.left
+                forecast: model[0]
             }
 
-            Label {
-                font.weight: Font.Bold
-                Layout.fillWidth: true
-                Layout.preferredHeight: proportionalGridUnit * 30
-                rightPadding: -font.pixelSize * 0.1
-                font.pixelSize: height * 0.90
-                horizontalAlignment: Text.AlignHCenter
-                text: modelData.highTemperature + "°"
+            DailyColumnScalable {
+                id: d2
+                width: parent.width / 4
+                height: parent.height
+                anchors.left: d1.right
+                forecast: model[1]
             }
 
-            Label {
-                font.styleName: "Thin"
-                Layout.fillWidth: true
-                Layout.preferredHeight: proportionalGridUnit * 30
-                rightPadding: -font.pixelSize * 0.1
-                font.pixelSize: height * 0.90
-                horizontalAlignment: Text.AlignHCenter
-               text: modelData.lowTemperature + "°"
+            DailyColumnScalable {
+                id: d3
+                width: parent.width / 4
+                height: parent.height
+                anchors.right: d4.left
+                forecast: model[2]
+            }
+
+            DailyColumnScalable {
+                id: d4
+                width: parent.width / 4
+                height: parent.height
+                anchors.right: parent.right
+                forecast: model[3]
             }
         }
     }
