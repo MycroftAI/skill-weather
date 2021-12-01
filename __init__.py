@@ -694,11 +694,11 @@ class WeatherSkill(MycroftSkill):
             page_name = "current_1_scalable.qml"
             self.gui.clear()
             self.gui["currentTemperature"] = weather.current.temperature
+            self.gui["weatherLocation"] = weather_location
+            self.gui["highTemperature"] = weather.current.high_temperature
+            self.gui["lowTemperature"] = weather.current.low_temperature
             if self.platform == MARK_II:
                 self.gui["weatherCondition"] = weather.current.condition.image
-                self.gui["weatherLocation"] = weather_location
-                self.gui["highTemperature"] = weather.current.high_temperature
-                self.gui["lowTemperature"] = weather.current.low_temperature
                 page_name = page_name.replace("scalable", "mark_ii")
             else:
                 self.gui["weatherCode"] = weather.current.condition.code
@@ -748,14 +748,11 @@ class WeatherSkill(MycroftSkill):
         """
         page_name = "current_2_scalable.qml"
         self.gui.clear()
+        self.gui["weatherLocation"] = weather_location
+        self.gui["windSpeed"] = weather.current.wind_speed
+        self.gui["humidity"] = weather.current.humidity
         if self.platform == MARK_II:
-            self.gui["weatherLocation"] = weather_location
-            self.gui["windSpeed"] = weather.current.wind_speed
-            self.gui["humidity"] = weather.current.humidity
             page_name = page_name.replace("scalable", "mark_ii")
-        else:
-            self.gui["highTemperature"] = weather.current.high_temperature
-            self.gui["lowTemperature"] = weather.current.low_temperature
         self.gui.show_page(page_name)
 
     def _report_one_hour_weather(self, message: Message):
@@ -1005,24 +1002,22 @@ class WeatherSkill(MycroftSkill):
         Args:
             forecast: daily forecasts to display
         """
-        page_one_name = "daily_1_scalable.qml"
-        page_two_name = page_one_name.replace("1", "2")
+        page_one_name = "daily_scalable.qml"
         display_data = []
         for day_number, day in enumerate(forecast):
             if day_number == 4:
                 break
             display_data.append(
                 dict(
-                    weatherCondition=day.condition.animation,
+                    weatherCondition=day.condition.image,
                     highTemperature=day.temperature.high,
                     lowTemperature=day.temperature.low,
                     date=day.date_time.strftime("%a"),
                 )
             )
-        self.gui["forecast"] = dict(first=display_data[:2], second=display_data[2:])
+        self.gui.clear()
+        self.gui["forecast"] = dict(first=display_data[:4])
         self.gui.show_page(page_one_name)
-        sleep(5)
-        self.gui.show_page(page_two_name)
 
     def _report_temperature(self, message: Message, temperature_type: str = None):
         """Handles all requests for a temperature.

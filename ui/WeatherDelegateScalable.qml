@@ -25,35 +25,36 @@ import org.kde.kirigami 2.4 as Kirigami
 
 import Mycroft 1.0 as Mycroft
 
-Mycroft.ProportionalDelegate {
+Mycroft.CardDelegate {
     id: root
     skillBackgroundColorOverlay: Qt.rgba(0, 0, 0, 1)
+    fillWidth: true
 
     function getWeatherImagery(weathercode) {
         switch(weathercode) {
         case 0:
-            return "animations/sunny.json";
+            return "images/sun.svg";
             break
         case 1:
-            return "animations/partlycloudy.json";
+            return "images/partial_clouds_day.svg";
             break
         case 2:
-            return "animations/cloudy.json";
+            return "images/clouds.svg";
             break
         case 3:
-            return "animations/rain.json";
+            return "images/rain.svg";
             break
         case 4:
-            return "animations/rain.json";
+            return "images/rain.svg";
             break
         case 5:
-            return "animations/storm.json";
+            return "images/storm.svg";
             break
         case 6:
-            return "animations/snow.json";
+            return "images/snow.svg";
             break
         case 7:
-            return "animations/fog.json";
+            return "images/fog.svg";
             break
         }
     }
