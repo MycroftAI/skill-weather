@@ -17,9 +17,6 @@ Define the default values for a weather forecast column.
 
 A forecast screen has four columns, each with the same data.  This abstracts out the
 common bits of each column.
-
-This code is specific to the Mark II device.  It uses a grid of 16x16 pixel
-squares for alignment of items.
 */
 import QtQuick 2.4
 import QtQuick.Layouts 1.1

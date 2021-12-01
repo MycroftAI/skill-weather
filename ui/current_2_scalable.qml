@@ -79,7 +79,7 @@ WeatherDelegateScalable {
                     height: parent.height / 2
                     horizontalAlignment: Text.AlignHCenter
                     font.pixelSize: parent.height > parent.width ? parent.width * 0.65 : parent.height * 0.65
-                    font.family: "Noto Sans Display"
+                    font.family: "Noto Sans"
                     font.styleName: "Bold"
                     text: sessionData.windSpeed
                 }
@@ -113,7 +113,7 @@ WeatherDelegateScalable {
                     height: parent.height / 2
                     horizontalAlignment: Text.AlignHCenter
                     font.pixelSize: parent.height > parent.width ? parent.width * 0.65 : parent.height * 0.65
-                    font.family: "Noto Sans Display"
+                    font.family: "Noto Sans"
                     font.styleName: "Bold"
                     text: sessionData.humidity
                 }

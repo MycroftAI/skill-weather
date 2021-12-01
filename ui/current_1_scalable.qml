@@ -83,7 +83,7 @@ WeatherDelegateScalable {
                     horizontalAlignment: Text.AlignHCenter
                     width: parent.width
                     rightPadding: -font.pixelSize * 0.1
-                    font.family: "Noto Sans Display"
+                    font.family: "Noto Sans"
                     font.styleName: "Bold"
                     text: sessionData.currentTemperature + "°"
                 }
@@ -130,7 +130,7 @@ WeatherDelegateScalable {
                             height: parent.height
                             anchors.baseline: parent.bottom
                             anchors.baselineOffset: -Mycroft.Units.gridUnit
-                            font.family: "Noto Sans Display"
+                            font.family: "Noto Sans"
                             font.pixelSize: parent.height > parent.width ? parent.width * 0.65 : parent.height * 0.85
                             font.styleName: "SemiBold"
                             text: sessionData.highTemperature + "°"
@@ -172,7 +172,7 @@ WeatherDelegateScalable {
                             height: parent.height
                             anchors.baseline: parent.bottom
                             anchors.baselineOffset: -Mycroft.Units.gridUnit
-                            font.family: "Noto Sans Display"
+                            font.family: "Noto Sans"
                             font.pixelSize: parent.height > parent.width ? parent.width * 0.65 : parent.height * 0.85
                             font.styleName: "Light"
                             text: sessionData.lowTemperature + "°"
