@@ -519,10 +519,15 @@ class WeatherSkill(MycroftSkill):
             dialog_args = intent_data, self.weather_config, forecast
             dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
             dialog.build_next_precipitation_dialog()
-            spoken_percentage = self.translate(
-                "percentage-number", data=dict(number=dialog.data["percent"])
-            )
-            dialog.data.update(percent=spoken_percentage)
+
+            # Percent is not available if, for example, there is no
+            # precipitation in the the next 7 days.
+            if "percent" in dialog.data:
+                spoken_percentage = self.translate(
+                    "percentage-number",
+                    data=dict(number=dialog.data["percent"])
+                )
+                dialog.data.update(percent=spoken_percentage)
             self._speak_weather(dialog)
 
     @intent_handler(
