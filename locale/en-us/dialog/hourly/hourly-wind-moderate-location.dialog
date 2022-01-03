@@ -1,0 +1,3 @@
+At {time} The wind will be moderate in {location}, about {speed} {speed_unit} from the {direction}
+The forecast for {time} predicts {location} will have moderate wind from the {direction} of {speed} {speed_unit}
+You can expect a wind of about {speed} {speed_unit} in {location} at {time}
