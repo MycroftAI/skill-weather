@@ -753,7 +753,9 @@ class WeatherSkill(MycroftSkill):
         self.gui["humidity"] = weather.current.humidity
         if self.platform == MARK_II:
             page_name = page_name.replace("scalable", "mark_ii")
-        self.gui.show_page(page_name)
+            self.gui.replace_page(page_name)
+        else:
+            self.gui.show_page(page_name)
 
     def _report_one_hour_weather(self, message: Message):
         """Handles requests for a one hour forecast.
@@ -803,10 +805,12 @@ class WeatherSkill(MycroftSkill):
                     weatherCondition=hourly.condition.image,
                 )
             )
-        self.gui.clear()
         self.gui["weatherLocation"] = weather_location
         self.gui["hourlyForecast"] = dict(hours=hourly_forecast)
-        self.gui.show_page("hourly_mark_ii.qml")
+        if self.gui.page is not None:
+            self.gui.replace_page("hourly_mark_ii.qml")
+        else:
+            self.gui.show_page("hourly_mark_ii.qml")
 
     def _report_one_day_forecast(self, message: Message):
         """Handles all requests for a single day forecast.
