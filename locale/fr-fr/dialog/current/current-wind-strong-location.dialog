@@ -1,0 +1,3 @@
+Actuellement à {location} le vent souffle fort du {direction} à {speed} {speed_unit}
+A {location} un vent violant souffle du {direction} aujourd'hui, {speed} {speed_unit}
+Des rafale de vent jusqu'à {speed} {speed_unit} pour aujourd'hui à {location}

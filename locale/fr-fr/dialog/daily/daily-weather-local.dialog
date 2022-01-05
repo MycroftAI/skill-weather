@@ -1,3 +1,4 @@
-{day} il fera {condition}, avec des températures comprises entre {high_temperature} et {low_temperature} degrés
-{day} il fera entre {high_temperature} et {low_temperature} degrés, avec des conditions de {condition}
-les prévisions pour {day} annoncent des températures comprises entre {high_temperature} et {low_temperature} degrés
+{day} {condition} attendue, avec au plus faut {high_temperature} degrés et au plus bas {low_temperature} degrés
+{condition} attendue, avec un thermomètre entre {low_temperature} et {high_temperature} degrés {day}
+{day} le mercure oscillera entre {low_temperature} et {high_temperature} degrés, avec {condition}
+Les prévisions de {day} sont {condition} avec un plus haut à {high_temperature} et un plus bas à {low_temperature} degrés

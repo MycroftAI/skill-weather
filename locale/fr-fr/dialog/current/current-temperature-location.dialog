@@ -1,0 +1,3 @@
+Il fait actuellement {temperature} degrés {temperature_unit} à {location}.
+Le mercure indique {temperature} degrés à {location}.
+En ce moment la température est de {temperature} degrés à {location}.

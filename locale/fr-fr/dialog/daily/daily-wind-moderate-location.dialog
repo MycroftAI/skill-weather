@@ -1,0 +1,3 @@
+Le vent sera modéré {day} à {location} avec {speed} {speed_unit} du {direction}
+Les prévisions à {location} indiquent un vent modéré venant du {direction} à {speed} {speed_unit} {day}
+On peut s'attendre d'avoir à {location} un vent modéré à {speed} {speed_unit} {day}

@@ -1,3 +1,4 @@
-{day} il fera {condition}, avec des températures comprises entre {high_temperature} et {low_temperature} degrés
-{day}, à {location} il y aura des températeurs comprises entre {high_temperature} et {low_temperature} degrés, avec {condition}
-La prévision pour {day} donne un minimum de {low_temperature} et maximum de {high_temperature}
+{day} {condition} attendue à {location}, avec au plus faut {high_temperature} degrés et au plus bas {low_temperature} degrés
+{condition} attendue à {location}, avec un thermomètre entre {low_temperature} et {high_temperature} degrés {day}
+{day} le mercure oscillera entre {low_temperature} et {high_temperature} degrés à {location}, avec {condition}
+Les prévisions de {day} à {location} sont {condition} avec un plus haut à {high_temperature} et un plus bas à {low_temperature} degrés

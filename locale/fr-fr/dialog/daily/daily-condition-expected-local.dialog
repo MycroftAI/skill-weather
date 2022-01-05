@@ -1,0 +1,3 @@
+# Affirmative response to questions like "is it going to snow tomorrow"
+Oui, {condition} attendu {day}
+Oui, les prévisions annoncent une météo {condition} {day}
