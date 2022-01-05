@@ -1,1 +1,1 @@
-(à|à) (?P<Location>.*)
+.*\b(à|au) (?P<Location>(?!\bcelsius\b|\bfahrenheit\b) *.+)

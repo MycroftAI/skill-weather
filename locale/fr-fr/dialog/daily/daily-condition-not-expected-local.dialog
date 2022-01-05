@@ -1,0 +1,3 @@
+# Informing that an the requested condition is not in the forecast
+Non, {day} les prévisions indiquent {condition}
+Non, {condition} est attendu {day}

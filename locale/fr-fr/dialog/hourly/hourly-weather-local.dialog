@@ -1,4 +1,4 @@
-Il fera {condition}, avec des températures voisines de {high_temperature}
-Plus tard il fera {condition} et environ {high_temperature} degrés
-Plus tard il fera {condition} et {high_temperature} degrés
-Environ {high_temperature} degrés avec de la {condition}
+Il fera {condition} avec une température proche de {temperature} degrés
+Plus tard il fera {condition} et le termomètre indiquera {temperature} degrés
+Il fera {condition} et le mercure indiquera {temperature} degrés
+Environ {temperature} degrés avec {condition}

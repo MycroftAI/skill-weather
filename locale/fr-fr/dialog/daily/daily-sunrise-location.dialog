@@ -1,0 +1,3 @@
+Le soleil va se lever à {time} {day} à {location}
+Le lever du soleil aura lieu à {location} à {time} {day}
+{day} Le soleil se lèvera à {time} à {location}

@@ -1,4 +1,3 @@
-En ce moment il fait {condition} avec {temperature} degrés {temperature_unit}. La prévision d'aujourd'hui annonce un maximum de {high_temperature} degrés et un minimum de {low_temperature} degrés.
-Il fait {condition} et {temperature} degrés. La prévision du jour annonce une température maximale de {high_temperature} dégrés et un minimum de {low_temperature} degrés.
-En ce moment, il fait {condition} avec {temperature} degrés, avec des températures comprises entre {low_temperature} et {high_temperature} degrés.
-Avec un maximum de {high_temperature} et un minimum de {low_temperature} degrés, à {location} il fait {condition} avec une température actuelle de {temperature} degrés.
+Il fait actuellement {condition} et la température est de {temperature} degrés {temperature_unit}.
+La météo actuelle est {condition} et il fait {temperature} dégrés.
+En ce moment, c'est {condition} et il fait {temperature} degrés.

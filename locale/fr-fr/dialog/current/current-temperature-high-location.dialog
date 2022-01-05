@@ -1,0 +1,3 @@
+Un maximum de {temperature} degrés {temperature_unit} est attendu à {location}.
+On peut s'attendre à une température maximum de {temperature} à {location}.
+Aujourd'hui la température va atteindre les {temperature} degrés à {location}.

@@ -1,4 +1,4 @@
-le temps dans les toutes prochaines heures à {location} sera {condition} et {high_temperature} degrés
-Plus tard il y aura de la {condition} à {location}, avec des températures voisines de {high_temperature} degrés
-à {location} il fera environ {high_temperature} avec de la {condition}
-à {location} il fera environ {high_temperature} degrés avec de la {condition}
+à {location} il fera {condition} avec une température proche de {temperature} degrés
+Plus tard il fera {condition} à {location} et le termomètre indiquera {temperature} degrés
+Il fera {condition} à {location} et le mercure indiquera {temperature} degrés
+Environ {temperature} degrés à {location} avec {condition}

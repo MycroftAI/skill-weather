@@ -1,0 +1,3 @@
+Une température minimum de {temperature} degrés {temperature_unit} est attendu à {location}.
+Le plus bas attendu est de {temperature} degrés à {location}.
+Aujourd'hui il fera au minimum {temperature} degrés à {location}.
