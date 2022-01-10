@@ -621,7 +621,6 @@ class WeatherSkill(MycroftSkill):
             forecast: daily forecasts to display
             weather_location: the geographical location of the weather
         """
-        self.gui.clear()
         self.gui["weatherDate"] = forecast.date_time.strftime("%A %b %d")
         self.gui["weatherLocation"] = weather_location
         self.gui["sunrise"] = self._format_sunrise_sunset_time(forecast.sunrise)
@@ -691,7 +690,6 @@ class WeatherSkill(MycroftSkill):
         """
         if self.gui.connected:
             page_name = "current_1_scalable.qml"
-            self.gui.clear()
             self.gui["currentTemperature"] = weather.current.temperature
             if self.platform == MARK_II:
                 self.gui["weatherCondition"] = weather.current.condition.image
@@ -746,16 +744,16 @@ class WeatherSkill(MycroftSkill):
             weather_location: geographical location of the reported weather
         """
         page_name = "current_2_scalable.qml"
-        self.gui.clear()
         if self.platform == MARK_II:
             self.gui["weatherLocation"] = weather_location
             self.gui["windSpeed"] = weather.current.wind_speed
             self.gui["humidity"] = weather.current.humidity
             page_name = page_name.replace("scalable", "mark_ii")
+            self.gui.replace_page(page_name)
         else:
             self.gui["highTemperature"] = weather.current.high_temperature
             self.gui["lowTemperature"] = weather.current.low_temperature
-        self.gui.show_page(page_name)
+            self.gui.show_page(page_name)
 
     def _report_one_hour_weather(self, message: Message):
         """Handles requests for a one hour forecast.
@@ -805,10 +803,9 @@ class WeatherSkill(MycroftSkill):
                     weatherCondition=hourly.condition.image,
                 )
             )
-        self.gui.clear()
         self.gui["weatherLocation"] = weather_location
         self.gui["hourlyForecast"] = dict(hours=hourly_forecast)
-        self.gui.show_page("hourly_mark_ii.qml")
+        self.gui.replace_page("hourly_mark_ii.qml")
 
     def _report_one_day_forecast(self, message: Message):
         """Handles all requests for a single day forecast.
@@ -833,7 +830,6 @@ class WeatherSkill(MycroftSkill):
 
         :param forecast: daily forecasts to display
         """
-        self.gui.clear()
         self.gui["weatherLocation"] = self._build_display_location(intent_data)
         self.gui["weatherCondition"] = forecast.condition.image
         self.gui["weatherDate"] = forecast.date_time.strftime("%A %b %d")
@@ -986,13 +982,11 @@ class WeatherSkill(MycroftSkill):
                     lowTemperature=day.temperature.low,
                 )
             )
-        self.gui.clear()
         self.gui["dailyForecast"] = dict(days=daily_forecast[:4])
         self.gui["weatherLocation"] = self._build_display_location(intent_data)
         self.gui.show_page(page_name)
         if len(forecast) > 4:
             sleep(15)
-            self.gui.clear()
             self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
             self.gui.show_page(page_name)
 
