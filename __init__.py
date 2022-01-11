@@ -699,7 +699,7 @@ class WeatherSkill(MycroftSkill):
                 page_name = page_name.replace("scalable", "mark_ii")
             else:
                 self.gui["weatherCode"] = weather.current.condition.code
-            self.gui.show_page(page_name)
+            self.gui.show_page(page_name, override_idle=True)
         else:
             self.enclosure.deactivate_mouth_events()
             self.enclosure.weather_display(
@@ -749,7 +749,7 @@ class WeatherSkill(MycroftSkill):
             self.gui["windSpeed"] = weather.current.wind_speed
             self.gui["humidity"] = weather.current.humidity
             page_name = page_name.replace("scalable", "mark_ii")
-            self.gui.replace_page(page_name)
+            self.gui.replace_page(page_name, override_idle=True)
         else:
             self.gui["highTemperature"] = weather.current.high_temperature
             self.gui["lowTemperature"] = weather.current.low_temperature
