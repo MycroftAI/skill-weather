@@ -41,12 +41,12 @@ ICON_IMAGE_MAP = (
     (("01d",), "sun.svg"),
     (("01n",), "moon.svg"),
     (("04d", "04n"), "clouds.svg"),
-    (("50d",), "fog.svg"),
+    (("50d", "50n"), "fog.svg"),
     (("02d", "03d"), "partial_clouds_day.svg"),
     (("02n", "03n"), "partial_clouds_night.svg"),
-    (("09d", "10d"), "rain.svg"),
-    (("13d",), "snow.svg"),
-    (("11d",), "storm.svg"),
+    (("09d", "09n", "10d", "10n"), "rain.svg"),
+    (("13d", "13n"), "snow.svg"),
+    (("11d", "11n"), "storm.svg"),
 )
 ICON_ANIMATION_MAP = (
     (("01d", "01n"), "sun.json"),
