@@ -697,19 +697,21 @@ class WeatherSkill(MycroftSkill):
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_weather_dialog()
             self._speak_weather(dialog)
-            if self.gui.connected and self.platform != MARK_II:
-                self._display_more_current_conditions(weather, weather_location)
-            dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
-            dialog.build_high_low_temperature_dialog()
-            self._speak_weather(dialog)
-            if self.gui.connected:
-                if self.platform == MARK_II:
-                    self._display_more_current_conditions(weather, weather_location)
-                    sleep(5)
-                    self._display_hourly_forecast(weather, weather_location)
-                else:
-                    four_day_forecast = weather.daily[1:5]
-                    self._display_multi_day_forecast(four_day_forecast, intent_data)
+
+            # Single page for MVP
+            # if self.gui.connected and self.platform != MARK_II:
+            #     self._display_more_current_conditions(weather, weather_location)
+            # dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
+            # dialog.build_high_low_temperature_dialog()
+            # self._speak_weather(dialog)
+            # if self.gui.connected:
+            #     if self.platform == MARK_II:
+            #         self._display_more_current_conditions(weather, weather_location)
+            #         sleep(5)
+            #         self._display_hourly_forecast(weather, weather_location)
+            #     else:
+            #         four_day_forecast = weather.daily[1:5]
+            #         self._display_multi_day_forecast(four_day_forecast, intent_data)
 
     def _display_current_conditions(
         self, weather: WeatherReport, weather_location: str
@@ -887,7 +889,9 @@ class WeatherSkill(MycroftSkill):
                 forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
-            for dialog in dialogs:
+
+            # Single utterance for MVP
+            for dialog in dialogs[:1]:
                 self._speak_weather(dialog)
 
     def _report_weekend_forecast(self, message: Message):
@@ -902,7 +906,9 @@ class WeatherSkill(MycroftSkill):
             forecast = weather.get_weekend_forecast()
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
-            for dialog in dialogs:
+
+            # Single utterance for MVP
+            for dialog in dialogs[:1]:
                 self._speak_weather(dialog)
 
     def _build_forecast_dialogs(
@@ -939,7 +945,9 @@ class WeatherSkill(MycroftSkill):
             dialogs = self._build_weekly_condition_dialogs(forecast, intent_data)
             dialogs.append(self._build_weekly_temperature_dialog(forecast, intent_data))
             self._display_multi_day_forecast(forecast, intent_data)
-            for dialog in dialogs:
+
+            # Single utterance for MVP
+            for dialog in dialogs[:1]:
                 self._speak_weather(dialog)
 
     def _build_weekly_condition_dialogs(
@@ -1019,10 +1027,12 @@ class WeatherSkill(MycroftSkill):
         self.gui["dailyForecast"] = dict(days=daily_forecast[:4])
         self.gui["weatherLocation"] = self._build_display_location(intent_data)
         self.gui.show_page(page_name)
-        if len(forecast) > 4:
-            sleep(15)
-            self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
-            self.gui.show_page(page_name)
+
+        # Single page for MVP
+        # if len(forecast) > 4:
+        #     sleep(15)
+        #     self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
+        #     self.gui.show_page(page_name)
 
     def _display_multi_day_scalable(self, forecast: List[DailyWeather]):
         """Display daily forecast data on GUI devices other than the Mark II.
@@ -1048,8 +1058,10 @@ class WeatherSkill(MycroftSkill):
             )
         self.gui["forecast"] = dict(first=display_data[:2], second=display_data[2:])
         self.gui.show_page(page_one_name)
-        sleep(5)
-        self.gui.show_page(page_two_name)
+
+        # Single page for MVP
+        # sleep(5)
+        # self.gui.show_page(page_two_name)
 
     def _report_temperature(self, message: Message, temperature_type: str = None):
         """Handles all requests for a temperature.
