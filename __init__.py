@@ -701,9 +701,9 @@ class WeatherSkill(MycroftSkill):
             # Single page for MVP
             # if self.gui.connected and self.platform != MARK_II:
             #     self._display_more_current_conditions(weather, weather_location)
-            # dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
-            # dialog.build_high_low_temperature_dialog()
-            # self._speak_weather(dialog)
+            dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
+            dialog.build_high_low_temperature_dialog()
+            self._speak_weather(dialog)
             # if self.gui.connected:
             #     if self.platform == MARK_II:
             #         self._display_more_current_conditions(weather, weather_location)
