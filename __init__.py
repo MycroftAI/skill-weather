@@ -74,6 +74,12 @@ class WeatherSkill(MycroftSkill):
             "skill.weather.request-local-forecast", self.handle_get_local_forecast
         )
 
+    def activity_ended(self):
+        super().activity_ended()
+
+        if self.gui.connected:
+            self.gui.release()
+
     def handle_get_local_forecast(self, _):
         """Handles a message bus command requesting current local weather information.
 
@@ -84,7 +90,10 @@ class WeatherSkill(MycroftSkill):
         system_unit = self.config_core.get("system_unit")
         try:
             weather = self.weather_api.get_weather_for_coordinates(
-                system_unit, self.weather_config.latitude, self.weather_config.longitude, self.lang
+                system_unit,
+                self.weather_config.latitude,
+                self.weather_config.longitude,
+                self.lang,
             )
         except Exception:
             self.log.exception("Unexpected error getting weather.")
@@ -119,7 +128,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_current_weather(message)
+        with self.activity():
+            self._report_current_weather(message)
 
     @intent_handler(
         AdaptIntent()
@@ -135,7 +145,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_current_weather(message)
+        with self.activity():
+            self._report_current_weather(message)
 
     @intent_handler(
         AdaptIntent()
@@ -154,16 +165,17 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        if self.voc_match(message.data["utterance"], "couple"):
-            days = 2
-        elif self.voc_match(message.data["utterance"], "few"):
-            days = 3
-        else:
-            # Some STT engines hyphenate the day count (i.e. 3-day).  This is not
-            # handled by extract_number() so remove the hyphen if it is there.
-            utterance = message.data["utterance"].replace("-day", " day")
-            days = int(extract_number(utterance))
-        self._report_multi_day_forecast(message, days)
+        with self.activity():
+            if self.voc_match(message.data["utterance"], "couple"):
+                days = 2
+            elif self.voc_match(message.data["utterance"], "few"):
+                days = 3
+            else:
+                # Some STT engines hyphenate the day count (i.e. 3-day).  This is not
+                # handled by extract_number() so remove the hyphen if it is there.
+                utterance = message.data["utterance"].replace("-day", " day")
+                days = int(extract_number(utterance))
+            self._report_multi_day_forecast(message, days)
 
     @intent_handler(
         AdaptIntent()
@@ -182,7 +194,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_one_day_forecast(message)
+        with self.activity():
+            self._report_one_day_forecast(message)
 
     @intent_handler(
         AdaptIntent()
@@ -198,7 +211,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_one_hour_weather(message)
+        with self.activity():
+            self._report_one_hour_weather(message)
 
     @intent_handler(
         AdaptIntent()
@@ -214,7 +228,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_one_hour_weather(message)
+        with self.activity():
+            self._report_one_hour_weather(message)
 
     @intent_handler(
         AdaptIntent()
@@ -229,7 +244,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weekend_forecast(message)
+        with self.activity():
+            self._report_weekend_forecast(message)
 
     @intent_handler(
         AdaptIntent()
@@ -244,7 +260,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_week_summary(message)
+        with self.activity():
+            self._report_week_summary(message)
 
     @intent_handler(
         AdaptIntent()
@@ -265,7 +282,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_temperature(message, temperature_type="current")
+        with self.activity():
+            self._report_temperature(message, temperature_type="current")
 
     @intent_handler(
         AdaptIntent()
@@ -283,7 +301,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_temperature(message, temperature_type="current")
+        with self.activity():
+            self._report_temperature(message, temperature_type="current")
 
     @intent_handler(
         AdaptIntent()
@@ -303,7 +322,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_temperature(message)
+        with self.activity():
+            self._report_temperature(message)
 
     @intent_handler(
         AdaptIntent()
@@ -326,7 +346,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_temperature(message, temperature_type="high")
+        with self.activity():
+            self._report_temperature(message, temperature_type="high")
 
     @intent_handler(
         AdaptIntent()
@@ -349,7 +370,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_temperature(message, temperature_type="low")
+        with self.activity():
+            self._report_temperature(message, temperature_type="low")
 
     @intent_handler(
         AdaptIntent()
@@ -364,7 +386,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_temperature(message, "current")
+        with self.activity():
+            self._report_temperature(message, "current")
 
     @intent_handler(
         AdaptIntent()
@@ -381,9 +404,10 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        utterance = message.data["utterance"]
-        temperature_type = "high" if self.voc_match(utterance, "hot") else "low"
-        self._report_temperature(message, temperature_type)
+        with self.activity():
+            utterance = message.data["utterance"]
+            temperature_type = "high" if self.voc_match(utterance, "hot") else "low"
+            self._report_temperature(message, temperature_type)
 
     @intent_handler(
         AdaptIntent()
@@ -398,7 +422,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_wind(message)
+        with self.activity():
+            self._report_wind(message)
 
     @intent_handler(
         AdaptIntent()
@@ -414,7 +439,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_wind(message)
+        with self.activity():
+            self._report_wind(message)
 
     @intent_handler(
         AdaptIntent().require("confirm-query").require("snow").optionally("location")
@@ -425,7 +451,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "snow")
+        with self.activity():
+            self._report_weather_condition(message, "snow")
 
     @intent_handler(
         AdaptIntent().require("confirm-query").require("clear").optionally("location")
@@ -436,7 +463,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, condition="clear")
+        with self.activity():
+            self._report_weather_condition(message, condition="clear")
 
     @intent_handler(
         AdaptIntent()
@@ -451,7 +479,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "clouds")
+        with self.activity():
+            self._report_weather_condition(message, "clouds")
 
     @intent_handler(
         AdaptIntent().require("confirm-query").require("fog").optionally("location")
@@ -462,7 +491,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "fog")
+        with self.activity():
+            self._report_weather_condition(message, "fog")
 
     @intent_handler(
         AdaptIntent().require("confirm-query").require("rain").optionally("location")
@@ -473,7 +503,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "rain")
+        with self.activity():
+            self._report_weather_condition(message, "rain")
 
     @intent_handler("do-i-need-an-umbrella.intent")
     def handle_need_umbrella(self, message: Message):
@@ -482,7 +513,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "rain")
+        with self.activity():
+            self._report_weather_condition(message, "rain")
 
     @intent_handler(
         AdaptIntent()
@@ -496,7 +528,8 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        self._report_weather_condition(message, "thunderstorm")
+        with self.activity():
+            self._report_weather_condition(message, "thunderstorm")
 
     @intent_handler(
         AdaptIntent()
@@ -511,19 +544,20 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        intent_data = self._get_intent_data(message)
-        weather = self._get_weather(intent_data)
-        if weather is not None:
-            forecast, timeframe = weather.get_next_precipitation(intent_data)
-            intent_data.timeframe = timeframe
-            dialog_args = intent_data, self.weather_config, forecast
-            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
-            dialog.build_next_precipitation_dialog()
-            spoken_percentage = self.translate(
-                "percentage-number", data=dict(number=dialog.data["percent"])
-            )
-            dialog.data.update(percent=spoken_percentage)
-            self._speak_weather(dialog)
+        with self.activity():
+            intent_data = self._get_intent_data(message)
+            weather = self._get_weather(intent_data)
+            if weather is not None:
+                forecast, timeframe = weather.get_next_precipitation(intent_data)
+                intent_data.timeframe = timeframe
+                dialog_args = intent_data, self.weather_config, forecast
+                dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
+                dialog.build_next_precipitation_dialog()
+                spoken_percentage = self.translate(
+                    "percentage-number", data=dict(number=dialog.data["percent"])
+                )
+                dialog.data.update(percent=spoken_percentage)
+                self._speak_weather(dialog)
 
     @intent_handler(
         AdaptIntent()
@@ -538,19 +572,20 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        intent_data = self._get_intent_data(message)
-        weather = self._get_weather(intent_data)
-        if weather is not None:
-            intent_weather = weather.get_weather_for_intent(intent_data)
-            dialog_args = intent_data, self.weather_config, intent_weather
-            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
-            dialog.build_humidity_dialog()
-            dialog.data.update(
-                humidity=self.translate(
-                    "percentage-number", data=dict(num=dialog.data["humidity"])
+        with self.activity():
+            intent_data = self._get_intent_data(message)
+            weather = self._get_weather(intent_data)
+            if weather is not None:
+                intent_weather = weather.get_weather_for_intent(intent_data)
+                dialog_args = intent_data, self.weather_config, intent_weather
+                dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
+                dialog.build_humidity_dialog()
+                dialog.data.update(
+                    humidity=self.translate(
+                        "percentage-number", data=dict(num=dialog.data["humidity"])
+                    )
                 )
-            )
-            self._speak_weather(dialog)
+                self._speak_weather(dialog)
 
     @intent_handler(
         AdaptIntent()
@@ -566,16 +601,17 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        intent_data = self._get_intent_data(message)
-        weather = self._get_weather(intent_data)
-        if weather is not None:
-            intent_weather = weather.get_weather_for_intent(intent_data)
-            dialog_args = intent_data, self.weather_config, intent_weather
-            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
-            dialog.build_sunrise_dialog()
-            weather_location = self._build_display_location(intent_data)
-            self._display_sunrise_sunset(intent_weather, weather_location)
-            self._speak_weather(dialog)
+        with self.activity():
+            intent_data = self._get_intent_data(message)
+            weather = self._get_weather(intent_data)
+            if weather is not None:
+                intent_weather = weather.get_weather_for_intent(intent_data)
+                dialog_args = intent_data, self.weather_config, intent_weather
+                dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
+                dialog.build_sunrise_dialog()
+                weather_location = self._build_display_location(intent_data)
+                self._display_sunrise_sunset(intent_weather, weather_location)
+                self._speak_weather(dialog)
 
     @intent_handler(
         AdaptIntent()
@@ -591,16 +627,17 @@ class WeatherSkill(MycroftSkill):
         Args:
             message: Message Bus event information from the intent parser
         """
-        intent_data = self._get_intent_data(message)
-        weather = self._get_weather(intent_data)
-        if weather is not None:
-            intent_weather = weather.get_weather_for_intent(intent_data)
-            dialog_args = intent_data, self.weather_config, intent_weather
-            dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
-            dialog.build_sunset_dialog()
-            weather_location = self._build_display_location(intent_data)
-            self._display_sunrise_sunset(intent_weather, weather_location)
-            self._speak_weather(dialog)
+        with self.activity():
+            intent_data = self._get_intent_data(message)
+            weather = self._get_weather(intent_data)
+            if weather is not None:
+                intent_weather = weather.get_weather_for_intent(intent_data)
+                dialog_args = intent_data, self.weather_config, intent_weather
+                dialog = get_dialog_for_timeframe(intent_data.timeframe, dialog_args)
+                dialog.build_sunset_dialog()
+                weather_location = self._build_display_location(intent_data)
+                self._display_sunrise_sunset(intent_weather, weather_location)
+                self._speak_weather(dialog)
 
     def _display_sunrise_sunset(self, forecast: DailyWeather, weather_location: str):
         """Display the sunrise and sunset.
@@ -662,20 +699,30 @@ class WeatherSkill(MycroftSkill):
             self._display_current_conditions(weather, weather_location)
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_weather_dialog()
-            self._speak_weather(dialog)
-            if self.gui.connected and self.platform != MARK_II:
-                self._display_more_current_conditions(weather, weather_location)
+            # self._speak_weather(dialog)
+            weather_text = self.dialog_renderer.render(dialog.name, dialog.data).strip()
+            if not weather_text.endswith("."):
+                weather_text += "."
+
+            # Single page for MVP
+            # if self.gui.connected and self.platform != MARK_II:
+            #     self._display_more_current_conditions(weather, weather_location)
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_high_low_temperature_dialog()
-            self._speak_weather(dialog)
-            if self.gui.connected:
-                if self.platform == MARK_II:
-                    self._display_more_current_conditions(weather, weather_location)
-                    sleep(5)
-                    self._display_hourly_forecast(weather, weather_location)
-                else:
-                    four_day_forecast = weather.daily[1:5]
-                    self._display_multi_day_forecast(four_day_forecast, intent_data)
+            high_low_text = self.dialog_renderer.render(dialog.name, dialog.data)
+
+            # Speak in a single session
+            self.speak(f"{weather_text} {high_low_text}", wait=True)
+
+            # self._speak_weather(dialog)
+            # if self.gui.connected:
+            #     if self.platform == MARK_II:
+            #         self._display_more_current_conditions(weather, weather_location)
+            #         sleep(5)
+            #         self._display_hourly_forecast(weather, weather_location)
+            #     else:
+            #         four_day_forecast = weather.daily[1:5]
+            #         self._display_multi_day_forecast(four_day_forecast, intent_data)
 
     def _display_current_conditions(
         self, weather: WeatherReport, weather_location: str
@@ -767,7 +814,7 @@ class WeatherSkill(MycroftSkill):
             try:
                 forecast = weather.get_forecast_for_hour(intent_data)
             except IndexError:
-                self.speak_dialog("forty-eight.hours.available")
+                self.speak_dialog("forty-eight.hours.available", wait=True)
             else:
                 dialog = HourlyDialog(intent_data, self.weather_config, forecast)
                 dialog.build_weather_dialog()
@@ -849,11 +896,13 @@ class WeatherSkill(MycroftSkill):
             try:
                 forecast = weather.get_forecast_for_multiple_days(days)
             except IndexError:
-                self.speak_dialog("seven.days.available")
+                self.speak_dialog("seven.days.available", wait=True)
                 forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
-            for dialog in dialogs:
+
+            # Single utterance for MVP
+            for dialog in dialogs[:1]:
                 self._speak_weather(dialog)
 
     def _report_weekend_forecast(self, message: Message):
@@ -868,7 +917,9 @@ class WeatherSkill(MycroftSkill):
             forecast = weather.get_weekend_forecast()
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
-            for dialog in dialogs:
+
+            # Single utterance for MVP
+            for dialog in dialogs[:1]:
                 self._speak_weather(dialog)
 
     def _build_forecast_dialogs(
@@ -905,7 +956,9 @@ class WeatherSkill(MycroftSkill):
             dialogs = self._build_weekly_condition_dialogs(forecast, intent_data)
             dialogs.append(self._build_weekly_temperature_dialog(forecast, intent_data))
             self._display_multi_day_forecast(forecast, intent_data)
-            for dialog in dialogs:
+
+            # Single utterance for MVP
+            for dialog in dialogs[:1]:
                 self._speak_weather(dialog)
 
     def _build_weekly_condition_dialogs(
@@ -985,10 +1038,12 @@ class WeatherSkill(MycroftSkill):
         self.gui["dailyForecast"] = dict(days=daily_forecast[:4])
         self.gui["weatherLocation"] = self._build_display_location(intent_data)
         self.gui.show_page(page_name)
-        if len(forecast) > 4:
-            sleep(15)
-            self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
-            self.gui.show_page(page_name)
+
+        # Single page for MVP
+        # if len(forecast) > 4:
+        #     sleep(15)
+        #     self.gui["dailyForecast"] = dict(days=daily_forecast[4:])
+        #     self.gui.show_page(page_name)
 
     def _display_multi_day_scalable(self, forecast: List[DailyWeather]):
         """Display daily forecast data on GUI devices other than the Mark II.
@@ -1014,8 +1069,10 @@ class WeatherSkill(MycroftSkill):
             )
         self.gui["forecast"] = dict(first=display_data[:2], second=display_data[2:])
         self.gui.show_page(page_one_name)
-        sleep(5)
-        self.gui.show_page(page_two_name)
+
+        # Single page for MVP
+        # sleep(5)
+        # self.gui.show_page(page_two_name)
 
     def _report_temperature(self, message: Message, temperature_type: str = None):
         """Handles all requests for a temperature.
@@ -1098,7 +1155,7 @@ class WeatherSkill(MycroftSkill):
         try:
             intent_data = WeatherIntent(message, self.lang)
         except ValueError:
-            self.speak_dialog("cant.get.forecast")
+            self.speak_dialog("cant.get.forecast", wait=True)
         else:
             if self.voc_match(intent_data.utterance, "relative-time"):
                 intent_data.timeframe = HOURLY
@@ -1132,11 +1189,13 @@ class WeatherSkill(MycroftSkill):
             except LocationNotFoundError:
                 self.log.exception("City not found.")
                 self.speak_dialog(
-                    "location-not-found", data=dict(location=intent_data.location)
+                    "location-not-found",
+                    data=dict(location=intent_data.location),
+                    wait=True,
                 )
             except Exception:
                 self.log.exception("Unexpected error retrieving weather")
-                self.speak_dialog("cant-get-forecast")
+                self.speak_dialog("cant-get-forecast", wait=True)
 
         return weather
 
@@ -1149,7 +1208,7 @@ class WeatherSkill(MycroftSkill):
         if exception.response.status_code == 401:
             self.bus.emit(Message("mycroft.not.paired"))
         else:
-            self.speak_dialog("cant.get.forecast")
+            self.speak_dialog("cant.get.forecast", wait=True)
 
     def _determine_weather_location(
         self, intent_data: WeatherIntent

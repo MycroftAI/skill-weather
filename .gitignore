@@ -3,3 +3,4 @@
 settings.json
 .vscode
 .idea/**
+.wh.*
