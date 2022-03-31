@@ -1,1 +1,1 @@
-.*\b(at|in|for) (?P<Location>(?!\bcelsius\b|\bfahrenheit\b) *.+)
+.*\b(at|in|for) (?!a\b)(?!an\b)(?!another\b)(?!the\b)(?P<Location>(?!\bcelsius\b|\bfahrenheit\b) *.+)
