@@ -695,12 +695,14 @@ class WeatherSkill(MycroftSkill):
         intent_data = self._get_intent_data(message)
         weather = self._get_weather(intent_data)
         if weather is not None:
+            dialog_files = list()
             weather_location = self._build_display_location(intent_data)
             self._display_current_conditions(weather, weather_location)
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_weather_dialog()
             # self._speak_weather(dialog)
             weather_text = self.dialog_renderer.render(dialog.name, dialog.data).strip()
+            dialog_files.append(dialog.name)
             if not weather_text.endswith("."):
                 weather_text += "."
 
@@ -710,9 +712,15 @@ class WeatherSkill(MycroftSkill):
             dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
             dialog.build_high_low_temperature_dialog()
             high_low_text = self.dialog_renderer.render(dialog.name, dialog.data)
+            dialog_files.append(dialog.name)
 
             # Speak in a single session
-            self.speak(f"{weather_text} {high_low_text}", wait=True)
+            # Report the dialog files used in speak meta for VK tests.
+            self.speak(
+                f"{weather_text} {high_low_text}",
+                wait=True,
+                meta={"dialog": dialog_files},
+            )
 
             # self._speak_weather(dialog)
             # if self.gui.connected:
