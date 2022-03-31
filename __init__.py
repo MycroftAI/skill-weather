@@ -41,6 +41,7 @@ from .skill import (
     LocationNotFoundError,
     OpenWeatherMapApi,
     WeatherConfig,
+    WeatherDialog,
     WeatherIntent,
     WeatherReport,
     WeeklyDialog,
@@ -698,31 +699,16 @@ class WeatherSkill(MycroftSkill):
             dialog_files = list()
             weather_location = self._build_display_location(intent_data)
             self._display_current_conditions(weather, weather_location)
-            dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
-            dialog.build_weather_dialog()
-            # self._speak_weather(dialog)
-            weather_text = self.dialog_renderer.render(dialog.name, dialog.data).strip()
-            dialog_files.append(dialog.name)
-            if not weather_text.endswith("."):
-                weather_text += "."
-
+            weather_dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
+            weather_dialog.build_weather_dialog()
+            # self._speak_weather(weather_dialog)
             # Single page for MVP
             # if self.gui.connected and self.platform != MARK_II:
             #     self._display_more_current_conditions(weather, weather_location)
-            dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
-            dialog.build_high_low_temperature_dialog()
-            high_low_text = self.dialog_renderer.render(dialog.name, dialog.data)
-            dialog_files.append(dialog.name)
 
-            # Speak in a single session
-            # Report the dialog files used in speak meta for VK tests.
-            self.speak(
-                f"{weather_text} {high_low_text}",
-                wait=True,
-                meta={"dialog": dialog_files},
-            )
-
-            # self._speak_weather(dialog)
+            high_low_dialog = CurrentDialog(intent_data, self.weather_config, weather.current)
+            high_low_dialog.build_high_low_temperature_dialog()
+            # self._speak_weather(high_low_dialog)
             # if self.gui.connected:
             #     if self.platform == MARK_II:
             #         self._display_more_current_conditions(weather, weather_location)
@@ -731,6 +717,9 @@ class WeatherSkill(MycroftSkill):
             #     else:
             #         four_day_forecast = weather.daily[1:5]
             #         self._display_multi_day_forecast(four_day_forecast, intent_data)
+
+            self._speak_multiple_dialogs([weather_dialog, high_low_dialog])
+
 
     def _display_current_conditions(
         self, weather: WeatherReport, weather_location: str
@@ -875,8 +864,7 @@ class WeatherSkill(MycroftSkill):
             dialogs = self._build_forecast_dialogs([forecast], intent_data)
             if self.platform == MARK_II:
                 self._display_one_day_mark_ii(forecast, intent_data)
-            for dialog in dialogs:
-                self._speak_weather(dialog)
+            self._speak_multiple_dialogs(dialogs)
 
     def _display_one_day_mark_ii(
         self, forecast: DailyWeather, intent_data: WeatherIntent
@@ -908,10 +896,7 @@ class WeatherSkill(MycroftSkill):
                 forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
-
-            # Single utterance for MVP
-            for dialog in dialogs[:1]:
-                self._speak_weather(dialog)
+            self._speak_multiple_dialogs(dialogs)
 
     def _report_weekend_forecast(self, message: Message):
         """Handles requests for a weekend forecast.
@@ -925,10 +910,7 @@ class WeatherSkill(MycroftSkill):
             forecast = weather.get_weekend_forecast()
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
-
-            # Single utterance for MVP
-            for dialog in dialogs[:1]:
-                self._speak_weather(dialog)
+            self._speak_multiple_dialogs(dialogs)
 
     def _build_forecast_dialogs(
         self, forecast: List[DailyWeather], intent_data: WeatherIntent
@@ -965,9 +947,7 @@ class WeatherSkill(MycroftSkill):
             dialogs.append(self._build_weekly_temperature_dialog(forecast, intent_data))
             self._display_multi_day_forecast(forecast, intent_data)
 
-            # Single utterance for MVP
-            for dialog in dialogs[:1]:
-                self._speak_weather(dialog)
+            self._speak_multiple_dialogs(dialogs)
 
     def _build_weekly_condition_dialogs(
         self, forecast: List[DailyWeather], intent_data: WeatherIntent
@@ -1245,6 +1225,27 @@ class WeatherSkill(MycroftSkill):
         """
         self.log.info("Speaking dialog: " + dialog.name)
         self.speak_dialog(dialog.name, dialog.data, wait=True)
+
+    def _speak_multiple_dialogs(self, dialogs: WeatherDialog):
+        """Speak multiple dialogs in a single TTS session.
+
+        This has been created for the Mark II MVP as a temporary work around.
+        """
+        dialog_file_names = list()
+        dialog_strings = list()
+        for dialog in dialogs:
+            dialog_file_names.append(dialog.name)
+            dialog_strings.append(self.dialog_renderer.render(dialog.name, dialog.data))
+            if not dialog_strings[-1].endswith("."):
+                dialog_strings[-1] += "."
+
+        # Speak in a single TTS session
+        # Report the dialog files used in speak meta for VK tests.
+        self.speak(
+            " ".join(dialog_strings),
+            wait=True,
+            meta={"dialog": dialog_file_names},
+        )
 
 
 def create_skill():
