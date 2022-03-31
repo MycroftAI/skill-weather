@@ -28,8 +28,9 @@ Feature: Mycroft Weather Skill local daily forecasts
     Given an english speaking user
      When the user says "<multiple day forecast request>"
      Then "mycroft-weather" should reply with dialog that includes "daily-weather-local.dialog"
-     Then "mycroft-weather" should reply with dialog that includes "daily-weather-local.dialog"
-     Then "mycroft-weather" should reply with dialog that includes "daily-weather-local.dialog"
+    #  Single utterance being used for MVP
+    #  Then "mycroft-weather" should reply with dialog that includes "daily-weather-local.dialog"
+    #  Then "mycroft-weather" should reply with dialog that includes "daily-weather-local.dialog"
 
   Examples: what is the forecast for a future date
     | multiple day forecast request |
