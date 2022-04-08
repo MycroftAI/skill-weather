@@ -41,9 +41,8 @@ def convert_to_local_datetime(timestamp: time, timezone: str) -> datetime:
     Returns:
         A datetime in the passed timezone based on the passed timestamp
     """
-    utc_datetime = datetime.utcfromtimestamp(timestamp)
     local_timezone = pytz.timezone(timezone)
-    local_datetime = utc_datetime.astimezone(local_timezone)
+    local_datetime = datetime.fromtimestamp(timestamp, local_timezone)
 
     return local_datetime
 
