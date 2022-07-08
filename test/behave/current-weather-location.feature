@@ -3,7 +3,7 @@ Feature: Mycroft Weather Skill current weather at a specified location
   Scenario Outline: User asks for the current weather in a location
     Given an english speaking user
      When the user says "<what is the current weather in location>"
-     Then "mycroft-weather" should reply with dialog from "current-weather-location.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "current-weather-location.dialog"
 
   Examples: what is the current local weather in a location
     | what is the current weather in location |
@@ -24,7 +24,7 @@ Feature: Mycroft Weather Skill current weather at a specified location
   Scenario Outline: FAILING User asks for the current weather in a location
     Given an english speaking user
      When the user says "<what is the current weather in location>"
-     Then "mycroft-weather" should reply with dialog from "current-weather-location.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "current-weather-location.dialog"
 
   Examples: what is the current local weather in a location
     | what is the current weather in location |
@@ -34,7 +34,7 @@ Feature: Mycroft Weather Skill current weather at a specified location
   Scenario Outline: User asks for the current weather in an unknown location
     Given an english speaking user
      When the user says "<what is the current weather in location>"
-     Then "mycroft-weather" should reply with dialog from "location-not-found.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "location-not-found.dialog"
 
   Examples: what is the current local weather in a location
     | what is the current weather in location |

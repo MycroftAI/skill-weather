@@ -3,7 +3,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: What is the temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the temperature tomorrow>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-local.dialog"
 
   Examples: what is the temperature for tomorrow
     | what is the temperature tomorrow |
@@ -15,7 +15,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: Failing what is the temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the temperature tomorrow>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-local.dialog"
 
   Examples: what is the temperature for tomorrow
     | what is the temperature tomorrow |
@@ -25,7 +25,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the high temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the high temperature tomorrow>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-high-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-high-local.dialog"
 
   Examples: what is the high temperature for tomorrow
     | what is the high temperature tomorrow |
@@ -40,7 +40,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the low temperature for tomorrow
     Given an english speaking user
      When the user says "<what is the low temperature tomorrow>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-low-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-low-local.dialog"
 
   Examples: what is the low temperature for tomorrow
     | what is the low temperature tomorrow |
@@ -54,7 +54,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the temperature for a future date
     Given an english speaking user
      When the user says "<what is the temperature for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-local.dialog"
 
   Examples: what is the temperature for a future date
     | what is the temperature for a future date |
@@ -65,7 +65,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the high temperature for a future date
     Given an english speaking user
      When the user says "<what is the high temperature for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-high-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-high-local.dialog"
 
   Examples: what is the high temperature for a future date
     | what is the high temperature for a future date |
@@ -76,7 +76,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the low temperature for a future date
     Given an english speaking user
      When the user says "<what is the low temperature for a future date>"
-     Then "mycroft-weather" should reply with dialog from "daily-temperature-low-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "daily-temperature-low-local.dialog"
 
   Examples: what is the low temperature for a future date
     | what is the low temperature for a future date |
@@ -87,7 +87,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: what is the temperature at a certain time
     Given an english speaking user
      When the user says "<what is the temperature at a certain time>"
-     Then "mycroft-weather" should reply with dialog from "hourly-temperature-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "hourly-temperature-local.dialog"
 
   Examples: what is the temperature at a certain time
     | what is the temperature at a certain time |
@@ -99,7 +99,7 @@ Feature: Mycroft Weather Skill local forecasted temperatures
   Scenario Outline: Failing - what is the temperature at a certain time
     Given an english speaking user
      When the user says "<Failing what is the temperature at a certain time>"
-     Then "mycroft-weather" should reply with dialog from "hourly-temperature-local.dialog"
+     Then "mycroft-weather" should reply with dialog that includes "hourly-temperature-local.dialog"
 
   Examples: Failing what is the temperature at a certain time
     | Failing what is the temperature at a certain time |
