@@ -14,6 +14,7 @@
 """Parse the device configuration and skill settings to determine the """
 FAHRENHEIT = "fahrenheit"
 CELSIUS = "celsius"
+IMPERIAL = "imperial"
 METRIC = "metric"
 METERS_PER_SECOND = "meters per second"
 MILES_PER_HOUR = "miles per hour"
@@ -67,9 +68,10 @@ class WeatherConfig:
 
     @property
     def temperature_unit(self) -> str:
-        """Use the core configuration to determine the unit of temperature.
+        """Determines the unit of measure for temperature.
 
-        Returns: "celsius" or "fahrenheit"
+        Returns:
+            "celsius" or "fahrenheit"
         """
         unit_from_settings = self.settings.get("units")
         measurement_system = self.core_config["system_unit"]
@@ -84,3 +86,20 @@ class WeatherConfig:
                 temperature_unit = CELSIUS
 
         return temperature_unit
+
+    @property
+    def measurement_system(self) -> str:
+        """Determines the measurement system to use with the weather API.
+
+        Returns:
+            "imperial" or "metric"
+        """
+        unit_from_settings = self.settings.get("units")
+        measurement_system = self.core_config["system_unit"]
+        if unit_from_settings is not None and unit_from_settings != "default":
+            if unit_from_settings.lower() == FAHRENHEIT:
+                measurement_system = IMPERIAL
+            elif unit_from_settings.lower() == CELSIUS:
+                measurement_system = METRIC
+
+        return measurement_system
