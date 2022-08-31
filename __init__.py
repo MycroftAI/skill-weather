@@ -769,7 +769,7 @@ class WeatherSkill(MycroftSkill):
             try:
                 forecast = weather.get_forecast_for_hour(intent_data)
             except IndexError:
-                self.speak_dialog("forty-eight.hours.available")
+                self.speak_dialog("forty-eight-hours-available")
             else:
                 dialog = HourlyDialog(intent_data, self.weather_config, forecast)
                 dialog.build_weather_dialog()
@@ -855,7 +855,7 @@ class WeatherSkill(MycroftSkill):
             try:
                 forecast = weather.get_forecast_for_multiple_days(days)
             except IndexError:
-                self.speak_dialog("seven.days.available")
+                self.speak_dialog("seven-days-available")
                 forecast = weather.get_forecast_for_multiple_days(7)
             dialogs = self._build_forecast_dialogs(forecast, intent_data)
             self._display_multi_day_forecast(forecast, intent_data)
@@ -1104,7 +1104,7 @@ class WeatherSkill(MycroftSkill):
         try:
             intent_data = WeatherIntent(message, self.lang)
         except ValueError:
-            self.speak_dialog("cant.get.forecast")
+            self.speak_dialog("cant-get-forecast")
         else:
             if self.voc_match(intent_data.utterance, "relative-time"):
                 intent_data.timeframe = HOURLY
@@ -1155,7 +1155,7 @@ class WeatherSkill(MycroftSkill):
         if exception.response.status_code == 401:
             self.bus.emit(Message("mycroft.not.paired"))
         else:
-            self.speak_dialog("cant.get.forecast")
+            self.speak_dialog("cant-get-forecast")
 
     def _determine_weather_location(
         self, intent_data: WeatherIntent
