@@ -22,6 +22,8 @@ It also supports returning values in the measurement system (Metric/Imperial)
 provided, precluding us from having to do the conversions.
 
 """
+import sys
+
 from mycroft.api import Api
 from .weather import WeatherReport
 
@@ -126,5 +128,6 @@ class OpenWeatherMapApi(Api):
         api_request = dict(path="/onecall", query=query_parameters)
         response = self.request(api_request)
         local_weather = WeatherReport(response)
-
+        for line in response:
+            sys.stdout.write(str(line))
         return local_weather
