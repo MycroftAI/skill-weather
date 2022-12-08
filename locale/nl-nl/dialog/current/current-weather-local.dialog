@@ -1,4 +1,2 @@
-Het is momenteel {condition} en {temperature} graden {temperature_unit}. Verwachting voor vandaag is een temperatuur tussen de {low_temperature} en {high_temperature} graden.
-Het is momenteel {condition} en {temperature} graden. Verwachting voor vandaag is een temperatuur tussen de {low_temperature} en {high_temperature} graden.
-Het is nu {condition} en {temperature} graden met een maximum van {high_temperature} graden en minimum van {low_temperature} graden.
-Met een maximum van {high_temperature} graden en een minimum van {high_temperature} graden, is het in {location} {condition} en is het momenteel {temperature} graden.
+Het is momenteel {condition} en {temperature} graden {temperature_unit}.
+Het is momenteel {condition} en {temperature} graden.
