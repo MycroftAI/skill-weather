@@ -34,6 +34,7 @@ The skill class will use the "name" and "data" attributes to pass to the TTS pro
 """
 from typing import List, Tuple
 
+from mycroft.dialog import MustacheDialogRenderer
 from mycroft.util.format import join_list, nice_number, nice_time
 from mycroft.util.time import now_local
 from .config import WeatherConfig
@@ -57,11 +58,15 @@ from .weather import (
 class WeatherDialog:
     """Abstract base class for the weather dialog builders."""
 
-    def __init__(self, intent_data: WeatherIntent, config: WeatherConfig):
+    def __init__(self,
+                 intent_data: WeatherIntent,
+                 config: WeatherConfig,
+                 renderer: MustacheDialogRenderer):
         self.intent_data = intent_data
         self.config = config
         self.name = None
         self.data = None
+        self.renderer = renderer
 
     def _add_location(self):
         """Add location information to the dialog."""
@@ -90,19 +95,24 @@ class CurrentDialog(WeatherDialog):
     """Weather dialog builder for current weather."""
 
     def __init__(
-        self, intent_data: WeatherIntent, config: WeatherConfig, weather: CurrentWeather
+        self,
+        intent_data: WeatherIntent,
+        config: WeatherConfig,
+        weather: CurrentWeather,
+        renderer: MustacheDialogRenderer
     ):
-        super().__init__(intent_data, config)
+        super().__init__(intent_data, config, renderer)
         self.weather = weather
         self.name = CURRENT
 
     def build_weather_dialog(self):
         """Build the components necessary to speak current weather."""
         self.name += "-weather"
+        translated_unit = self.renderer.render(self.config.temperature_unit)
         self.data = dict(
             condition=self.weather.condition.description,
             temperature=self.weather.temperature,
-            temperature_unit=self.config.temperature_unit,
+            temperature_unit=translated_unit,
         )
         self._add_location()
 
@@ -128,8 +138,11 @@ class CurrentDialog(WeatherDialog):
             self.data = dict(temperature=self.weather.low_temperature)
         else:
             self.data = dict(temperature=self.weather.temperature)
+
+        translated_unit = self.renderer.render(self.intent_data.unit or
+                                               self.config.temperature_unit)
         self.data.update(
-            temperature_unit=self.intent_data.unit or self.config.temperature_unit
+            temperature_unit=translated_unit
         )
         self._add_location()
 
@@ -178,17 +191,27 @@ class CurrentDialog(WeatherDialog):
     def build_wind_dialog(self):
         """Build the components necessary to speak the wind conditions."""
         wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
+        translated_wind_speed_unit = (
+            self.renderer.render(self.config.speed_unit)
+        )
+        translated_wind_direction = (
+            self.renderer.render(self.weather.wind_direction)
+        )
         self.data = dict(
             speed=nice_number(self.weather.wind_speed),
-            speed_unit=self.config.speed_unit,
-            direction=self.weather.wind_direction,
+            speed_unit=translated_wind_speed_unit,
+            direction=translated_wind_direction,
         )
         self.name += "-wind-" + wind_strength
         self._add_location()
 
     def build_humidity_dialog(self):
         """Build the components necessary to speak the percentage humidity."""
-        self.data = dict(percent=self.weather.humidity)
+        translated_percentage = self.renderer.render(
+            "percentage-number",
+            dict(number=self.weather.humidity)
+        )
+        self.data = dict(percent=translated_percentage)
         self.name += "-humidity"
         self._add_location()
 
@@ -197,9 +220,13 @@ class HourlyDialog(WeatherDialog):
     """Weather dialog builder for hourly weather."""
 
     def __init__(
-        self, intent_data: WeatherIntent, config: WeatherConfig, weather: HourlyWeather
+        self,
+        intent_data: WeatherIntent,
+        config: WeatherConfig,
+        weather: HourlyWeather,
+        renderer: MustacheDialogRenderer
     ):
-        super().__init__(intent_data, config)
+        super().__init__(intent_data, config, renderer)
         self.weather = weather
         self.name = HOURLY
 
@@ -216,10 +243,12 @@ class HourlyDialog(WeatherDialog):
     def build_temperature_dialog(self, _):
         """Build the components necessary to speak the hourly temperature."""
         self.name += "-temperature"
+        translated_unit = self.renderer.render(self.intent_data.unit or
+                                               self.config.temperature_unit)
         self.data = dict(
             temperature=self.weather.temperature,
             time=get_time_period(self.weather.date_time),
-            temperature_unit=self.intent_data.unit or self.config.temperature_unit,
+            temperature_unit=translated_unit
         )
         self._add_location()
 
@@ -245,10 +274,16 @@ class HourlyDialog(WeatherDialog):
     def build_wind_dialog(self):
         """Build the components necessary to speak the wind conditions."""
         wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
+        translated_wind_speed_unit = (
+            self.renderer.render(self.config.speed_unit)
+        )
+        translated_wind_direction = (
+            self.renderer.render(self.weather.wind_direction)
+        )
         self.data = dict(
             speed=nice_number(self.weather.wind_speed),
-            speed_unit=self.config.speed_unit,
-            direction=self.weather.wind_direction,
+            speed_unit=translated_wind_speed_unit,
+            direction=translated_wind_direction,
             time=nice_time(self.weather.date_time),
         )
         self.name += "-wind-" + wind_strength
@@ -261,8 +296,12 @@ class HourlyDialog(WeatherDialog):
             self.data = dict()
         else:
             self.name += "-precipitation-next"
+            translated_percentage = self.renderer.render(
+                "percentage-number",
+                dict(number=self.weather.chance_of_precipitation)
+            )
             self.data = dict(
-                percent=self.weather.chance_of_precipitation,
+                percent=self.translated_percentage,
                 precipitation="rain",
                 day=get_speakable_day_of_week(self.weather.date_time),
                 time=get_time_period(self.weather.date_time),
@@ -274,9 +313,13 @@ class DailyDialog(WeatherDialog):
     """Weather dialog builder for daily weather."""
 
     def __init__(
-        self, intent_data: WeatherIntent, config: WeatherConfig, weather: DailyWeather
+        self,
+        intent_data: WeatherIntent,
+        config: WeatherConfig,
+        weather: DailyWeather,
+        renderer: MustacheDialogRenderer
     ):
-        super().__init__(intent_data, config)
+        super().__init__(intent_data, config, renderer)
         self.weather = weather
         self.name = DAILY
 
@@ -305,9 +348,12 @@ class DailyDialog(WeatherDialog):
             self.data = dict(temperature=self.weather.temperature.low)
         else:
             self.data = dict(temperature=self.weather.temperature.day)
+
+        translated_unit = self.renderer.render(self.intent_data.unit or
+                                               self.config.temperature_unit)
         self.data.update(
             day=get_speakable_day_of_week(self.weather.date_time),
-            temperature_unit=self.intent_data.unit or self.config.temperature_unit,
+            temperature_unit=translated_unit
         )
         self._add_location()
 
@@ -318,8 +364,11 @@ class DailyDialog(WeatherDialog):
 
         :param intent_match: true if intent matches a vocabulary for the condition
         """
+        translated_condition = condition=self.renderer.render(
+            self.weather.condition.description.lower()
+        )
         self.data = dict(
-            condition=self.weather.condition.description.lower(),
+            condition=translated_condition,
             day=get_speakable_day_of_week(self.weather.date_time),
         )
         if intent_match:
@@ -347,19 +396,31 @@ class DailyDialog(WeatherDialog):
     def build_wind_dialog(self):
         """Build the components necessary to speak the wind conditions."""
         wind_strength = self.weather.determine_wind_strength(self.config.speed_unit)
+        translated_wind_speed_unit = (
+            self.renderer.render(self.config.speed_unit)
+        )
+        translated_wind_direction = (
+            self.renderer.render(self.weather.wind_direction)
+        )
         self.data = dict(
             day=get_speakable_day_of_week(self.weather.date_time),
             speed=nice_number(self.weather.wind_speed),
-            speed_unit=self.config.speed_unit,
-            direction=self.weather.wind_direction,
+            speed_unit=translated_wind_speed_unit,
+            direction=translated_wind_direction,
         )
         self.name += "-wind-" + wind_strength
         self._add_location()
 
     def build_humidity_dialog(self):
         """Build the components necessary to speak the percentage humidity."""
+        translated_percentage = self.renderer.render(
+            "percentage-number",
+            dict(number=self.weather.humidity)
+        )
+
         self.data = dict(
-            percent=self.weather.humidity, day=get_speakable_day_of_week(self.weather.date_time)
+            percent=translated_percentage,
+            day=get_speakable_day_of_week(self.weather.date_time)
         )
         self.name += "-humidity"
         self._add_location()
@@ -371,8 +432,12 @@ class DailyDialog(WeatherDialog):
             self.data = dict()
         else:
             self.name += "-precipitation-next"
+            translated_percentage = self.renderer.render(
+                "percentage-number",
+                dict(number=self.weather.chance_of_precipitation)
+            )
             self.data = dict(
-                percent=self.weather.chance_of_precipitation,
+                percent=translated_percentage,
                 precipitation="rain",
                 day=get_speakable_day_of_week(self.weather.date_time),
             )
@@ -387,8 +452,9 @@ class WeeklyDialog(WeatherDialog):
         intent_data: WeatherIntent,
         config: WeatherConfig,
         forecast: List[DailyWeather],
+        renderer: MustacheDialogRenderer
     ):
-        super().__init__(intent_data, config)
+        super().__init__(intent_data, config, renderer)
         self.forecast = forecast
         self.name = "weekly"
 
