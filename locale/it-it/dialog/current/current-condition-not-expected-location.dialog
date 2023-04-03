@@ -1,0 +1,3 @@
+# Informing that an the requested condition is not in the forecast
+No, la previsione è {condition} oggi a {location}
+No, a {location} le previsioni di oggi dicono {condition}
